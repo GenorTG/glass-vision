@@ -31,6 +31,11 @@ object TrackStyle {
 
     fun isThin(d: Detection): Boolean = d.pipeline == TEXT_PIPELINE
 
+    /** A "Mark text areas" box (label = the server's/phone's placeholder "text") is just the box: no chip. */
+    fun hasLabel(d: Detection): Boolean = !(d.pipeline == TEXT_PIPELINE && d.label == MARK_LABEL)
+
+    private const val MARK_LABEL = "text"
+
     /** String.hashCode is specified (stable across runs/devices), unlike identity hashes. */
     private fun positiveHash(s: String): Int = s.hashCode() and 0x7FFF_FFFF
 }

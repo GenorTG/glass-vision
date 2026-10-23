@@ -22,8 +22,12 @@ its weights, which are checked too. Hugging Face files are fetched at a pinned c
 | text | `easyocr/latin_g2.pth` (Latin script, 14 MB) | [JaidedAI/EasyOCR v1.3](https://github.com/JaidedAI/EasyOCR/releases/tag/v1.3) | Apache-2.0 (as above) |
 | text (translation) | `translation/m2m100_418M/*` (1.9 GB: `pytorch_model.bin` fp32 + tokenizer files) — M2M100 418M | [facebook/m2m100_418M @ 55c2e61](https://huggingface.co/facebook/m2m100_418M/tree/55c2e61bbf05dfb8d7abccdc3fae6fc8512fd636) | MIT ([model card](https://huggingface.co/facebook/m2m100_418M/blob/55c2e61bbf05dfb8d7abccdc3fae6fc8512fd636/README.md) `license: mit`; [fairseq M2M-100](https://github.com/facebookresearch/fairseq/tree/main/examples/m2m_100), MIT) |
 
-The Android app uses [Tesseract4Android](https://github.com/adaptech-cz/Tesseract4Android) (Apache-2.0) for on-device OCR.
-Its 41 optional language packs are downloaded individually from [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast)
+The Android app reads text on-device with [Google ML Kit Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2)
+(Latin model bundled in the APK; Chinese, Japanese, Korean and Devanagari models delivered by Google Play services) and
+translates with ML Kit Translation (models downloaded on first use), under the
+[ML Kit terms](https://developers.google.com/ml-kit/terms). For scripts ML Kit can't read it uses
+[Tesseract4Android](https://github.com/adaptech-cz/Tesseract4Android) (Apache-2.0) on ML Kit's line crops.
+Tesseract's 41 optional language packs are downloaded individually from [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast)
 (Apache-2.0), pinned to commit `87416418657359cb625c412a48b6e1d6d41c29bd`; byte lengths and SHA-256 values are in
 `android/app/src/main/java/pl/genor/glassvision/OcrLanguage.kt`. The selected pack is downloaded on first use and
 remains available offline until deleted in Settings → Models on this phone.

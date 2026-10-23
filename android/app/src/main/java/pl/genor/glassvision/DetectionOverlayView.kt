@@ -142,7 +142,7 @@ class DetectionOverlayView @JvmOverloads constructor(
         canvas.drawRect(b.left, b.top, b.right, b.bottom, boxPaint)
 
         if (det.points.isNotEmpty()) drawPoints(canvas, det, content, color, alpha)
-        drawLabel(canvas, det, b, content, color, alpha)
+        if (TrackStyle.hasLabel(det)) drawLabel(canvas, det, b, content, color, alpha)
     }
 
     private fun drawPoints(canvas: Canvas, det: Detection, content: ViewRect, color: Int, alpha: Int) {

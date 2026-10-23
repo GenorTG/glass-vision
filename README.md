@@ -28,11 +28,17 @@ Each recognizer is a pipeline you switch on in the app; several can run at once.
 
 You can run recognition **on the phone instead**: choose **On this phone** in Settings, or tap **Run on this phone**
 on the first screen. Objects, gestures, pose, face detection and OCR run locally; MediaPipe models download from
-Google the first time each feature is enabled. Find-by-text and face naming remain server-only. Phone OCR has
-downloadable Tesseract language packs for 41 languages; choose **OCR language** in the Text card and its pack
-downloads on first use (then works offline). Choose **Translate to** to identify the source language and translate
-offline into one of 40+ targets; ML Kit downloads the required translation model on first use. Translations and
-original OCR text are both shown. On-device mode is slower and uses battery; first model downloads need internet.
+Google the first time each feature is enabled. Find-by-text and face naming remain server-only. Phone OCR uses
+Google ML Kit text recognition (Latin built in; Chinese, Japanese, Korean and Devanagari via Google Play services);
+other scripts (Cyrillic, Arabic, Greek, Hebrew, Thai…) use downloadable Tesseract language packs, 41 in all, chosen
+under **OCR language** in the Text card and downloaded on first use (then offline). Translation runs offline with
+ML Kit into 50+ languages; each translation model downloads on first use. On-device mode is slower and uses battery;
+first model downloads need internet.
+
+**Read text**: with Text (OCR) on, the live view marks where text is. Tap **Read text** above the shutter: the app
+takes a full-resolution photo, reads it (on your server, or on the phone in on-device mode) and opens a sheet with the
+text grouped by sign, its translation, and **Add language** for more translations. Copy and share work from the sheet.
+Prefer the old behaviour of reading every frame? Set **While streaming** to **Read live** in the Text card.
 
 New pipelines appear in the app automatically: the server describes each one (options, actions) when the app
 connects. Some models are **non-commercial only** — see [Model licenses](#model-licenses).

@@ -34,6 +34,9 @@ class TrackStyleTest {
         assertEquals("person 50%", TrackStyle.labelText(d.copy(label = "person", detail = null, conf = 0.5f)))
         assertEquals("STOP 80%", TrackStyle.labelText(d.copy(pipeline = "text", label = "STOP", detail = "STOP", conf = 0.8f)))
         assertTrue(TrackStyle.isThin(d.copy(pipeline = "text")))
+        assertFalse(TrackStyle.hasLabel(d.copy(pipeline = "text", label = "text"))) // a marked text area
+        assertTrue(TrackStyle.hasLabel(d.copy(pipeline = "text", label = "STOP")))
+        assertTrue(TrackStyle.hasLabel(d.copy(label = "text"))) // "text" from another pipeline is a real label
         assertFalse(TrackStyle.isThin(d))
     }
 
