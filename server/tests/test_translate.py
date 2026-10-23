@@ -180,6 +180,7 @@ def test_short_misread_line_follows_its_block(fake):
     # bus.jpg at full size: OCR reads "cerỌ" — Ọ exists only in Vietnamese, so on its own lingua is sure of "vi".
     assert fake.detect_sources(["cerỌ"], LATIN) == ["vi"]
     assert fake.detect_sources(["cerỌ", "emisiones contaminantes"], LATIN, blocks=[0, 0]) == ["es", "es"]
+    assert fake.detect_sources(["cerỌ", "emisiones"], LATIN, blocks=[0, 0]) == ["es", "es"]  # the real read
 
 
 def test_unchanged_output_is_not_a_translation(detectors):

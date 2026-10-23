@@ -312,11 +312,15 @@ class Translator:
 
         out: list[str | None] = []
         for k, text in enumerate(texts):
-            # A short line inside a sign follows the sign: one misread letter makes lingua "sure" of nonsense
-            # ("cerỌ" next to "emisiones" → Vietnamese, because only Vietnamese has Ọ).
-            if blocks is not None and letter_count(text) < SHORT_LETTERS and joined(blocks[k]).sure:
-                out.append(joined(blocks[k]).language)
-                continue
+            # A short line inside a sign follows the rest of the sign: one misread letter makes lingua "sure" of
+            # nonsense ("cerỌ" next to "emisiones" → Vietnamese, because only Vietnamese has Ọ), and it drags the
+            # sign's joined text along, so the line itself is left out of that guess.
+            if blocks is not None and letter_count(text) < SHORT_LETTERS:
+                others = [t for j, t in enumerate(texts) if j != k and blocks[j] == blocks[k]]
+                rest = detector.guess(" ".join(others)) if others else Guess(None, 0.0, False)
+                if rest.sure:
+                    out.append(rest.language)
+                    continue
             guess = detector.guess(text)
             code = guess.language
             if not guess.sure:
