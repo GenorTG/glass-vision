@@ -6,6 +6,7 @@ import pytest
 os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")  # one GPU: a visible pre-SM-7.5 GPU disables cuDNN process-wide
 os.environ.setdefault("YOLO_AUTOINSTALL", "false")
+os.environ.setdefault("DISABLE_ADDMM_CUDA_LT", "1")  # see server/run
 # Tests talk to the in-process app without a token, whatever server/config.env says (an env var beats the file,
 # and empty = unset). Model/data dirs from config.env still apply.
 os.environ["GV_TOKEN"] = ""

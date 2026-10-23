@@ -13,6 +13,8 @@ os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")  # cuda:0 = nvidia-smi 
 # One GPU only: torch disables cuDNN process-wide while any visible GPU is below SM 7.5 (EasyOCR then crashes).
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 os.environ.setdefault("YOLO_AUTOINSTALL", "false")  # never pip-install at runtime (it once replaced torch)
+# torch 2.12 + CUDA 13: cuBLASLt's fused-bias addmm hit "illegal memory access" in EasyOCR's recognizer head (server/run).
+os.environ.setdefault("DISABLE_ADDMM_CUDA_LT", "1")
 
 import uvicorn
 
