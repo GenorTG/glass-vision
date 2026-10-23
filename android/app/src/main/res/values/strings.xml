@@ -143,4 +143,35 @@
     <string name="learn_face_capture">Capture</string>
     <string name="learn_face_selfie">Learning your own face? Use the front camera.</string>
     <string name="learn_face_switch">Switch</string>
+
+    <!-- Read text (still → OCR → translations) -->
+    <string name="read_text">Read text</string>
+    <string name="read_text_busy">Reading…</string>
+    <string name="read_title">Read text</string>
+    <string name="read_thumbnail">The picture that was read, with the text lines marked</string>
+    <string name="read_reading">Reading text…</string>
+    <string name="read_reading_detail">Hold on: the picture is being read at full resolution.</string>
+    <string name="read_failed">Couldn’t read the text</string>
+    <string name="read_retry">Try again</string>
+    <string name="read_capture_failed">Couldn’t take the picture: %1$s</string>
+    <string name="read_no_text">No text found</string>
+    <string name="read_no_text_detail">Move closer so the text fills more of the picture, hold steady, and try again.</string>
+    <string name="read_original">Original</string>
+    <string name="read_original_in">Original · %1$s</string>
+    <string name="read_unchanged">Already in %1$s.</string>
+    <string name="read_translating">Translating…</string>
+    <string name="read_translation_failed">Translation failed: %1$s</string>
+    <string name="read_add_language">Add language</string>
+    <string name="read_add_language_title">Translate into</string>
+    <string name="read_no_languages">No translation languages available: %1$s</string>
+    <string name="read_copy">Copy text</string>
+    <string name="read_share">Share text</string>
+    <string name="read_remove_language">Remove %1$s</string>
+    <string name="read_remove_language_plain">Remove language</string>
+    <string name="read_copied">Text copied</string>
+    <string name="read_low_res">from the preview (lower resolution)</string>
+    <plurals name="read_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
 </resources>

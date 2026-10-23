@@ -38,7 +38,11 @@ sealed interface ServerMessage {
         val device: String,
         val version: String,
         val pipelines: List<PipelineSpec>,
-    ) : ServerMessage
+        /** Optional server capabilities (v3.2: `text_read`); empty for older servers. */
+        val features: Set<String> = emptySet(),
+    ) : ServerMessage {
+        val canReadText: Boolean get() = Protocol.FEATURE_TEXT_READ in features
+    }
 
     data class PipelineStatusChange(
         val pipeline: String,
@@ -88,6 +92,8 @@ sealed interface ServerMessage {
 object Protocol {
     const val VERSION = 3
     const val HEADER_SIZE = 16
+    /** `hello.features` entry: the server answers `POST /text/read` (docs/PROTOCOL.md "Read text"). */
+    const val FEATURE_TEXT_READ = "text_read"
 
     /** 16-byte big-endian header `[u32 seq, i64 client_ts ms, u32 reserved=0]` followed by the JPEG. */
     fun encodeFrame(seq: Long, clientTsMs: Long, jpeg: ByteArray, jpegLength: Int = jpeg.size): ByteArray {
@@ -155,6 +161,9 @@ object Protocol {
                 device = o.optString("device"),
                 version = o.optString("version"),
                 pipelines = o.optJSONArray("pipelines").objects().mapNotNull(::parsePipeline),
+                features = o.optJSONArray("features")
+                    ?.let { arr -> (0 until arr.length()).mapNotNull { arr.opt(it) as? String }.toSet() }
+                    .orEmpty(),
             )
             "pipeline_status" -> ServerMessage.PipelineStatusChange(
                 pipeline = o.getString("pipeline"),

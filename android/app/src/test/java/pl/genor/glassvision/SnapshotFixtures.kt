@@ -179,6 +179,7 @@ object SnapshotFixtures {
         override fun onPauseToggle() = Unit
         override fun onFlipCamera() = Unit
         override fun onTakePhoto() = Unit
+        override fun onReadText() = Unit
         override fun onConnectionSetup() = Unit
     }
 

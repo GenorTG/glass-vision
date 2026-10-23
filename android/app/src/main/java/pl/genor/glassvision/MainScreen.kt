@@ -31,6 +31,8 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         fun onPauseToggle()
         fun onFlipCamera()
         fun onTakePhoto()
+        /** The Read text button (high-resolution still → text sheet). */
+        fun onReadText()
         /** Pill/banner tapped while no server is configured, the token was rejected or the server is offline. */
         fun onConnectionSetup()
     }
@@ -49,6 +51,10 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         val canFlip: Boolean,
         /** Server or on-device: pill/HUD/banner wording; on the phone nothing opens the connection sheet. */
         val mode: ProcessingMode = ProcessingMode.SERVER,
+        /** Show the Read text button ([ReadAvailability.canRead]). */
+        val canReadText: Boolean = false,
+        /** A still is being taken/read: the button waits. */
+        val readingText: Boolean = false,
     )
 
     private val context = root.context
@@ -71,6 +77,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     private val bannerDetail: TextView = root.findViewById(R.id.banner_detail)
     private val pauseButton: ImageButton = root.findViewById(R.id.pause_button)
     private val flipButton: ImageButton = root.findViewById(R.id.flip_button)
+    private val readButton: MaterialButton = root.findViewById(R.id.read_button)
 
     private val chipBg: ColorStateList? = ContextCompat.getColorStateList(context, R.color.mode_chip_bg)
     private val chipStroke: ColorStateList? = ContextCompat.getColorStateList(context, R.color.mode_chip_stroke)
@@ -111,6 +118,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         root.findViewById<View>(R.id.photo_button).setOnClickListener { callbacks.onTakePhoto() }
         pauseButton.setOnClickListener { callbacks.onPauseToggle() }
         flipButton.setOnClickListener { callbacks.onFlipCamera() }
+        readButton.setOnClickListener { callbacks.onReadText() }
     }
 
     fun render(state: State) {
@@ -304,6 +312,9 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     }
 
     private fun renderControls(state: State) {
+        readButton.visibility = if (state.canReadText) View.VISIBLE else View.GONE
+        readButton.isEnabled = !state.readingText
+        readButton.setText(if (state.readingText) R.string.read_text_busy else R.string.read_text)
         pauseButton.setImageResource(if (state.paused) R.drawable.ic_play else R.drawable.ic_pause)
         pauseButton.contentDescription =
             context.getString(if (state.paused) R.string.resume_streaming else R.string.pause_streaming)

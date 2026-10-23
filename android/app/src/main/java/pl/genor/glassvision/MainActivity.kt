@@ -22,7 +22,8 @@ import java.util.concurrent.Executors
  * Wires CameraX ([CameraBinder]) → [FrameAnalyzer] → the active [RecognitionBackend] ([FrameStreamer] to a server,
  * or [LocalBackend] on this phone, swapped by [BackendSwitch] when Settings → Processing changes) → overlay, and
  * the stores/backend state → [MainScreen] (chips, actions, status) and the sheets (connection, settings,
- * per-pipeline, actions); the photo button → [PhotoCapture], result files → [ResultFileSaver]. Owns no UI logic
+ * per-pipeline, actions); the photo button → [PhotoCapture], the Read text button → [ReadTextFlow], result files →
+ * [ResultFileSaver]. Owns no UI logic
  * of its own beyond routing.
  */
 class MainActivity :
@@ -52,6 +53,9 @@ class MainActivity :
     private lateinit var commands: CommandUi
     private lateinit var photos: PhotoCapture
     private lateinit var resultFiles: ResultFileSaver
+    private lateinit var readExecutor: ExecutorService
+    private lateinit var readText: ReadTextFlow
+    private val analysisStill = AnalysisStill()
     private val connectionTester = ConnectionTester()
     private var connectionSheet: ConnectionSheet? = null
 
@@ -126,8 +130,13 @@ class MainActivity :
         )
         camera = CameraBinder(
             this, this, preview, analysisExecutor,
-            newAnalyzer = { FrameAnalyzer({ backends.current }, { settings }, { paused }) },
+            newAnalyzer = { FrameAnalyzer({ backends.current }, { settings }, { paused }, analysisStill) },
             listener = this,
+        )
+        readExecutor = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-read") }
+        readText = ReadTextFlow(
+            this, StillCapture(camera, analysisStill, readExecutor), { backends.current?.textReader },
+            ReadTargets.of(this), readExecutor, onBusyChanged = ::render,
         )
 
         applySettings(store.load())
@@ -169,8 +178,10 @@ class MainActivity :
         store.removeListener(onSettingsChanged)
         pipelineStore.removeListener(onPipelinesChanged)
         catalog.removeListener(onCatalogChanged)
+        readText.dismiss()
         backends.shutdown()
         analysisExecutor.shutdown()
+        readExecutor.shutdownNow()
         mediaExecutor.shutdown() // lets a running save finish
         connectionTester.shutdown()
         updates.shutdown()
@@ -290,6 +301,12 @@ class MainActivity :
                 onFailure = { showMessage(getString(R.string.photo_failed, it.message ?: it.javaClass.simpleName), true) },
             )
         }
+        playFlash()
+    }
+
+    override fun onReadText() {
+        if (readText.busy) return
+        readText.start()
         playFlash()
     }
 
@@ -424,6 +441,10 @@ class MainActivity :
                 facing = facing,
                 canFlip = cameras.size > 1,
                 mode = settings.processing,
+                canReadText = ReadAvailability.canRead(
+                    connection, catalog.specs, pipelineStore.load(), backends.current?.textReader != null,
+                ),
+                readingText = readText.busy,
             )
         )
     }
