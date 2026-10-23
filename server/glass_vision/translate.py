@@ -98,6 +98,7 @@ CONFIDENT = 0.5
 PLAUSIBLE = 0.3
 RATIO = 3.0
 LONG_LETTERS = 20  # a weakly detected line this long is still translated from its best guess
+SHORT_LETTERS = 8  # a line this short takes its block's language when that one is sure (same rule as the phone)
 CACHE_SIZE = 2000
 MAX_BATCH = 32  # lines per generate call
 NUM_BEAMS = 4  # measured on the 3090: 14 sign lines 83 ms greedy vs 109 ms with 4 beams, noticeably better wording
@@ -311,6 +312,11 @@ class Translator:
 
         out: list[str | None] = []
         for k, text in enumerate(texts):
+            # A short line inside a sign follows the sign: one misread letter makes lingua "sure" of nonsense
+            # ("cerỌ" next to "emisiones" → Vietnamese, because only Vietnamese has Ọ).
+            if blocks is not None and letter_count(text) < SHORT_LETTERS and joined(blocks[k]).sure:
+                out.append(joined(blocks[k]).language)
+                continue
             guess = detector.guess(text)
             code = guess.language
             if not guess.sure:

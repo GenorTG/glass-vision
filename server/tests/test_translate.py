@@ -176,6 +176,12 @@ def test_detect_sources_uses_the_block_before_the_whole_frame(fake):
     assert fake.detect_sources(["Uwaga"], LATIN) == [None]  # alone and weak: unknown
 
 
+def test_short_misread_line_follows_its_block(fake):
+    # bus.jpg at full size: OCR reads "cerỌ" — Ọ exists only in Vietnamese, so on its own lingua is sure of "vi".
+    assert fake.detect_sources(["cerỌ"], LATIN) == ["vi"]
+    assert fake.detect_sources(["cerỌ", "emisiones contaminantes"], LATIN, blocks=[0, 0]) == ["es", "es"]
+
+
 def test_unchanged_output_is_not_a_translation(detectors):
     class Echo(FakeTranslator):
         def _generate(self, items, target, model):
