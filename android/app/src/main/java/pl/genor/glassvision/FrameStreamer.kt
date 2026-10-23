@@ -77,6 +77,11 @@ class FrameStreamer(
     private val nextSeq = AtomicLong(0)
     private val nextReq = AtomicLong(1)
 
+    /** Set from a hello that declares `text_read`; cleared whenever the connection (or its endpoint) goes away. */
+    @Volatile private var reader: ServerTextReader? = null
+
+    override val textReader: TextReader? get() = reader
+
     fun start(server: ServerEndpoint) {
         synchronized(lock) {
             endpoint = server
@@ -96,6 +101,7 @@ class FrameStreamer(
             reconnectFuture?.cancel(false)
             reconnectFuture = null
             generation++
+            reader = null
             socket?.close(1000, "client stop")
             socket = null
         }
@@ -116,6 +122,7 @@ class FrameStreamer(
             if (!running) return
             reconnectFuture?.cancel(false)
             generation++
+            reader = null
             socket?.cancel()
             socket = null
             backoffMs = BACKOFF_MIN_MS
@@ -159,6 +166,14 @@ class FrameStreamer(
         val ws = synchronized(lock) { socket.takeIf { state == ConnectionState.CONNECTED } } ?: return null
         val req = nextReq.getAndIncrement()
         return if (ws.send(Protocol.commandJson(req, pipeline, action, args))) req else null
+    }
+
+    /** The text pipeline's current choices, for Read text (the server reads the still with the same script/model). */
+    private fun readOptions(): ReadOptions = synchronized(lock) {
+        val text = specs?.firstOrNull { it.id == TEXT_PIPELINE } ?: return ReadOptions()
+        fun value(key: String) = text.options.firstOrNull { it.key == key }
+            ?.let { (pipelineSettings.optionValue(text, it) as? OptionValue.Str)?.value }
+        ReadOptions(languages = value("languages"), model = value("translation_model"), translateFrom = value("translate_from"))
     }
 
     private fun sendPipelineConfigLocked(ws: WebSocket) {
@@ -249,6 +264,7 @@ class FrameStreamer(
                 synchronized(lock) {
                     specs = msg.pipelines
                     sentPipelines = null
+                    reader = if (msg.canReadText) ServerTextReader(endpoint, ::readOptions) else null
                     socket?.let(::sendPipelineConfigLocked)
                 }
                 listener.onHello(msg)
@@ -287,6 +303,7 @@ class FrameStreamer(
                 // Pipelines follow once hello says which exist (unknown ids would be an `error`).
                 specs = null
                 sentPipelines = null
+                reader = null
                 webSocket.send(Protocol.configJson(conf, imgsz, holdMs))
                 setState(ConnectionState.CONNECTED, endpoint.wsUrl)
             }
@@ -315,6 +332,7 @@ class FrameStreamer(
                 if (!isCurrent()) return
                 generation++ // later callbacks of this socket (onClosed after onClosing) are stale
                 socket = null
+                reader = null
                 outstanding.clear()
                 when (reaction) {
                     ConnectionLoss.Reaction.RECONNECT -> scheduleReconnectLocked(reason)
@@ -327,6 +345,7 @@ class FrameStreamer(
 
     private companion object {
         const val TAG = "FrameStreamer"
+        const val TEXT_PIPELINE = "text"
         const val BACKOFF_MIN_MS = 1000L
         const val BACKOFF_MAX_MS = 5000L
         const val STALL_TIMEOUT_MS = 3000L

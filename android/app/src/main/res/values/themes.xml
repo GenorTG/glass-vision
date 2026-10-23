@@ -114,6 +114,27 @@
         <item name="android:paddingEnd">20dp</item>
     </style>
 
+    <!-- Read text: the camera's second capture button (accent pill above the shutter). -->
+    <style name="Widget.GlassVision.ReadButton" parent="Widget.Material3.Button.Icon">
+        <item name="backgroundTint">@color/gv_primary</item>
+        <item name="android:textColor">@color/gv_on_primary</item>
+        <item name="iconTint">@color/gv_on_primary</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">22dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.LabelLarge</item>
+    </style>
+
+    <!-- 48dp borderless icon button (sheet section headers). -->
+    <style name="Widget.GlassVision.IconButton" parent="">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:tint">@color/gv_on_surface_variant</item>
+    </style>
+
     <style name="Widget.GlassVision.RoundButton" parent="">
         <item name="android:background">@drawable/round_button_bg</item>
         <item name="android:scaleType">center</item>

@@ -14,11 +14,14 @@ class FrameAnalyzer(
     private val backend: () -> RecognitionBackend?,
     private val settings: () -> StreamSettings,
     private val isPaused: () -> Boolean,
+    /** Read text's fallback still: served from the next frame, paused or not. */
+    private val still: AnalysisStill? = null,
 ) : ImageAnalysis.Analyzer {
     private var nextDueUptime = 0L
 
     override fun analyze(image: ImageProxy) {
         try {
+            still?.offer(image)
             maybeSend(image)
         } catch (e: RuntimeException) {
             Log.e(TAG, "frame encode/send failed", e)
