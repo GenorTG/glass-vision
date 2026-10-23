@@ -152,7 +152,8 @@ still never sits in the frame window.
 is applied, `w`/`h` are the upright size; the server reads it at up to 2560 px long side). Query (all optional):
 `languages` = a value of the text pipeline's `languages` option (default: auto-detect among installed scripts),
 `translate_to` = comma-separated language codes (`pl,de`), `translate_from` = code (default: detect per line),
-`model` = a `translation_model` choice. Response:
+`model` = a `translation_model` choice (default: the largest installed model — one read, unlike the live lane, can
+afford it; the same default applies to `/text/translate`). Response:
 
 ```json
 {"w": 4000, "h": 3000, "script": "latin", "ms": {"ocr": 310.2, "translate": 120.5},

@@ -18,7 +18,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from .pipelines.base import OptionSpec
 from .session import PipelineManager, PipelineUnavailable
-from .translate import DEFAULT_MODEL, LANGUAGES, MODELS
+from .translate import DEFAULT_MODEL, LANGUAGES, MODELS, TRANSLATION_DIR
 
 log = logging.getLogger("glass_vision")
 
@@ -35,9 +35,17 @@ def _language_code(value: str, what: str) -> str:
     return value
 
 
+def best_installed_model() -> str:
+    """The largest downloaded translation model. A read is one request, not a per-frame lane: the 1.2B model is as
+    fast as the 418M one once loaded (~0.3 s per sign on the 3090) and fixes most one-word signs
+    ("AUSGANG" → "Exit" instead of "output", "Notausgang 2" → "Emergency Exit 2" instead of "Emergency 2")."""
+    installed = [name for name, spec in MODELS.items() if (TRANSLATION_DIR / spec.dir / "config.json").is_file()]
+    return installed[-1] if installed else DEFAULT_MODEL
+
+
 def _model(value: str | None) -> str:
     if value is None:
-        return DEFAULT_MODEL
+        return best_installed_model()
     if value not in MODELS:
         raise HTTPException(400, f"model must be one of {list(MODELS)}")
     return value

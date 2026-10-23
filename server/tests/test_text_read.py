@@ -73,6 +73,17 @@ def unloaded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestCl
 
 
 # --- no models ----------------------------------------------------------------------------------------------------
+def test_reads_default_to_the_largest_installed_translation_model(tmp_path: Path, monkeypatch) -> None:
+    from glass_vision import text_read
+
+    monkeypatch.setattr(text_read, "TRANSLATION_DIR", tmp_path)
+    assert text_read.best_installed_model() == DEFAULT_MODEL  # nothing installed: the usual default
+    for spec in MODELS.values():
+        (tmp_path / spec.dir).mkdir()
+        (tmp_path / spec.dir / "config.json").write_text("{}")
+        assert text_read.best_installed_model() == next(n for n, s in MODELS.items() if s is spec)
+
+
 def test_languages_list(unloaded: TestClient) -> None:
     languages = unloaded.get("/text/languages").json()["languages"]
     assert {"code": "pl", "name": "Polish"} in languages and {"code": "de", "name": "German"} in languages

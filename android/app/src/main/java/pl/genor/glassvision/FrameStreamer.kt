@@ -168,12 +168,16 @@ class FrameStreamer(
         return if (ws.send(Protocol.commandJson(req, pipeline, action, args))) req else null
     }
 
-    /** The text pipeline's current choices, for Read text (the server reads the still with the same script/model). */
+    /**
+     * The text pipeline's current choices, for Read text (the server reads the still with the same script). No
+     * `model`: the live `translation_model` is tuned for a per-frame lane, while for one read the server picks its
+     * best installed model.
+     */
     private fun readOptions(): ReadOptions = synchronized(lock) {
         val text = specs?.firstOrNull { it.id == TEXT_PIPELINE } ?: return ReadOptions()
         fun value(key: String) = text.options.firstOrNull { it.key == key }
             ?.let { (pipelineSettings.optionValue(text, it) as? OptionValue.Str)?.value }
-        ReadOptions(languages = value("languages"), model = value("translation_model"), translateFrom = value("translate_from"))
+        ReadOptions(languages = value("languages"), translateFrom = value("translate_from"))
     }
 
     private fun sendPipelineConfigLocked(ws: WebSocket) {
