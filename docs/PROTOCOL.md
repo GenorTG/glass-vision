@@ -132,6 +132,44 @@ saves them to the phone gallery; they also stay on the server under `data/captur
            {"name": "pose_on_photo.jpg", "kind": "overlay", "url": "/captures/20261023-101500-123/pose_on_photo.jpg"}]}
 ```
 
+## Read text (v3.2)
+
+Live OCR on every frame is slow and reads small or distant text badly. So the `text` pipeline's live result
+*marks* text areas by default; the user then takes a high-resolution still and the server reads that one image
+once, translating it into any number of languages. All of this is HTTP (same auth as the WebSocket) so a large
+still never sits in the frame window.
+
+- `hello` gains `"features": ["text_read"]` (absent on older servers → the client hides Read).
+- Text pipeline option `live` (choice): `"Mark text areas"` (default; detector only, every track `label` = `"text"`)
+  or `"Read live"` (the old behaviour: recognized text as the label).
+
+`POST /text/read` — body = the upright still as `image/jpeg` (any size; the server reads it at up to 2560 px long
+side). Query (all optional): `languages` = a value of the text pipeline's `languages` option (default: auto-detect),
+`translate_to` = comma-separated language codes (`pl,de`), `translate_from` = code (default: detect per line),
+`model` = a `translation_model` choice. Response:
+
+```json
+{"w": 4000, "h": 3000, "script": "latin", "ms": {"ocr": 310.2, "translate": 120.5},
+ "lines": [{"text": "Ausgang", "conf": 0.93, "box": [0.12, 0.30, 0.41, 0.38], "block": 0, "lang": "de"},
+           {"text": "Notausgang 2", "conf": 0.88, "box": [0.12, 0.40, 0.55, 0.47], "block": 0, "lang": "de"}],
+ "translations": {"pl": ["Wyjście", "Wyjście awaryjne 2"]},
+ "errors": {}}
+```
+
+- `lines` in reading order (top to bottom, then left to right); `box` normalized like `detections`; `block` groups
+  lines that belong together (same sign/paragraph: nearby, similar height); `lang` = detected source code or null.
+- `translations.<code>` aligns with `lines`; an entry is null where the line is not translated (digits only,
+  already in that language, translation failed). A target that failed entirely is absent from `translations` and
+  listed in `errors.<code>` (message). No text found → `lines: []`, still HTTP 200.
+- 400 = not a JPEG / bad query value; 503 = the OCR model could not be loaded (message in `detail`).
+
+`POST /text/translate` — add a language without reading again. Body
+`{"lines": ["Ausgang", "Notausgang 2"], "from": ["de", "de"], "to": "fr", "model": null}`
+(`from` optional, per line, null = detect) → `{"to": "fr", "translations": ["Sortie", "Sortie de secours 2"]}`
+(same null rules).
+
+`GET /text/languages` → `{"languages": [{"code": "pl", "name": "Polish"}, …]}`: targets `translate_to` accepts.
+
 ## Auth (optional, v3.1)
 
 If the server is started with `GV_TOKEN=<secret>`, every request must carry it: WebSocket `ws://host:port/ws?token=<secret>`,
@@ -143,4 +181,5 @@ HTTP `?token=<secret>` or header `Authorization: Bearer <secret>`. Wrong/missing
 - `GET /health` → `{"ok": true, "device": "...", "version": "..."}`
 - `GET /app.apk` → the APK this server distributes; `GET /app/version` → its version + sha256 (in-app updater)
 - `GET /captures/<id>/<file>` → files listed in a `command_result.files`
+- `POST /text/read`, `POST /text/translate`, `GET /text/languages` → see Read text
 - `GET /` → landing page with the APK link

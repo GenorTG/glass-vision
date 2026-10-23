@@ -54,6 +54,9 @@ interface RecognitionBackend {
 
     /** Analysis thread: takes the frame (encode+send or convert+run). True if it was accepted. */
     fun submitFrame(image: ImageProxy, settings: StreamSettings): Boolean
+
+    /** The Read button's backend (docs/PROTOCOL.md "Read text"), or null while unsupported (e.g. an older server). */
+    val textReader: TextReader? get() = null
 }
 
 /**
