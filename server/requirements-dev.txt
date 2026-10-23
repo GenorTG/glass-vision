@@ -1,0 +1,6 @@
+# Tests + lint (on top of the server install).
+pytest==9.1.1
+iniconfig==2.3.1
+pluggy==1.7.0
+Pygments==2.21.0
+ruff==0.16.3

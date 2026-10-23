@@ -1,0 +1,2 @@
+# onnxruntime for NVIDIA + torch cu126 (driver < 580). 1.26 is the last onnxruntime-gpu on PyPI built for CUDA 12.
+onnxruntime-gpu==1.26.0

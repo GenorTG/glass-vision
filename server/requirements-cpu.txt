@@ -1,0 +1,2 @@
+# onnxruntime without CUDA (no NVIDIA GPU, macOS).
+onnxruntime==1.31.0

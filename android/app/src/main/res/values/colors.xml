@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="launcher_background">#FF0F1720</color>
+    <color name="launcher_foreground">#FF38BDF8</color>
+
+    <!-- Material 3 dark scheme, one accent (sky blue, the launcher colour). -->
+    <color name="gv_primary">#FF7DD3FC</color>
+    <color name="gv_on_primary">#FF00344A</color>
+    <color name="gv_primary_container">#FF0B4A66</color>
+    <color name="gv_on_primary_container">#FFC9EEFF</color>
+    <color name="gv_secondary">#FFB6C9D8</color>
+    <color name="gv_on_secondary">#FF20333F</color>
+    <color name="gv_secondary_container">#FF2A3A46</color>
+    <color name="gv_on_secondary_container">#FFD3E5F4</color>
+    <color name="gv_background">#FF0B0E11</color>
+    <color name="gv_surface">#FF111418</color>
+    <color name="gv_on_surface">#FFE2E6EA</color>
+    <color name="gv_surface_variant">#FF3E474F</color>
+    <color name="gv_on_surface_variant">#FFB4BEC7</color>
+    <color name="gv_outline">#FF7F8992</color>
+    <color name="gv_outline_variant">#FF353D44</color>
+    <color name="gv_surface_container_lowest">#FF0C0F12</color>
+    <color name="gv_surface_container_low">#FF171B1F</color>
+    <color name="gv_surface_container">#FF1B2025</color>
+    <color name="gv_surface_container_high">#FF22282E</color>
+    <color name="gv_surface_container_highest">#FF2C3339</color>
+    <color name="gv_error">#FFFFB4AB</color>
+    <color name="gv_on_error">#FF690005</color>
+    <color name="gv_error_container">#FF8C1D18</color>
+    <color name="gv_on_error_container">#FFFFDAD6</color>
+
+    <!-- Translucent chrome over the camera. -->
+    <color name="gv_scrim_glass_strong">#CC101418</color>
+    <color name="gv_glass_stroke">#33FFFFFF</color>
+    <color name="gv_scrim_edge">#B3000000</color>
+    <color name="gv_sheet">#FA161A1E</color>
+
+    <!-- Status semantics (dots, chip states). -->
+    <color name="gv_status_good">#FF4ADE80</color>
+    <color name="gv_status_busy">#FFFBBF24</color>
+    <color name="gv_status_bad">#FFF87171</color>
+    <color name="gv_status_idle">#FF94A3B8</color>
+</resources>

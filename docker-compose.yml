@@ -1,0 +1,55 @@
+# glass-vision server. Settings: copy .env.example to .env and edit it (every variable is documented there).
+#   docker compose up -d                                  # NVIDIA GPU (needs the NVIDIA Container Toolkit)
+#   docker compose --profile cpu up -d glass-vision-cpu   # no GPU (slow)
+#   docker compose logs -f
+# First start downloads ~1.2 GB of models into the `models` volume.
+x-server: &server
+  image: glass-vision:${GV_IMAGE_TAG:-latest}
+  restart: unless-stopped
+  # Compose reads .env next to this file for these ${…} values (shell environment variables win).
+  environment: &env
+    GV_PORT: ${GV_PORT:-8770}
+    GV_TOKEN: ${GV_TOKEN:-}
+    GV_DEVICE: ${GV_DEVICE:-auto}
+    GV_IDLE_UNLOAD_S: ${GV_IDLE_UNLOAD_S:-600}
+    GV_APK_PATH: ${GV_APK_PATH:-}
+    GV_SKIP_MODEL_DOWNLOAD: ${GV_SKIP_MODEL_DOWNLOAD:-0}
+  # Host side defaults to 127.0.0.1 (this machine only). Set GV_BIND in .env to your LAN or Tailscale IP so the
+  # phone can reach it — never forward this port to the internet.
+  ports:
+    - "${GV_BIND:-127.0.0.1}:${GV_PORT:-8770}:${GV_PORT:-8770}"
+  volumes:
+    - models:/models
+    - data:/data
+
+services:
+  glass-vision:
+    <<: *server
+    build:
+      context: .
+      args:
+        TORCH_VARIANT: ${GV_TORCH_VARIANT:-cu130}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  glass-vision-cpu:
+    <<: *server
+    profiles: [cpu]
+    image: glass-vision:${GV_IMAGE_TAG:-latest}-cpu
+    build:
+      context: .
+      args:
+        TORCH_VARIANT: cpu
+        BASE_IMAGE: ubuntu:24.04
+    environment:
+      <<: *env
+      GV_DEVICE: cpu
+
+volumes:
+  models:
+  data:

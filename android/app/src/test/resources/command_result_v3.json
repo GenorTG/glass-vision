@@ -1,0 +1,1 @@
+{"type":"command_result","req":7,"pipeline":"faces","action":"list","ok":true,"message":"No known faces yet","items":[],"item_action":{"id":"delete","label":"Forget","confirm":true}}

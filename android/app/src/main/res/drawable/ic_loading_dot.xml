@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chip icon while a pipeline loads: amber dot (pulsed by MainScreen). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    <path android:fillColor="#40FBBF24" android:pathData="M8,2a6,6 0,1 1,0 12a6,6 0,1 1,0 -12z" />
+    <path android:fillColor="@color/gv_status_busy" android:pathData="M8,4.5a3.5,3.5 0,1 1,0 7a3.5,3.5 0,1 1,0 -7z" />
+</vector>

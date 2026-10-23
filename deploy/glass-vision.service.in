@@ -1,0 +1,22 @@
+# glass-vision server as a systemd --user service. Template: scripts/install.sh fills @SERVER_DIR@ and writes the
+# result to ~/.config/systemd/user/glass-vision.service. Settings live in @SERVER_DIR@/config.env (GV_HOST, GV_PORT,
+# GV_TOKEN, …) and are read by the server itself, so changing them needs only a restart:
+#   systemctl --user restart glass-vision      journalctl --user -u glass-vision -f
+# Start at boot without logging in: loginctl enable-linger "$USER"
+[Unit]
+Description=glass-vision recognition server
+# Binding a Tailscale/LAN address fails until the interface is up; Restart= retries.
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+WorkingDirectory=@SERVER_DIR@
+ExecStart=@SERVER_DIR@/run -m glass_vision
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

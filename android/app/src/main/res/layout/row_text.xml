@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- No hint animation: fields open pre-filled, and the collapse animation would otherwise run on every sheet
+     open (Paparazzi even captures its first frame: label drawn over the value). -->
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/row_text_layout"
+    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:hintAnimationEnabled="false">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/row_text_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:imeOptions="actionDone"
+        android:singleLine="true" />
+</com.google.android.material.textfield.TextInputLayout>

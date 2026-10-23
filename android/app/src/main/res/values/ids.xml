@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- View.setTag keys -->
+    <item name="tag_chip_visual" type="id" />
+    <item name="tag_chip_pulse" type="id" />
+</resources>

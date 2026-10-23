@@ -1,0 +1,17 @@
+# Only VERSION, scripts/download_models.py, deploy/docker-entrypoint.sh, server/requirements*.txt,
+# server/glass_vision and server/tools are copied (see Dockerfile); keep everything else out of the build context.
+.git
+.github
+android
+docs
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+server/.venv
+server/.venv.old-*
+server/models
+server/data
+server/config.env
+server/tests
+.env
+*.apk

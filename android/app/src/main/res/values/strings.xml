@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Glass Vision</string>
+    <string name="settings">Settings</string>
+    <string name="pause_streaming">Pause streaming</string>
+    <string name="resume_streaming">Resume streaming</string>
+    <string name="switch_to_front_camera">Switch to front camera</string>
+    <string name="switch_to_back_camera">Switch to back camera</string>
+    <string name="status_details">Connection details</string>
+    <string name="camera_permission_denied">Camera permission is required to stream frames.</string>
+
+    <!-- Photo button + files from the server -->
+    <string name="take_photo">Take a photo with the boxes</string>
+    <string name="photo_saved">Saved to gallery</string>
+    <string name="photo_failed">Photo not saved: %1$s</string>
+    <string name="open_media">Open</string>
+    <string name="storage_permission_denied">Storage permission is needed to save to the gallery.</string>
+    <plurals name="files_saved">
+        <item quantity="one">Saved %d file</item>
+        <item quantity="other">Saved %d files</item>
+    </plurals>
+    <string name="files_partly_saved">Not all files saved (%1$d of %2$d): %3$s</string>
+    <string name="files_failed">Files not saved: %1$s</string>
+
+    <!-- Server connection (first-run sheet + Settings → Connection) -->
+    <string name="connection_title">Connect to your server</string>
+    <string name="connection_intro">Glass Vision sends your camera to a glass-vision server you run (on your PC, home server or VPS) and draws what it recognizes. Enter that server’s address.</string>
+    <string name="connection_address">Server address</string>
+    <string name="connection_address_placeholder">192.168.1.50:8770</string>
+    <string name="connection_address_help">IP or host name, optionally with :port or a full http(s):// or ws(s):// URL</string>
+    <string name="connection_connects_to">Connects to %1$s</string>
+    <string name="connection_token">Access token (optional)</string>
+    <string name="connection_token_help">Only if the server was started with GV_TOKEN</string>
+    <string name="connection_test">Test connection</string>
+    <string name="connection_connect">Connect</string>
+    <string name="connection_testing">Testing…</string>
+    <string name="connection_ok">Server found: %1$s</string>
+    <string name="connection_wrong_token">Server found (%1$s), but it rejected the access token.</string>
+    <string name="connection_needs_token">Server found (%1$s); it needs an access token.</string>
+    <string name="connection_not_glass_vision">Something answered, but not a glass-vision server (%1$s).</string>
+    <string name="connection_unreachable">Can’t reach the server: %1$s</string>
+    <string name="connection_invalid">Enter an address like 192.168.1.50 or 192.168.1.50:8770</string>
+    <string name="connection_rejected">The server rejected the access token. Check it and connect again.</string>
+
+    <!-- Main screen: chip row placeholders -->
+    <string name="banner_connecting">Connecting to server…</string>
+    <string name="banner_offline">Offline — can’t reach the server</string>
+    <string name="banner_not_configured">Tap to connect to your server</string>
+    <string name="banner_unauthorized">Wrong access token — tap to fix</string>
+    <string name="banner_waiting">Waiting for the server…</string>
+    <string name="banner_no_pipelines">The server offers no recognizers</string>
+    <string name="chip_tune">%1$s options</string>
+    <string name="chip_enabled">%1$s on</string>
+    <string name="chip_disabled">%1$s off</string>
+    <string name="pipeline_error_message">%1$s: %2$s</string>
+
+    <!-- Settings sheet -->
+    <string name="settings_section_recognition">RECOGNITION</string>
+    <string name="settings_section_camera">CAMERA</string>
+    <string name="settings_section_detection">DETECTION</string>
+    <string name="settings_section_stream">STREAM</string>
+    <string name="settings_section_connection">CONNECTION</string>
+    <string name="settings_section_app">APP</string>
+    <string name="settings_camera">Streaming camera</string>
+    <string name="settings_camera_back">Back</string>
+    <string name="settings_camera_front">Front</string>
+    <string name="settings_target_fps">Frames per second</string>
+    <string name="settings_window">Frames in flight</string>
+    <string name="settings_send_size">Send resolution (long side)</string>
+    <string name="settings_jpeg_quality">JPEG quality</string>
+    <string name="settings_confidence">Confidence threshold</string>
+    <string name="settings_smoothing">Smooth boxes (tracking)</string>
+    <string name="settings_smoothing_detail">Draw tracked boxes instead of raw per-frame detections</string>
+    <string name="settings_hold">Keep missed objects for</string>
+    <string name="settings_imgsz">Model input size</string>
+    <string name="settings_glide">Box glide</string>
+    <string name="settings_ms">%1$d ms</string>
+    <string name="settings_px">%1$d px</string>
+    <string name="settings_reset">Reset defaults</string>
+    <string name="settings_version">Glass Vision v%1$s</string>
+    <string name="settings_version_detail">Updates install from the server you are connected to.</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string-array name="settings_glide_options">
+        <item>Off</item>
+        <item>Smooth</item>
+        <item>Extra</item>
+    </string-array>
+
+    <!-- In-app updates -->
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_message">v%1$s is on the server (installed: v%2$s, %3$.1f MB). Download and install?</string>
+    <string name="update_install">Update</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading v%1$s…</string>
+    <string name="update_up_to_date">Up to date (v%1$s)</string>
+    <string name="update_check_failed">Update check failed: %1$s</string>
+    <string name="update_failed">Update failed: %1$s</string>
+    <string name="update_permission_title">Allow app updates</string>
+    <string name="update_permission_message">Android needs your OK once: allow Glass Vision to install apps, then come back and the update continues.</string>
+    <string name="update_open_settings">Open settings</string>
+
+    <!-- Recognition (pipeline cards, built from hello) -->
+    <string name="recognition_not_connected">Connect to the server to see recognition options.</string>
+    <string name="recognition_empty">The server offers no recognizers.</string>
+    <string name="recognition_defaults">Defaults</string>
+    <string name="recognition_status_loading">Loading…</string>
+    <string name="recognition_status_ready">Ready</string>
+    <string name="recognition_status_off">Off</string>
+    <string name="recognition_status_error">Error: %1$s</string>
+    <string name="recognition_status_error_plain">Error</string>
+    <string name="recognition_interval">Runs every %1$d ms in the background</string>
+    <string name="recognition_apply">Apply</string>
+
+    <!-- Actions + results -->
+    <string name="command_cancel">Cancel</string>
+    <string name="command_not_connected">Not connected to the server</string>
+    <string name="command_ok">%1$s: done</string>
+    <string name="command_failed">%1$s: failed</string>
+    <string name="command_sent">Sending…</string>
+    <string name="action_sheet_title">%1$s · %2$s</string>
+    <string name="item_confirm_title">%1$s “%2$s”?</string>
+    <string name="item_confirm_message">This cannot be undone.</string>
+    <string name="learn_face_tip">Look straight at the camera with your face well lit. Capture 3–5 angles (slightly left, right, up) for reliable recognition.</string>
+    <string name="learn_face_capture">Capture</string>
+    <string name="learn_face_selfie">Learning your own face? Use the front camera.</string>
+    <string name="learn_face_switch">Switch</string>
+</resources>

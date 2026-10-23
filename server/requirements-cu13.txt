@@ -1,0 +1,2 @@
+# onnxruntime for NVIDIA + torch cu130/cu132 (ORT >= 1.28 links CUDA 13: libcudart.so.13, libcublas.so.13).
+onnxruntime-gpu==1.31.0

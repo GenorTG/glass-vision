@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Eye in a detection box. 108dp adaptive canvas, content inside the 72dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="@color/launcher_foreground"
+        android:strokeWidth="3"
+        android:pathData="M34,34h40v40h-40z" />
+    <path
+        android:fillColor="@color/launcher_foreground"
+        android:pathData="M54,44c-8,0 -14,6 -17,10c3,4 9,10 17,10s14,-6 17,-10c-3,-4 -9,-10 -17,-10zM54,59a5,5 0,1 1,0 -10a5,5 0,1 1,0 10z" />
+</vector>

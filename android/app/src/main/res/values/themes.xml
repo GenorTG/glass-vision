@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark only: a camera app over a live preview. -->
+    <style name="Theme.GlassVision" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/gv_primary</item>
+        <item name="colorOnPrimary">@color/gv_on_primary</item>
+        <item name="colorPrimaryContainer">@color/gv_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/gv_on_primary_container</item>
+        <item name="colorSecondary">@color/gv_secondary</item>
+        <item name="colorOnSecondary">@color/gv_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/gv_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/gv_on_secondary_container</item>
+        <item name="android:colorBackground">@color/gv_background</item>
+        <item name="colorOnBackground">@color/gv_on_surface</item>
+        <item name="colorSurface">@color/gv_surface</item>
+        <item name="colorOnSurface">@color/gv_on_surface</item>
+        <item name="colorSurfaceVariant">@color/gv_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/gv_on_surface_variant</item>
+        <item name="colorOutline">@color/gv_outline</item>
+        <item name="colorOutlineVariant">@color/gv_outline_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/gv_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/gv_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/gv_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/gv_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/gv_surface_container_highest</item>
+        <item name="colorError">@color/gv_error</item>
+        <item name="colorOnError">@color/gv_on_error</item>
+        <item name="colorErrorContainer">@color/gv_error_container</item>
+        <item name="colorOnErrorContainer">@color/gv_on_error_container</item>
+
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.GlassVision.BottomSheetDialog</item>
+    </style>
+
+    <!-- The sheet content draws its own rounded surface (sheet_bg), so Paparazzi snapshots of the content
+         look exactly like the dialog; the dialog's own background is transparent. -->
+    <style name="ThemeOverlay.GlassVision.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.GlassVision.BottomSheet</item>
+        <item name="android:navigationBarColor">@color/gv_sheet</item>
+    </style>
+
+    <style name="Widget.GlassVision.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@android:color/transparent</item>
+    </style>
+
+    <!-- Text -->
+    <style name="TextAppearance.GlassVision.SectionHeader" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:letterSpacing">0.06</item>
+    </style>
+
+    <!-- Settings sheet -->
+    <style name="Widget.GlassVision.SettingsSection" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="Widget.GlassVision.SettingsHeader" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.GlassVision.SectionHeader</item>
+    </style>
+
+    <style name="Widget.GlassVision.SettingsGroup" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/settings_group_bg</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+
+    <style name="Widget.GlassVision.Segment" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/segment_bg</item>
+        <item name="android:textColor">@color/segment_text</item>
+        <item name="strokeColor">@color/segment_stroke</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <!-- Main screen chrome -->
+    <style name="Widget.GlassVision.ModeChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/mode_chip_bg</item>
+        <item name="chipStrokeColor">@color/mode_chip_stroke</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">@color/mode_chip_text</item>
+        <item name="chipMinHeight">40dp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="chipIconSize">16dp</item>
+        <item name="chipIconTint">@null</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="closeIconTint">@color/mode_chip_text</item>
+        <item name="closeIconSize">18dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.LabelLarge</item>
+        <item name="ensureMinTouchTargetSize">true</item>
+    </style>
+
+    <style name="Widget.GlassVision.ActionPill" parent="Widget.Material3.Button.TonalButton">
+        <item name="backgroundTint">@color/gv_scrim_glass_strong</item>
+        <item name="android:textColor">@color/gv_on_surface</item>
+        <item name="iconTint">@color/gv_primary</item>
+        <item name="strokeColor">@color/gv_glass_stroke</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">20dp</item>
+    </style>
+
+    <style name="Widget.GlassVision.RoundButton" parent="">
+        <item name="android:background">@drawable/round_button_bg</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:tint">@color/gv_on_surface</item>
+    </style>
+</resources>

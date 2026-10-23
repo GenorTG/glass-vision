@@ -1,0 +1,23 @@
+[project]
+name = "glass-vision-server"
+dynamic = ["version"]  # repo-root VERSION
+description = "Phone camera → your own GPU server → live recognition overlay (server side)"
+requires-python = ">=3.11,<3.13"
+# Exact pins + install order live in requirements*.txt and scripts/install.sh (torch comes from the PyTorch index).
+dependencies = [
+    "torch==2.12.0",
+    "torchvision==0.27.0",
+    "ultralytics==8.4.183",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.30",
+    "websockets>=12",
+    "lap>=0.5.12",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+markers = ["gpu: needs a CUDA GPU (auto-skipped without one, see tests/conftest.py)"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = [".venv", "models", "data"]

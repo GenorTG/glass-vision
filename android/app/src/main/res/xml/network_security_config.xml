@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Self-hosted servers usually speak plain ws:// / http:// on a LAN or VPN (e.g. Tailscale/WireGuard);
+     wss:// / https:// work too when the server sits behind a TLS reverse proxy. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" tools:ignore="InsecureBaseConfiguration"
+        xmlns:tools="http://schemas.android.com/tools" />
+</network-security-config>

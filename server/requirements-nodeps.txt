@@ -1,0 +1,12 @@
+# Installed with `--no-deps` (their real dependencies are pinned in requirements.txt). Why (AGENTS.md Gotchas):
+# - ultralytics / ultralytics-thop / easyocr / clip depend on torch + torchvision: resolving them could replace the
+#   CUDA build installed from the PyTorch index with a different one from PyPI.
+# - mediapipe depends on opencv-contrib-python, which would shadow opencv-python's `cv2`.
+# - insightface depends on CPU `onnxruntime`, which overwrites onnxruntime-gpu's files (CUDA silently gone).
+ultralytics==8.4.183
+ultralytics-thop==2.2.3
+easyocr==1.7.2
+mediapipe==1.1.1
+insightface==2.1
+# Tokenizer for YOLOE's MobileCLIP text encoder (ultralytics imports `clip`; same commit ultralytics installs).
+clip @ https://github.com/ultralytics/CLIP/archive/7ffa84b3bfa40c42ecc1c77147a855e69cb2dd40.zip

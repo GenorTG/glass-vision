@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chip icon for a pipeline in error: red dot with a ring. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    <path android:fillColor="@color/gv_status_bad" android:pathData="M8,3a5,5 0,1 1,0 10a5,5 0,1 1,0 -10z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M7.25,5h1.5v4h-1.5zM7.25,10h1.5v1.5h-1.5z" />
+</vector>

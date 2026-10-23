@@ -1,0 +1,118 @@
+name: Release
+
+# Push a tag `v*` → signed release APK, sidecar version json, SHA256SUMS, ClamAV + (optional) VirusTotal scan,
+# GitHub release. Repository secrets:
+#   GV_KEYSTORE_B64       base64 of the release keystore (base64 -w0 release.jks)
+#   GV_KEYSTORE_PASSWORD, GV_KEY_ALIAS, GV_KEY_PASSWORD
+#   VT_API_KEY            optional: VirusTotal API key (the scan is skipped with a note without it)
+# Repository variable (optional): VT_MAX_MALICIOUS — engines allowed to say "malicious" before the release fails [2].
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # create the release
+    env:
+      VT_API_KEY: ${{ secrets.VT_API_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Build signed release APK
+        working-directory: android
+        env:
+          GV_KEYSTORE_B64: ${{ secrets.GV_KEYSTORE_B64 }}
+          GV_KEYSTORE_PASSWORD: ${{ secrets.GV_KEYSTORE_PASSWORD }}
+          GV_KEY_ALIAS: ${{ secrets.GV_KEY_ALIAS }}
+          GV_KEY_PASSWORD: ${{ secrets.GV_KEY_PASSWORD }}
+        run: |
+          test -n "$GV_KEYSTORE_B64" || { echo "::error::secret GV_KEYSTORE_B64 is not set"; exit 1; }
+          export GV_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+          printf '%s' "$GV_KEYSTORE_B64" | base64 -d > "$GV_KEYSTORE_FILE"
+          ./gradlew --no-daemon testDebugUnitTest assembleRelease
+          rm -f "$GV_KEYSTORE_FILE"
+
+      - name: Package (rename, sidecar, SHA256SUMS)
+        id: pkg
+        run: |
+          out=android/app/build/outputs/apk/release
+          meta="$out/output-metadata.json"
+          read -r app_id code name file < <(python3 -c '
+          import json, sys
+          m = json.load(open(sys.argv[1])); e = m["elements"][0]
+          print(m["applicationId"], e["versionCode"], e["versionName"], e["outputFile"])' "$meta")
+          mkdir dist
+          apk="glass-vision-$name.apk"
+          cp "$out/$file" "dist/$apk"
+          sha=$(sha256sum "dist/$apk" | cut -d' ' -f1)
+          printf '{"application_id": "%s", "version_code": %s, "version_name": "%s", "sha256": "%s"}\n' \
+            "$app_id" "$code" "$name" "$sha" > "dist/$apk.json"
+          (cd dist && sha256sum "$apk" "$apk.json" > SHA256SUMS)
+          cat dist/SHA256SUMS
+          { echo "apk=$apk"; echo "version=$name"; echo "sha256=$sha"; } >> "$GITHUB_OUTPUT"
+
+      - name: ClamAV scan (fails on any detection)
+        id: clamav
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq clamav >/dev/null
+          sudo systemctl stop clamav-freshclam 2>/dev/null || true
+          sudo freshclam --stdout | tail -n 5
+          set +e
+          clamscan --infected --stdout dist/ | tee clamscan.txt
+          status=${PIPESTATUS[0]}
+          set -e
+          db=$(sigtool --info /var/lib/clamav/daily.c[lv]d 2>/dev/null | sed -n 's/^Version: //p' | head -n1)
+          infected=$(sed -n 's/^Infected files: //p' clamscan.txt)
+          echo "summary=ClamAV $(clamscan --version | cut -d/ -f1 | sed 's/ClamAV //') (daily db ${db:-?}): ${infected:-?} infected files" >> "$GITHUB_OUTPUT"
+          if [ "$status" -ne 0 ]; then echo "::error::ClamAV exit $status (1 = detection, 2 = error)"; exit 1; fi
+
+      - name: VirusTotal scan
+        id: vt
+        if: env.VT_API_KEY != ''
+        run: |
+          set +e
+          summary=$(python3 scripts/virustotal_scan.py "dist/${{ steps.pkg.outputs.apk }}" --max-malicious "${{ vars.VT_MAX_MALICIOUS || 2 }}")
+          status=$?
+          set -e
+          echo "$summary"
+          echo "summary=$summary" >> "$GITHUB_OUTPUT"
+          exit $status
+
+      - name: Release notes
+        env:
+          VT_SUMMARY: ${{ steps.vt.outputs.summary }}
+          CLAM_SUMMARY: ${{ steps.clamav.outputs.summary }}
+        run: |
+          {
+            echo "## glass-vision ${{ steps.pkg.outputs.version }}"
+            echo
+            echo "Install the APK on your phone, or let your server hand it out: \`scripts/fetch_release_apk.py\` /"
+            echo "\`scripts/install.sh --apk\` put it in the server's data dir, and the app updates itself from there."
+            echo
+            echo "| file | sha256 |"
+            echo "|---|---|"
+            while read -r sum name; do echo "| \`$name\` | \`$sum\` |"; done < dist/SHA256SUMS
+            echo
+            echo "### Malware scans"
+            echo "- $CLAM_SUMMARY"
+            if [ -n "$VT_SUMMARY" ]; then echo "- $VT_SUMMARY"; else echo "- VirusTotal: not run (no VT_API_KEY secret configured)"; fi
+          } > notes.md
+          cat notes.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "glass-vision ${{ steps.pkg.outputs.version }}" --notes-file notes.md --verify-tag

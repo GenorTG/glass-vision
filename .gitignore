@@ -1,0 +1,14 @@
+server/.venv/
+server/models/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+server/data/
+server/config.env
+server/config.env.new
+.env
+server/.venv.old-*/
+
+# Host-specific notes (never published)
+*.local.md
+server/tests/data/
