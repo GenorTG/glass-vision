@@ -230,10 +230,10 @@ class TextPipeline(Pipeline):
             candidates = [GROUPS[selected]]
         elif probing:
             candidates = available
-        elif cached is not None:
-            candidates = [cached]
         else:
-            candidates = []
+            # Between probes: the script found last time, or Latin while nothing has been found yet (a camera that
+            # starts on a wall must still read the first sign it sees, not wait for the next probe).
+            candidates = [cached or DEFAULT_GROUP]
 
         best_group = candidates[0] if candidates else DEFAULT_GROUP
         best: list[Annotation] = []
@@ -253,7 +253,8 @@ class TextPipeline(Pipeline):
                 best_group, best, best_score = group, annotations, score
 
         # A cached recognizer that has gone blank likely saw another script. Probe the alternatives immediately.
-        if auto and cached is not None and not probing and best_score <= 0:
+        fallback_probe = auto and cached is not None and not probing and best_score <= 0
+        if fallback_probe:
             for group in available:
                 if group is cached:
                     continue
@@ -275,7 +276,10 @@ class TextPipeline(Pipeline):
                     self._auto_probe_after = now + AUTO_REPROBE_S
             else:
                 self._auto_group_key = None
-                self._auto_probe_after = now + AUTO_RETRY_S
+                # Only a probe that actually ran resets the retry clock; pushing it on every blank Latin run would
+                # postpone the next probe forever (OCR went permanently blank after one textless frame).
+                if probing or fallback_probe:
+                    self._auto_probe_after = now + AUTO_RETRY_S
         if auto and not best:
             # Latin is always installed by the normal server setup; preserve its clear empty result if every
             # optional recognizer failed to initialize.

@@ -152,6 +152,21 @@ def test_legacy_language_values(pipeline):
     assert set(pipeline._readers) == {"latin"}
 
 
+def test_auto_reads_a_sign_after_a_blank_start(pipeline):
+    """A phone that starts on a wall: the first auto probe finds nothing, the next frames show a sign. Regression:
+    every blank run postponed the next probe, so auto mode never read anything for the rest of the connection."""
+    pipeline._auto_group_key, pipeline._auto_probe_after = None, 0.0
+    blank = np.full((H, W, 3), 255, np.uint8)
+    img, drawn = make_sign()
+    auto = ctx(languages=TextPipeline.info.options[0].default)
+    assert pipeline.run(blank, auto) == []
+    for _ in range(3):  # well inside the retry window: no probe is due
+        assert pipeline.run(blank, auto) == []
+    anns = pipeline.run(img, auto)
+    assert similar(read_region(anns, drawn["GLASS VISION"]), "GLASS VISION") >= 0.8, anns
+    assert pipeline._auto_group_key == DEFAULT_GROUP.key
+
+
 @pytest.mark.parametrize("group", SCRIPT_GROUPS, ids=lambda g: g.key)
 def test_every_script_group_builds(pipeline, group):
     if not (EASYOCR_DIR / group.model_file).is_file():
