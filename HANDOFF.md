@@ -22,7 +22,8 @@ Project status for the next contributor (human or agent). Host-specific notes: `
 - Server: 214 tests with a GPU (168 + 46 skipped without), ruff clean. Live e2e: all pipelines, multilingual OCR/translation, face enroll/recognize/forget, pose capture + file download.
 - App: 101 JVM tests incl. Paparazzi snapshots (`android/app/src/test/snapshots/images/`), lint 0 errors.
 - On-device mode and local translation: debug APK builds; Android lint clean. Emulator harness itself was verified, but this feature build has not yet been exercised in the emulator or on a phone.
-- OCR: server offers auto-detection across installed script models; phone pack-based OCR and language auto-detection have not yet been exercised on a physical phone. Phone auto-detection depends on readable text from the initial English OCR pass, so other scripts may need an explicit language selection.
+- OCR: server auto-detection across installed script models. Fixed in 0.6.0.9: one textless frame (camera starting on a wall) used to blank auto mode for the whole connection; live-verified with wall-then-sign frames.
+- **Phone OCR does not work on camera frames** (reported on a device 2026-10-23). Tesseract `PSM_AUTO` is a document engine: on a 960 px street photo (`bus.jpg`) it returns `re` where EasyOCR reads "cero emisiones". Proposed fix: ML Kit Text Recognition v2 (built for live scene text; Latin/CJK/Devanagari) for detection + reading, Tesseract only on detected line crops for scripts ML Kit lacks.
 - Confirmed on a real phone: streaming, tracking, in-app update path. **Not yet on a device**: photo button, capture files → gallery, first-run connect sheet, token flow.
 
 ## Next / open
