@@ -74,6 +74,12 @@ object LocalCatalog {
     const val OPT_MIN_CONF = "min_conf"
     const val OPT_TRANSLATE_TO = "translate_to"
     const val OPT_OCR_LANGUAGE = "ocr_language"
+    /** Same key and choices as the server's text pipeline (docs/PROTOCOL.md "Read text"). */
+    const val OPT_LIVE = "live"
+    const val LIVE_MARK = "Mark text areas"
+    const val LIVE_READ = "Read live"
+    /** Every track's label while live text only marks text areas. */
+    const val TEXT_LABEL = "text"
     const val ACTION_CAPTURE = "capture"
 
     const val OBJECTS_FAST = "Lite0 · fast"
@@ -98,7 +104,10 @@ object LocalCatalog {
 
     fun translationTag(choice: String): String? = choice.substringAfter(" · ", "").takeIf { it.isNotBlank() }
 
-    /** OCR runs in the background on the newest frame this often (ML Kit takes ~100–300 ms on a phone). */
+    /**
+     * Text runs in the background on the newest frame at most this often: ML Kit Latin alone takes ~100–300 ms
+     * per frame on a phone (more with Tesseract line crops), too slow for the frame-by-frame lane.
+     */
     const val TEXT_INTERVAL_MS = 500
 
     /** MediaPipe HAND_CONNECTIONS, same as the server's gestures skeleton. */
@@ -159,18 +168,22 @@ object LocalCatalog {
         PipelineSpec(
             id = TEXT,
             name = "Text (OCR)",
-            description = "Reads 41 languages offline with downloadable packs. Auto-detect starts with English, then switches to a detected language; optionally translates offline.",
+            description = "Marks text on signs, labels and screens, or reads it live (Google ML Kit, offline). " +
+                "Latin script is built in; Chinese, Japanese, Korean and Hindi download through Google Play services. " +
+                "Cyrillic, Greek, Arabic, Hebrew, Thai, Bengali and Tamil read with a downloadable pack: pick the " +
+                "language, or Auto-detect uses your phone's languages and packs you already have. Optional offline translation.",
             options = listOf(
+                OptionSpec(OPT_LIVE, "Live", OptionType.CHOICE, OptionValue.Str(LIVE_MARK), choices = listOf(LIVE_MARK, LIVE_READ)),
                 OptionSpec(
                     OPT_OCR_LANGUAGE,
-                    "OCR language",
+                    "Text language",
                     OptionType.CHOICE,
-                    OptionValue.Str(OcrLanguage.ENGLISH.choice),
+                    OptionValue.Str(OcrLanguage.AUTO_CHOICE),
                     choices = ocrLanguageChoices,
                 ),
                 OptionSpec(
                     OPT_TRANSLATE_TO,
-                    "Translate to",
+                    "Translate to (Read live)",
                     OptionType.CHOICE,
                     OptionValue.Str(TRANSLATE_OFF),
                     choices = translationChoices,

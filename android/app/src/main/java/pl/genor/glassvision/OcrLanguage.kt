@@ -102,6 +102,44 @@ enum class OcrLanguage(
     }
 
     val choice: String get() = "$title · $code"
+
+    /** What reads this language on the phone (see [OcrPlan]): ML Kit's recognizers, or this pack on line crops. */
+    val script: TextScript get() = when (this) {
+        CHINESE_SIMPLIFIED, CHINESE_TRADITIONAL -> TextScript.CHINESE
+        JAPANESE -> TextScript.JAPANESE
+        KOREAN -> TextScript.KOREAN
+        HINDI -> TextScript.DEVANAGARI
+        // srp is Serbian Cyrillic; ML Kit only reads Serbian in Latin script.
+        ARABIC, RUSSIAN, UKRAINIAN, GREEK, HEBREW, THAI, BENGALI, TAMIL, BULGARIAN, SERBIAN -> TextScript.OTHER
+        else -> TextScript.LATIN
+    }
+
+    /** Unicode scripts of this language's letters: a pack's reading only counts if it is mostly in them. */
+    val letters: Set<Character.UnicodeScript> get() = when (this) {
+        RUSSIAN, UKRAINIAN, BULGARIAN, SERBIAN -> setOf(Character.UnicodeScript.CYRILLIC)
+        GREEK -> setOf(Character.UnicodeScript.GREEK)
+        ARABIC -> setOf(Character.UnicodeScript.ARABIC)
+        HEBREW -> setOf(Character.UnicodeScript.HEBREW)
+        THAI -> setOf(Character.UnicodeScript.THAI)
+        BENGALI -> setOf(Character.UnicodeScript.BENGALI)
+        TAMIL -> setOf(Character.UnicodeScript.TAMIL)
+        HINDI -> setOf(Character.UnicodeScript.DEVANAGARI)
+        CHINESE_SIMPLIFIED, CHINESE_TRADITIONAL -> setOf(Character.UnicodeScript.HAN)
+        JAPANESE -> setOf(Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA)
+        KOREAN -> setOf(Character.UnicodeScript.HANGUL, Character.UnicodeScript.HAN)
+        else -> setOf(Character.UnicodeScript.LATIN)
+    }
+
+    /**
+     * Whether ML Kit's Latin recognizer finds this script's lines at all (measured on rendered signs, 2026-10-23:
+     * it boxes Cyrillic, Greek and Tamil with garbage text, but misses Arabic, Hebrew, Thai and Bengali entirely;
+     * CJK/Hindi are assumed missed, they only get here when their own recognizer is unavailable). If not, the pack
+     * also scans the whole image itself (Tesseract sparse text).
+     */
+    val latinFindsLines: Boolean get() = when (this) {
+        ARABIC, HEBREW, THAI, BENGALI, HINDI, CHINESE_SIMPLIFIED, CHINESE_TRADITIONAL, JAPANESE, KOREAN -> false
+        else -> true
+    }
     val spec: ModelSpec get() = ModelSpec(
         id = "ocr:$code",
         fileName = "tessdata/$code.traineddata",
