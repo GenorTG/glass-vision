@@ -93,6 +93,8 @@ LEGACY_LANGUAGES = {"en": DEFAULT_GROUP.label, "en+pl": DEFAULT_GROUP.label}
 TRANSLATE_OFF = "Off"
 AUTO_DETECT = "Auto-detect"
 AUTO_SCRIPTS = "Auto-detect (available scripts)"
+AUTO_REPROBE_S = 5.0
+AUTO_RETRY_S = 5.0
 
 
 @dataclass(frozen=True)
@@ -108,6 +110,11 @@ class _ChoiceWithAliases(OptionSpec):
         out = super().to_json()
         out.pop("aliases", None)
         return out
+
+
+def _auto_score(annotations: list[Annotation]) -> float:
+    """Prefer high-confidence text; count digit-only lines so numeric signs can select a recognizer too."""
+    return sum(a.conf * min(max(sum(ch.isalpha() for ch in a.label), 1), 40) for a in annotations)
 
 
 def _check_cudnn_usable() -> None:
@@ -156,6 +163,8 @@ class TextPipeline(Pipeline):
         self._translator: Translator | None = None
         self._translate_failed_at = 0.0
         self._translate_error = ""
+        self._auto_group_key: str | None = None
+        self._auto_probe_after = 0.0
 
     def load(self, device: str) -> None:
         if device.startswith("cuda"):
@@ -208,33 +217,66 @@ class TextPipeline(Pipeline):
 
     def run(self, image: np.ndarray, ctx: RunContext) -> list[Annotation]:
         selected = LEGACY_LANGUAGES.get(ctx.options["languages"], ctx.options["languages"])
-        if selected == AUTO_SCRIPTS:
-            candidates = [
-                group
-                for group in SCRIPT_GROUPS
-                if group.key == DEFAULT_GROUP.key or (EASYOCR_DIR / group.model_file).is_file()
-            ]
-        else:
+        auto = selected == AUTO_SCRIPTS
+        available = [
+            group
+            for group in SCRIPT_GROUPS
+            if group.key == DEFAULT_GROUP.key or (EASYOCR_DIR / group.model_file).is_file()
+        ]
+        now = time.monotonic()
+        cached = next((g for g in available if g.key == self._auto_group_key), None) if auto else None
+        probing = auto and now >= self._auto_probe_after
+        if not auto:
             candidates = [GROUPS[selected]]
+        elif probing:
+            candidates = available
+        elif cached is not None:
+            candidates = [cached]
+        else:
+            candidates = []
 
-        best_group = candidates[0]
+        best_group = candidates[0] if candidates else DEFAULT_GROUP
         best: list[Annotation] = []
         best_score = -1.0
         for group in candidates:
             try:
                 annotations = self._read_group(image, group, float(ctx.options["min_conf"]))
             except Exception:
-                if len(candidates) == 1:
+                if not auto:
                     raise
                 log.exception("text: auto-detect could not run %s; trying the remaining installed scripts", group.key)
                 continue
             # Prefer recognitions that return more high-confidence letters, while capping each line so a single
             # hallucinated paragraph cannot swamp several valid short signs. Ties retain the earlier script.
-            score = sum(a.conf * min(sum(ch.isalpha() for ch in a.label), 40) for a in annotations)
+            score = _auto_score(annotations)
             if score > best_score:
                 best_group, best, best_score = group, annotations, score
 
-        if selected == AUTO_SCRIPTS and not best:
+        # A cached recognizer that has gone blank likely saw another script. Probe the alternatives immediately.
+        if auto and cached is not None and not probing and best_score <= 0:
+            for group in available:
+                if group is cached:
+                    continue
+                try:
+                    annotations = self._read_group(image, group, float(ctx.options["min_conf"]))
+                except Exception:
+                    log.exception(
+                        "text: auto-detect could not run %s; trying the remaining installed scripts", group.key
+                    )
+                    continue
+                score = _auto_score(annotations)
+                if score > best_score:
+                    best_group, best, best_score = group, annotations, score
+
+        if auto:
+            if best_score > 0:
+                self._auto_group_key = best_group.key
+                if probing or best_group is not cached:
+                    self._auto_probe_after = now + AUTO_REPROBE_S
+            else:
+                self._auto_group_key = None
+                self._auto_probe_after = now + AUTO_RETRY_S
+        if auto and not best:
             # Latin is always installed by the normal server setup; preserve its clear empty result if every
             # optional recognizer failed to initialize.
             best_group = DEFAULT_GROUP
