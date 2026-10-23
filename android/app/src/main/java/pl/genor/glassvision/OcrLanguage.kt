@@ -50,6 +50,57 @@ enum class OcrLanguage(
     MALAY("msa", "Malay", 1_747_801, "e41a3e5febfec50c90371eb1cbb17a48b10cad387900e3420b1f134c1b766cba"),
     ;
 
+    companion object {
+        const val AUTO_CHOICE = "Auto-detect"
+        private const val BASE_URL = "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd"
+
+        fun fromChoice(choice: String): OcrLanguage = entries.firstOrNull { it.choice == choice } ?: ENGLISH
+
+        /** ML Kit language tags for languages with a matching on-device Tesseract pack. */
+        fun fromLanguageTag(tag: String): OcrLanguage? = when (tag) {
+            "en" -> ENGLISH
+            "pl" -> POLISH
+            "de" -> GERMAN
+            "fr" -> FRENCH
+            "es" -> SPANISH
+            "it" -> ITALIAN
+            "pt" -> PORTUGUESE
+            "ar" -> ARABIC
+            "hi" -> HINDI
+            "zh" -> CHINESE_SIMPLIFIED
+            "ja" -> JAPANESE
+            "ko" -> KOREAN
+            "ru" -> RUSSIAN
+            "uk" -> UKRAINIAN
+            "el" -> GREEK
+            "he" -> HEBREW
+            "th" -> THAI
+            "bn" -> BENGALI
+            "ta" -> TAMIL
+            "vi" -> VIETNAMESE
+            "tr" -> TURKISH
+            "id" -> INDONESIAN
+            "sv" -> SWEDISH
+            "da" -> DANISH
+            "nl" -> DUTCH
+            "cs" -> CZECH
+            "ro" -> ROMANIAN
+            "hu" -> HUNGARIAN
+            "bg" -> BULGARIAN
+            "sr" -> SERBIAN
+            "hr" -> CROATIAN
+            "sk" -> SLOVAK
+            "sl" -> SLOVENIAN
+            "fi" -> FINNISH
+            "no" -> NORWEGIAN
+            "et" -> ESTONIAN
+            "lv" -> LATVIAN
+            "lt" -> LITHUANIAN
+            "ms" -> MALAY
+            else -> null
+        }
+    }
+
     val choice: String get() = "$title · $code"
     val spec: ModelSpec get() = ModelSpec(
         id = "ocr:$code",
@@ -60,9 +111,4 @@ enum class OcrLanguage(
         sha256 = sha256,
     )
 
-    companion object {
-        private const val BASE_URL = "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd"
-        fun fromChoice(choice: String): OcrLanguage = entries.firstOrNull { it.choice == choice }
-            ?: ENGLISH
-    }
 }

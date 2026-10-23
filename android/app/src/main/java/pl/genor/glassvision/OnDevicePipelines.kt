@@ -92,18 +92,24 @@ class OnDeviceLoader(
 
     override fun load(pipeline: String, options: Map<String, OptionValue>, gpu: Boolean): LocalPipeline {
         if (pipeline == LocalCatalog.TEXT) {
-            val language = OcrLanguage.fromChoice(
-                (options[LocalCatalog.OPT_OCR_LANGUAGE] as? OptionValue.Str)?.value ?: OcrLanguage.ENGLISH.choice,
-            )
-            val model = models.ensure(language.spec)
-            val ocr = TessBaseAPI()
-            val dataRoot = requireNotNull(model.parentFile?.parentFile) { "Invalid OCR model path" }
-            if (!ocr.init(dataRoot.absolutePath, language.code, TessBaseAPI.OEM_LSTM_ONLY)) {
-                ocr.recycle()
-                throw ModelUnavailableException("OCR model could not be loaded: ${language.title}")
+            val choice = (options[LocalCatalog.OPT_OCR_LANGUAGE] as? OptionValue.Str)?.value ?: OcrLanguage.ENGLISH.choice
+            val automatic = choice == OcrLanguage.AUTO_CHOICE
+            val language = if (automatic) OcrLanguage.ENGLISH else OcrLanguage.fromChoice(choice)
+            fun createRecognizer(selected: OcrLanguage): TessBaseAPI {
+                val model = models.ensure(selected.spec)
+                val ocr = TessBaseAPI()
+                val dataRoot = requireNotNull(model.parentFile?.parentFile) { "Invalid OCR model path" }
+                if (!ocr.init(dataRoot.absolutePath, selected.code, TessBaseAPI.OEM_LSTM_ONLY)) {
+                    ocr.recycle()
+                    throw ModelUnavailableException("OCR model could not be loaded: ${selected.title}")
+                }
+                ocr.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO)
+                return ocr
             }
-            ocr.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO)
-            return TextPipeline(ocr, LanguageIdentification.getClient())
+            return TextPipeline(
+                createRecognizer(language), LanguageIdentification.getClient(),
+                autoDetectLanguage = automatic, recognizerFactory = ::createRecognizer,
+            )
         }
         val model = LocalCatalog.modelFor(pipeline, options) ?: throw IllegalArgumentException("unknown pipeline $pipeline")
         val file = models.ensure(model.spec)
@@ -375,11 +381,14 @@ class PosePipeline(
 
 /** Downloadable Tesseract OCR + optional ML Kit offline translation. */
 class TextPipeline(
-    private val recognizer: TessBaseAPI,
+    private var recognizer: TessBaseAPI,
     private val languageIdentifier: com.google.mlkit.nl.languageid.LanguageIdentifier,
+    private val autoDetectLanguage: Boolean = false,
+    private val recognizerFactory: ((OcrLanguage) -> TessBaseAPI)? = null,
 ) : LocalPipeline {
     private val translators = LinkedHashMap<Pair<String, String>, Translator>(8, 0.75f, true)
     private val translated = LinkedHashMap<String, String>(256, 0.75f, true)
+    private var currentLanguage = OcrLanguage.ENGLISH
 
     override fun run(frame: LocalFrame, timestampMs: Long, options: Map<String, OptionValue>): List<PixelDetection> {
         val f = frame.bitmapFrame()
@@ -387,12 +396,14 @@ class TextPipeline(
         val iterator = recognizer.resultIterator ?: return emptyList()
         val targetChoice = (options[LocalCatalog.OPT_TRANSLATE_TO] as? OptionValue.Str)?.value ?: LocalCatalog.TRANSLATE_OFF
         val targetTag = LocalCatalog.translationTag(targetChoice)
-        return try {
+        val lines = mutableListOf<String>()
+        val detections = try {
             buildList {
                 do {
                     val r = iterator.getBoundingRect(PageIteratorLevel.RIL_TEXTLINE)
                     val original = iterator.getUTF8Text(PageIteratorLevel.RIL_TEXTLINE)?.trim().orEmpty()
                     if (r.width() > 0 && r.height() > 0 && original.isNotEmpty()) {
+                        lines += original
                         val translation = targetTag?.let { translate(original, it) }
                         val label = translation ?: original
                         val confidence = (iterator.confidence(PageIteratorLevel.RIL_TEXTLINE) / 100f).coerceIn(0f, 1f)
@@ -403,6 +414,33 @@ class TextPipeline(
             }
         } finally {
             iterator.delete()
+        }
+        if (autoDetectLanguage) switchToDetectedLanguage(lines)
+        return detections
+    }
+
+    /** Use OCR text to identify a supported language, then load its verified pack for subsequent frames. */
+    private fun switchToDetectedLanguage(lines: List<String>) {
+        val factory = recognizerFactory ?: return
+        val candidate = lines.asSequence().filter { it.length >= 4 && it.any(Char::isLetter) }
+            .take(3).joinToString(" ").take(500)
+        if (candidate.length < 4) return
+        val tag = try {
+            Tasks.await(languageIdentifier.identifyLanguage(candidate), TIMEOUT_S, TimeUnit.SECONDS)
+        } catch (_: Exception) {
+            return
+        }
+        val detected = OcrLanguage.fromLanguageTag(tag) ?: return
+        if (detected == currentLanguage) return
+        try {
+            val replacement = factory(detected)
+            val previous = recognizer
+            recognizer = replacement
+            currentLanguage = detected
+            previous.recycle()
+        } catch (e: Exception) {
+            // Keep using the current recognizer if the detected language pack cannot be obtained.
+            Log.w("TextPipeline", "Could not switch OCR language to ${detected.title}", e)
         }
     }
 

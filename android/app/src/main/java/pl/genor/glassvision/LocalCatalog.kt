@@ -81,7 +81,7 @@ object LocalCatalog {
     const val POSE_LITE = "Lite · fast"
     const val POSE_FULL = "Full · higher accuracy"
     const val TRANSLATE_OFF = "Off"
-    val ocrLanguageChoices = OcrLanguage.entries.map { it.choice }
+    val ocrLanguageChoices = listOf(OcrLanguage.AUTO_CHOICE) + OcrLanguage.entries.map { it.choice }
 
     /** ML Kit translation language tags; language models download on demand and work offline afterwards. */
     val translationChoices = listOf(
@@ -159,7 +159,7 @@ object LocalCatalog {
         PipelineSpec(
             id = TEXT,
             name = "Text (OCR)",
-            description = "Reads 41 languages offline with downloadable language packs; optionally translates text offline.",
+            description = "Reads 41 languages offline with downloadable packs. Auto-detect starts with English, then switches to a detected language; optionally translates offline.",
             options = listOf(
                 OptionSpec(
                     OPT_OCR_LANGUAGE,
