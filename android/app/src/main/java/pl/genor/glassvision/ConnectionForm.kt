@@ -55,6 +55,14 @@ class ConnectionForm(
         view.findViewById<View>(R.id.connection_intro).visibility = View.VISIBLE
     }
 
+    /** First run: offer recognition on this phone instead (no server needed). */
+    fun showRunLocal(onRunLocal: () -> Unit) {
+        view.findViewById<MaterialButton>(R.id.connection_run_local).apply {
+            visibility = View.VISIBLE
+            setOnClickListener { onRunLocal() }
+        }
+    }
+
     /** What the fields currently say, normalized; null while the address is unusable. */
     fun endpoint(): ServerEndpoint? {
         val parsed = ServerAddress.parse(address.text?.toString().orEmpty()) ?: return null
@@ -144,12 +152,13 @@ class ConnectionForm(
 
 /**
  * "Connect to your server": the first-run sheet (no server configured yet) and where a rejected token lands.
- * Main thread only.
+ * With [onRunLocal] it also offers "No server? Run on this phone". Main thread only.
  */
 class ConnectionSheet(
     context: Context,
     initial: ServerEndpoint,
     tester: ((ServerEndpoint, (ConnectionTestResult) -> Unit) -> Unit)?,
+    onRunLocal: (() -> Unit)? = null,
     onConnect: (ServerEndpoint) -> Unit,
 ) {
     val sheet = Sheet(context)
@@ -161,6 +170,12 @@ class ConnectionSheet(
     init {
         sheet.setTitle(context.getString(R.string.connection_title))
         form.showIntro()
+        onRunLocal?.let { run ->
+            form.showRunLocal {
+                run()
+                sheet.dismiss()
+            }
+        }
         sheet.setBody(form.view)
     }
 }

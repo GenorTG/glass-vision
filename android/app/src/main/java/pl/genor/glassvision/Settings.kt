@@ -23,6 +23,13 @@ data class StreamSettings(
     val glideMs: Int = 70,
     /** Streaming camera; the flip button and Settings → Camera both write it. */
     val cameraFacing: CameraFacing = CameraFacing.BACK,
+    /** Where recognition runs (Settings → Processing; the first-run sheet's "Run on this phone"). */
+    val processing: ProcessingMode = ProcessingMode.SERVER,
+    /**
+     * On-device engine: try MediaPipe's GPU delegate (falls back to the CPU per model if it fails). Off by default
+     * like Google's MediaPipe sample apps: the CPU path works on every phone.
+     */
+    val localGpu: Boolean = false,
 ) {
     /** Clamp every field into its documented range so bad prefs can never reach the pipeline. */
     fun sanitized(): StreamSettings = copy(
@@ -62,9 +69,10 @@ interface StreamSettingsEditor {
 
     fun update(transform: (StreamSettings) -> StreamSettings)
 
-    /** Defaults for everything except where to connect and which camera streams. */
-    fun resetToDefaults() =
-        update { StreamSettings(serverUrl = it.serverUrl, token = it.token, cameraFacing = it.cameraFacing) }
+    /** Defaults for everything except where to connect, where recognition runs and which camera streams. */
+    fun resetToDefaults() = update {
+        StreamSettings(serverUrl = it.serverUrl, token = it.token, cameraFacing = it.cameraFacing, processing = it.processing)
+    }
 }
 
 /** SharedPreferences-backed persistence for [StreamSettings]. */
@@ -90,6 +98,8 @@ class SettingsStore(context: Context) : StreamSettingsEditor {
             holdMs = prefs.getInt(KEY_HOLD_MS, d.holdMs),
             glideMs = prefs.getInt(KEY_GLIDE_MS, d.glideMs),
             cameraFacing = CameraFacing.fromPref(prefs.getString(KEY_CAMERA, null)),
+            processing = ProcessingMode.fromPref(prefs.getString(KEY_PROCESSING, null)),
+            localGpu = prefs.getBoolean(KEY_LOCAL_GPU, d.localGpu),
         ).sanitized()
     }
 
@@ -110,6 +120,8 @@ class SettingsStore(context: Context) : StreamSettingsEditor {
             .putInt(KEY_HOLD_MS, s.holdMs)
             .putInt(KEY_GLIDE_MS, s.glideMs)
             .putString(KEY_CAMERA, s.cameraFacing.prefValue)
+            .putString(KEY_PROCESSING, s.processing.prefValue)
+            .putBoolean(KEY_LOCAL_GPU, s.localGpu)
             .apply()
     }
 
@@ -140,5 +152,7 @@ class SettingsStore(context: Context) : StreamSettingsEditor {
         const val KEY_HOLD_MS = "hold_ms"
         const val KEY_GLIDE_MS = "glide_ms"
         const val KEY_CAMERA = "camera_facing"
+        const val KEY_PROCESSING = "processing_mode"
+        const val KEY_LOCAL_GPU = "local_gpu"
     }
 }

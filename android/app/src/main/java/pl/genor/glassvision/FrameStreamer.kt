@@ -1,6 +1,7 @@
 package pl.genor.glassvision
 
 import android.util.Log
+import androidx.camera.core.ImageProxy
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -28,20 +29,18 @@ enum class ConnectionState { NOT_CONFIGURED, DISCONNECTED, CONNECTING, CONNECTED
  * of frames the server still owes us. New frames are refused while it is >= the window, which keeps
  * latency bounded instead of letting a queue build up.
  *
- * Listener callbacks arrive on OkHttp/scheduler threads, never the main thread.
+ * Listener callbacks arrive on OkHttp/scheduler threads, never the main thread. The [RecognitionBackend] for
+ * [ProcessingMode.SERVER].
  */
 class FrameStreamer(
-    private val listener: Listener,
+    private val listener: RecognitionBackend.Listener,
     private val stats: StreamStats,
     private val clock: () -> Long = System::currentTimeMillis,
-) {
-    interface Listener {
-        fun onStateChanged(state: ConnectionState, detail: String?)
-        fun onHello(hello: ServerMessage.Hello)
-        fun onPipelineStatus(change: ServerMessage.PipelineStatusChange)
-        fun onDetections(result: ServerMessage.Detections, receivedAtMs: Long)
-        fun onCommandResult(result: ServerMessage.CommandResult)
-    }
+) : RecognitionBackend {
+    override val mode: ProcessingMode get() = ProcessingMode.SERVER
+
+    /** JPEG encoder for [submitFrame]; only touched on the analysis thread. */
+    private val encoder = FrameEncoder()
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
@@ -88,7 +87,10 @@ class FrameStreamer(
         }
     }
 
-    fun stop() {
+    /** Connects to the endpoint last given to [setEndpoint]/[applySettings]. */
+    override fun start() = start(synchronized(lock) { endpoint })
+
+    override fun stop() {
         synchronized(lock) {
             running = false
             reconnectFuture?.cancel(false)
@@ -100,7 +102,7 @@ class FrameStreamer(
         setState(ConnectionState.DISCONNECTED, null)
     }
 
-    fun shutdown() {
+    override fun shutdown() {
         stop()
         scheduler.shutdownNow()
         client.dispatcher.executorService.shutdown()
@@ -121,6 +123,12 @@ class FrameStreamer(
         }
     }
 
+    override fun applySettings(settings: StreamSettings) {
+        setWindow(settings.inFlightWindow)
+        setDetectorConfig(settings.confidence, settings.modelImgsz, settings.holdMs)
+        setEndpoint(settings.endpoint)
+    }
+
     fun setWindow(size: Int) {
         window = size.coerceIn(StreamSettings.WINDOW_RANGE)
     }
@@ -136,7 +144,7 @@ class FrameStreamer(
     }
 
     /** Stores the user's pipeline choices; once the server's hello is known, sends what changed. */
-    fun setPipelineSettings(settings: PipelineSettings) {
+    override fun setPipelineSettings(settings: PipelineSettings) {
         synchronized(lock) {
             pipelineSettings = settings
             if (state == ConnectionState.CONNECTED) socket?.let(::sendPipelineConfigLocked)
@@ -147,7 +155,7 @@ class FrameStreamer(
      * Sends a pipeline action (runs on the newest frame the server got). Returns the request id echoed in
      * the `command_result`, or null when not connected.
      */
-    fun sendCommand(pipeline: String, action: String, args: Map<String, OptionValue>): Long? {
+    override fun sendCommand(pipeline: String, action: String, args: Map<String, OptionValue>): Long? {
         val ws = synchronized(lock) { socket.takeIf { state == ConnectionState.CONNECTED } } ?: return null
         val req = nextReq.getAndIncrement()
         return if (ws.send(Protocol.commandJson(req, pipeline, action, args))) req else null
@@ -160,6 +168,12 @@ class FrameStreamer(
         if (delta.isEmpty()) return
         if (ws.send(Protocol.configJson(pipelines = delta))) sentPipelines = full
     }
+
+    override fun canAcceptFrame(): Boolean = canSend()
+
+    /** Encodes the frame (upright, scaled, JPEG) and sends it. */
+    override fun submitFrame(image: ImageProxy, settings: StreamSettings): Boolean =
+        sendFrame(encoder.encode(image, settings.sendLongSide, settings.jpegQuality))
 
     /** True if connected and the in-flight window has room. Cheap; call before encoding. */
     fun canSend(): Boolean {

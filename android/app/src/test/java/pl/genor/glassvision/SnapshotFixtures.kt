@@ -47,6 +47,66 @@ object SnapshotFixtures {
         )
     }
 
+    /** Recognition on this phone, a server still remembered for updates. */
+    val onPhone = server.copy(processing = ProcessingMode.LOCAL, localGpu = true)
+
+    /** The on-device pipelines in mixed states: objects ready, gestures ready, pose ready, faces offline, text loading. */
+    val localPipelines: List<PipelineSpec> by lazy {
+        LocalCatalog.specs.map { spec ->
+            when (spec.id) {
+                "faces" -> spec.copy(status = PipelineStatus.ERROR, statusMessage = "No internet — model download failed")
+                "text" -> spec.copy(status = PipelineStatus.LOADING)
+                else -> spec.copy(status = PipelineStatus.READY)
+            }
+        }
+    }
+
+    /** Downloaded models as the settings list shows them. */
+    object ModelsOnPhone : ModelShelf {
+        override fun downloaded() = listOf(LocalModel.EFFICIENTDET_LITE0, LocalModel.POSE_LITE, LocalModel.GESTURE_RECOGNIZER)
+            .map { StoredModel(it.name, it.title, it.bytes) }
+
+        override fun delete(id: String) = false
+    }
+
+    val localStats = StatsSnapshot(
+        sentFps = 9.6f, resultFps = 9.4f, avgRttMs = 92f, serverMs = 61.0,
+        pipelineMs = linkedMapOf("objects" to 28.4, "pose" to 24.9, "text" to 212.0),
+        dropCount = 0, errorCount = 0, objectCount = 3,
+    )
+
+    /** objects + pose on (the phone-mode defaults for the snapshots), on this phone with the GPU. */
+    fun localState() = MainScreen.State(
+        connection = ConnectionState.CONNECTED,
+        connectionDetail = LocalBackend.DETAIL,
+        serverInfo = StatusText.serverInfo("0.6.0.3", LocalBackend.device(gpu = true)),
+        stats = localStats,
+        paused = false,
+        pipelines = localPipelines,
+        pipelineSettings = PipelineSettings().withEnabled("pose", true).withEnabled("text", true),
+        facing = CameraFacing.BACK,
+        canFlip = true,
+        mode = ProcessingMode.LOCAL,
+    )
+
+    /** A standing person with arms up (COCO-17 skeleton, named on the phone) and a sign read by OCR. */
+    val localDetections: ServerMessage.Detections by lazy {
+        val body = listOf(
+            0.50f to 0.22f, 0.52f to 0.20f, 0.48f to 0.20f, 0.55f to 0.21f, 0.45f to 0.21f,
+            0.60f to 0.30f, 0.40f to 0.30f, 0.66f to 0.21f, 0.34f to 0.21f, 0.68f to 0.11f, 0.32f to 0.11f,
+            0.57f to 0.55f, 0.43f to 0.55f, 0.58f to 0.72f, 0.42f to 0.72f, 0.59f to 0.90f, 0.41f to 0.90f,
+        ).map { (x, y) -> KeyPoint(x, y, 0.95f) }
+        val tracks = listOf(
+            Detection("objects", "person", 0.88f, NormBox(0.28f, 0.06f, 0.72f, 0.95f), "objects:3"),
+            Detection("pose", "Standing · Arms up", 0.93f, NormBox(0.29f, 0.08f, 0.71f, 0.94f), "pose:1", detail = "person", points = body),
+            Detection("text", "EXIT", 0.97f, NormBox(0.74f, 0.04f, 0.94f, 0.12f), "text:2", seenMsAgo = 300),
+        )
+        ServerMessage.Detections(
+            seq = 7, clientTs = 0, width = 720, height = 960, decodeMs = 3.2, serverMs = 61.0,
+            pipelineMs = mapOf("objects" to 28.4, "pose" to 24.9), dets = tracks, tracks = tracks,
+        )
+    }
+
     /** objects (default on) + faces + text + gestures on, pose off (but errored). */
     val mixedSettings = PipelineSettings()
         .withEnabled("faces", true)

@@ -41,6 +41,21 @@
     <string name="connection_unreachable">Can’t reach the server: %1$s</string>
     <string name="connection_invalid">Enter an address like 192.168.1.50 or 192.168.1.50:8770</string>
     <string name="connection_rejected">The server rejected the access token. Check it and connect again.</string>
+    <string name="connection_run_local">No server? Run on this phone</string>
+
+    <!-- Processing: server or on this phone (Settings → Processing) -->
+    <string name="settings_section_processing">PROCESSING</string>
+    <string name="processing_label">Run recognition</string>
+    <string name="processing_server">Server</string>
+    <string name="processing_local">On this phone</string>
+    <string name="processing_server_detail">Your glass-vision server does the work: fast, every recognizer.</string>
+    <string name="processing_local_detail">No server needed. Slower than a PC, and without Find by text or face names. Each recognizer downloads its model once (Wi-Fi recommended).</string>
+    <string name="processing_gpu">Use GPU (faster on most phones)</string>
+    <string name="processing_gpu_detail">Falls back to the CPU for any model the GPU can’t run</string>
+    <string name="models_title">Models on this phone</string>
+    <string name="models_empty">None yet — a model downloads the first time you turn its recognizer on.</string>
+    <string name="models_total">%1$s in total</string>
+    <string name="model_delete">Delete %1$s</string>
 
     <!-- Main screen: chip row placeholders -->
     <string name="banner_connecting">Connecting to server…</string>
@@ -49,6 +64,7 @@
     <string name="banner_unauthorized">Wrong access token — tap to fix</string>
     <string name="banner_waiting">Waiting for the server…</string>
     <string name="banner_no_pipelines">The server offers no recognizers</string>
+    <string name="banner_starting_local">Starting on-device recognition…</string>
     <string name="chip_tune">%1$s options</string>
     <string name="chip_enabled">%1$s on</string>
     <string name="chip_disabled">%1$s off</string>
@@ -67,6 +83,7 @@
     <string name="settings_target_fps">Frames per second</string>
     <string name="settings_window">Frames in flight</string>
     <string name="settings_send_size">Send resolution (long side)</string>
+    <string name="settings_frame_size">Frame size (long side)</string>
     <string name="settings_jpeg_quality">JPEG quality</string>
     <string name="settings_confidence">Confidence threshold</string>
     <string name="settings_smoothing">Smooth boxes (tracking)</string>
@@ -79,6 +96,7 @@
     <string name="settings_reset">Reset defaults</string>
     <string name="settings_version">Glass Vision v%1$s</string>
     <string name="settings_version_detail">Updates install from the server you are connected to.</string>
+    <string name="settings_version_detail_local">Updates install from your glass-vision server, if you have set one up (Processing → Server).</string>
     <string name="settings_check_updates">Check for updates</string>
     <string-array name="settings_glide_options">
         <item>Off</item>
@@ -94,6 +112,7 @@
     <string name="update_downloading">Downloading v%1$s…</string>
     <string name="update_up_to_date">Up to date (v%1$s)</string>
     <string name="update_check_failed">Update check failed: %1$s</string>
+    <string name="update_no_server">No server set — updates come from your glass-vision server</string>
     <string name="update_failed">Update failed: %1$s</string>
     <string name="update_permission_title">Allow app updates</string>
     <string name="update_permission_message">Android needs your OK once: allow Glass Vision to install apps, then come back and the update continues.</string>

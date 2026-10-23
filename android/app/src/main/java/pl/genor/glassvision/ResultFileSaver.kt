@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -11,9 +12,11 @@ import java.util.Locale
 import java.util.concurrent.Executor
 
 /**
- * Downloads the files of a `command_result` (docs/PROTOCOL.md, `files`) from the configured server, with its
- * access token, and saves them via [MediaSaver]: images into the gallery, the rest into Downloads, both under
- * `GlassVision/<capture id>/`. Pipeline-agnostic. Network + disk on [io]; [onDone] on the main thread.
+ * Saves the files of a `command_result` (docs/PROTOCOL.md, `files`) via [MediaSaver]: images into the gallery, the
+ * rest into Downloads, both under `GlassVision/<capture id>/`. Server files are downloaded from the configured
+ * server with its access token; files the on-device engine produced (`file:` URLs) are copied, but only from
+ * inside [localRoot] (null in server mode, so a server can never point the app at its own private files).
+ * Pipeline-agnostic. Network + disk on [io]; [onDone] on the main thread.
  */
 class ResultFileSaver(
     private val saver: MediaSaver,
@@ -24,7 +27,12 @@ class ResultFileSaver(
 
     private val main = Handler(Looper.getMainLooper())
 
-    fun save(endpoint: ServerEndpoint, files: List<ServerMessage.CommandResult.ResultFile>, onDone: (Outcome) -> Unit) {
+    fun save(
+        endpoint: ServerEndpoint,
+        files: List<ServerMessage.CommandResult.ResultFile>,
+        localRoot: File? = null,
+        onDone: (Outcome) -> Unit,
+    ) {
         val fallbackId = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
         val targets = CaptureFiles.plan(files, fallbackId)
         io.execute {
@@ -33,7 +41,7 @@ class ResultFileSaver(
             var error: String? = null
             files.zip(targets).forEach { (file, target) ->
                 try {
-                    val uri = download(endpoint, file, target)
+                    val uri = if (localRoot != null) copyLocal(localRoot, file, target) else download(endpoint, file, target)
                     saved++
                     if (target.isImage && firstImage == null) firstImage = uri
                 } catch (e: Exception) {
@@ -53,6 +61,11 @@ class ResultFileSaver(
             val body = response.body ?: throw IOException("empty response")
             saver.save(target) { out -> body.byteStream().use { it.copyTo(out) } }
         }
+    }
+
+    private fun copyLocal(root: File, file: ServerMessage.CommandResult.ResultFile, target: SaveTarget): Uri {
+        val source = CaptureFiles.localSource(file.url, root) ?: throw IOException("not a capture file")
+        return saver.save(target) { out -> source.inputStream().use { it.copyTo(out) } }
     }
 
     private companion object {

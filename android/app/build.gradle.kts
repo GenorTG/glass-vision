@@ -39,6 +39,12 @@ android {
         targetSdk = 34
         versionCode = appVersionCode
         versionName = appVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // MediaPipe + ML Kit ship native code for 4 ABIs; 32-bit x86 (old emulators only) is ~15 MB of it.
+            // x86_64 stays for the emulator tests.
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
 
     signingConfigs {
@@ -77,6 +83,12 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+    packaging {
+        // Compress the native libraries (MediaPipe + ML Kit OCR, ~60 MB for 3 ABIs) inside the APK: the APK is
+        // downloaded by the in-app updater and from GitHub, so download size beats the install-time extraction
+        // AGP's default (stored uncompressed) avoids.
+        jniLibs.useLegacyPackaging = true
+    }
 }
 
 // First task of every release build (assembleRelease, bundleRelease…); debug/test/lintDebug never run it.
@@ -109,6 +121,22 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    // On-device recognition ("On this phone"). MediaPipe Tasks Vision: the 0.10.x line; 1.x has the same vision
+    // API but adds LiteRT-LM (~21 MB, LLM tasks this app doesn't use).
+    // https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector/android
+    implementation("com.google.mediapipe:tasks-vision:0.10.35")
+    // ML Kit Text Recognition v2, bundled model (works offline, ~4 MB per ABI; the unbundled one needs Play
+    // services to download it). https://developers.google.com/ml-kit/vision/text-recognition/v2/android
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+    // On-device language identification + offline translation; ML Kit downloads language models on first use.
+    // https://developers.google.com/ml-kit/language/translation/android
+    implementation("com.google.mlkit:language-id:17.0.6")
+    implementation("com.google.mlkit:translate:17.0.3")
+
     // Paparazzi 1.3.x: layoutlib needs Guava's -jre variant, Gradle picks -android without this
     // (https://github.com/cashapp/paparazzi/issues/906).
     constraints {
@@ -126,4 +154,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // Real org.json on the JVM test classpath (android.jar only ships stubs).
     testImplementation("org.json:json:20231013")
+
+    // Instrumented tests (emulator/device): the on-device pipelines on real images.
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("junit:junit:4.13.2")
 }

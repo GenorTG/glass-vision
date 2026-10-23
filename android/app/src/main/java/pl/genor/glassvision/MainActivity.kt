@@ -14,17 +14,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
+import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Wires CameraX ([CameraBinder]) → [FrameAnalyzer] → [FrameStreamer] → overlay, and the stores/server state
- * → [MainScreen] (chips, actions, status) and the sheets (connection, settings, per-pipeline, actions); the
- * photo button → [PhotoCapture], server files → [ResultFileSaver]. Owns no UI logic of its own beyond routing.
+ * Wires CameraX ([CameraBinder]) → [FrameAnalyzer] → the active [RecognitionBackend] ([FrameStreamer] to a server,
+ * or [LocalBackend] on this phone, swapped by [BackendSwitch] when Settings → Processing changes) → overlay, and
+ * the stores/backend state → [MainScreen] (chips, actions, status) and the sheets (connection, settings,
+ * per-pipeline, actions); the photo button → [PhotoCapture], result files → [ResultFileSaver]. Owns no UI logic
+ * of its own beyond routing.
  */
 class MainActivity :
     AppCompatActivity(),
-    FrameStreamer.Listener,
+    RecognitionBackend.Listener,
     MainScreen.Callbacks,
     CameraBinder.Listener,
     CommandUi.CameraHost {
@@ -38,7 +41,9 @@ class MainActivity :
 
     private lateinit var store: SettingsStore
     private val stats = StreamStats()
-    private val streamer = FrameStreamer(this, stats)
+    private lateinit var backends: BackendSwitch
+    private lateinit var models: ModelManager
+    private lateinit var captureStore: CaptureStore
     private lateinit var analysisExecutor: ExecutorService
     private lateinit var mediaExecutor: ExecutorService
     private lateinit var updates: UpdateController
@@ -67,7 +72,7 @@ class MainActivity :
 
     private val onSettingsChanged: (StreamSettings) -> Unit = ::applySettings
     private val onPipelinesChanged: (PipelineSettings) -> Unit = {
-        streamer.setPipelineSettings(it)
+        backends.current?.setPipelineSettings(it)
         render()
     }
     private val onCatalogChanged: (PipelineCatalog.Change) -> Unit = { render() }
@@ -102,22 +107,27 @@ class MainActivity :
 
         store = SettingsStore(this)
         pipelineStore = PipelineStore(this)
+        models = ModelManager(File(filesDir, MODELS_DIR), OkHttpDownloader())
+        captureStore = CaptureStore(File(cacheDir, CAPTURES_DIR))
+        // Backend events arrive on the main thread (the switch hops and drops a replaced backend's late events).
+        backends = BackendSwitch(this, ContextCompat.getMainExecutor(this), ::createBackend)
         analysisExecutor = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-analysis") }
         mediaExecutor = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-media") }
         val saver = MediaSaver(this)
         photos = PhotoCapture(saver, mediaExecutor)
         resultFiles = ResultFileSaver(saver, mediaExecutor)
         updates = UpdateController(this) { settings.endpoint }
-        commands = CommandUi(this, catalog, streamer::sendCommand, ::showMessage, ArgMemory(this), this)
+        commands = CommandUi(
+            this, catalog, { p, a, args -> backends.current?.sendCommand(p, a, args) }, ::showMessage, ArgMemory(this), this,
+        )
         camera = CameraBinder(
             this, this, preview, analysisExecutor,
-            newAnalyzer = { FrameAnalyzer(streamer, { settings }, { paused }) },
+            newAnalyzer = { FrameAnalyzer({ backends.current }, { settings }, { paused }) },
             listener = this,
         )
 
         applySettings(store.load())
         store.addListener(onSettingsChanged)
-        streamer.setPipelineSettings(pipelineStore.load())
         pipelineStore.addListener(onPipelinesChanged)
         catalog.addListener(onCatalogChanged)
 
@@ -126,13 +136,15 @@ class MainActivity :
         } else {
             requestCameraPermission.launch(Manifest.permission.CAMERA)
         }
-        // First run: ask where the server is (the camera permission dialog, if any, shows on top first).
-        if (savedInstanceState == null && !settings.endpoint.isConfigured) root.post { openConnectionSheet(null) }
+        // First run: ask where the server is, or run on this phone (the camera permission dialog shows on top first).
+        if (savedInstanceState == null && settings.processing == ProcessingMode.SERVER && !settings.endpoint.isConfigured) {
+            root.post { openConnectionSheet(null) }
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        streamer.start(settings.endpoint)
+        backends.start()
         root.post(hudTicker)
         updateKeepScreenOn()
     }
@@ -144,7 +156,7 @@ class MainActivity :
 
     override fun onStop() {
         root.removeCallbacks(hudTicker)
-        streamer.stop()
+        backends.stop()
         overlay.clear()
         super.onStop()
     }
@@ -153,7 +165,7 @@ class MainActivity :
         store.removeListener(onSettingsChanged)
         pipelineStore.removeListener(onPipelinesChanged)
         catalog.removeListener(onCatalogChanged)
-        streamer.shutdown()
+        backends.shutdown()
         analysisExecutor.shutdown()
         mediaExecutor.shutdown() // lets a running save finish
         connectionTester.shutdown()
@@ -161,14 +173,46 @@ class MainActivity :
         super.onDestroy()
     }
 
-    /** Live-apply: only an endpoint change reconnects, only a camera change rebinds; the rest applies per frame. */
+    private fun createBackend(mode: ProcessingMode, listener: RecognitionBackend.Listener): RecognitionBackend =
+        when (mode) {
+            ProcessingMode.SERVER -> FrameStreamer(listener, stats)
+            ProcessingMode.LOCAL -> {
+                val fast = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-local-fast") }
+                val slow = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-local-slow") }
+                val load = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-local-load") }
+                // shutdown() lets queued work (closing the models) finish.
+                val lanes = LocalLanes(fast, slow, load) { listOf(fast, slow, load).forEach(ExecutorService::shutdown) }
+                LocalBackend(
+                    listener, stats, OnDeviceLoader(this, models, captureStore), lanes, BuildConfig.VERSION_NAME, CameraFrames,
+                )
+            }
+        }
+
+    /**
+     * Live-apply: a processing-mode change swaps the backend; otherwise each backend takes what concerns it (only an
+     * endpoint change reconnects, only a GPU change reloads models); only a camera change rebinds.
+     */
     private fun applySettings(new: StreamSettings) {
         settings = new
-        streamer.setWindow(new.inFlightWindow)
-        streamer.setDetectorConfig(new.confidence, new.modelImgsz, new.holdMs)
         overlay.smoothing = new.smoothing
         overlay.glideMs = new.glideMs
-        streamer.setEndpoint(new.endpoint)
+        val switched = backends.select(new.processing) {
+            it.applySettings(new)
+            it.setPipelineSettings(pipelineStore.load())
+        }
+        if (switched) {
+            // New engine, new pipelines: nothing from the old one may stay on screen.
+            overlay.clear()
+            catalog.clear()
+            stats.reset()
+            serverInfo = null
+            connection = ConnectionState.DISCONNECTED
+            connectionDetail = null
+            connectionSheet?.sheet?.dismiss()
+            render()
+        } else {
+            backends.current?.applySettings(new)
+        }
         if (cameraPermitted && new.cameraFacing != requestedFacing) bindCamera(new.cameraFacing)
     }
 
@@ -216,9 +260,14 @@ class MainActivity :
 
     override fun onSettings() {
         SettingsSheet(
-            this, store, pipelineStore, catalog, cameras, BuildConfig.VERSION_NAME, commands::run, updates::checkNow,
-            connectionTester::test,
+            this, store, pipelineStore, catalog, cameras, BuildConfig.VERSION_NAME, commands::run, ::checkForUpdates,
+            connectionTester::test, models,
         ).show()
+    }
+
+    /** Updates come from a glass-vision server; on this phone without one there is nothing to ask. */
+    private fun checkForUpdates() {
+        if (settings.endpoint.isConfigured) updates.checkNow() else showMessage(getString(R.string.update_no_server), false)
     }
 
     override fun onPauseToggle() {
@@ -249,7 +298,12 @@ class MainActivity :
             error?.let(open.form::showError)
             return
         }
-        val sheet = ConnectionSheet(this, settings.endpoint, connectionTester::test) { endpoint ->
+        // No server yet, or it can't be reached: offer to run on this phone instead (not for a rejected token).
+        val offerLocal = !settings.endpoint.isConfigured || connection == ConnectionState.DISCONNECTED
+        val sheet = ConnectionSheet(
+            this, settings.endpoint, connectionTester::test,
+            onRunLocal = if (offerLocal) ({ store.update { it.copy(processing = ProcessingMode.LOCAL) } }) else null,
+        ) { endpoint ->
             store.update { it.copy(serverUrl = endpoint.wsUrl, token = endpoint.token) }
         }
         error?.let(sheet.form::showError)
@@ -285,64 +339,56 @@ class MainActivity :
         }
     }
 
-    // FrameStreamer.Listener — called off the main thread.
+    // RecognitionBackend.Listener — on the main thread, only for the current backend (BackendSwitch).
 
     override fun onStateChanged(state: ConnectionState, detail: String?) {
-        runOnUiThread {
-            val wasUnauthorized = connection == ConnectionState.UNAUTHORIZED
-            connection = state
-            connectionDetail = detail
-            if (state != ConnectionState.CONNECTED) {
-                overlay.clear()
-                catalog.clear()
-            }
-            // Server reachable: look for a newer APK (rate-limited inside).
-            if (state == ConnectionState.CONNECTED) updates.checkQuietly()
-            // Token rejected: ask for it where it is entered.
-            if (state == ConnectionState.UNAUTHORIZED && !wasUnauthorized && !isFinishing) {
-                openConnectionSheet(getString(R.string.connection_rejected))
-            }
-            render()
+        val wasUnauthorized = connection == ConnectionState.UNAUTHORIZED
+        connection = state
+        connectionDetail = detail
+        if (state != ConnectionState.CONNECTED) {
+            overlay.clear()
+            catalog.clear()
         }
+        // Up and running: look for a newer APK (rate-limited inside) on the server, if there is one.
+        if (state == ConnectionState.CONNECTED && settings.endpoint.isConfigured) updates.checkQuietly()
+        // Token rejected: ask for it where it is entered.
+        if (state == ConnectionState.UNAUTHORIZED && !wasUnauthorized && !isFinishing) {
+            openConnectionSheet(getString(R.string.connection_rejected))
+        }
+        render()
     }
 
     override fun onHello(hello: ServerMessage.Hello) {
-        runOnUiThread {
-            serverInfo = StatusText.serverInfo(hello.version, hello.device)
-            overlay.setPipelines(hello.pipelines)
-            catalog.onHello(hello)
-        }
+        serverInfo = StatusText.serverInfo(hello.version, hello.device)
+        overlay.setPipelines(hello.pipelines)
+        catalog.onHello(hello)
     }
 
     override fun onPipelineStatus(change: ServerMessage.PipelineStatusChange) {
-        runOnUiThread {
-            catalog.onStatus(change)
-            // Loading errors (e.g. out of VRAM) matter even with no sheet open; the chip also turns red.
-            if (change.status == PipelineStatus.ERROR) {
-                val name = catalog.find(change.pipeline)?.name ?: change.pipeline
-                val msg = change.message ?: getString(R.string.recognition_status_error_plain)
-                showMessage(getString(R.string.pipeline_error_message, name, msg), true)
-            }
+        catalog.onStatus(change)
+        // Loading errors (out of VRAM, no internet for a model download…) matter even with no sheet open.
+        if (change.status == PipelineStatus.ERROR) {
+            val name = catalog.find(change.pipeline)?.name ?: change.pipeline
+            val msg = change.message ?: getString(R.string.recognition_status_error_plain)
+            showMessage(getString(R.string.pipeline_error_message, name, msg), true)
         }
     }
 
-    override fun onDetections(result: ServerMessage.Detections, receivedAtMs: Long) {
-        runOnUiThread { overlay.show(result) }
-    }
+    override fun onDetections(result: ServerMessage.Detections, receivedAtMs: Long) = overlay.show(result)
 
     override fun onCommandResult(result: ServerMessage.CommandResult) {
-        runOnUiThread {
-            if (isFinishing) return@runOnUiThread
-            commands.onResult(result)
-            if (result.ok && result.files.isNotEmpty()) saveResultFiles(result.files)
-        }
+        if (isFinishing) return
+        commands.onResult(result)
+        if (result.ok && result.files.isNotEmpty()) saveResultFiles(result.files)
     }
 
     /** Any action's `files` (e.g. a pose capture) land in the gallery / Downloads; no pipeline-specific code. */
     private fun saveResultFiles(files: List<ServerMessage.CommandResult.ResultFile>) {
         val endpoint = settings.endpoint
+        // On-device results are files in our capture folder; only then may file: URLs be read.
+        val localRoot = captureStore.root.takeIf { backends.current?.mode == ProcessingMode.LOCAL }
         withStorageAccess {
-            resultFiles.save(endpoint, files) { outcome ->
+            resultFiles.save(endpoint, files, localRoot) { outcome ->
                 if (isFinishing) return@save
                 val total = outcome.saved + outcome.failed
                 when {
@@ -373,6 +419,7 @@ class MainActivity :
                 pipelineSettings = pipelineStore.load(),
                 facing = facing,
                 canFlip = cameras.size > 1,
+                mode = settings.processing,
             )
         )
     }
@@ -400,5 +447,9 @@ class MainActivity :
         const val HUD_INTERVAL_MS = 250L
         const val FLASH_ALPHA = 0.85f
         const val FLASH_MS = 220L
+        /** On-device models (app-specific storage, kept until deleted in Settings). */
+        const val MODELS_DIR = "models"
+        /** On-device pose captures before they are copied to the gallery (cache: the system may clear it). */
+        const val CAPTURES_DIR = "captures"
     }
 }

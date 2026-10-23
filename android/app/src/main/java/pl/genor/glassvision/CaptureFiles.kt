@@ -1,5 +1,8 @@
 package pl.genor.glassvision
 
+import java.io.File
+import java.net.URI
+import java.net.URISyntaxException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,6 +61,25 @@ object CaptureFiles {
         val segments = url.substringBefore('?').substringBefore('#').split('/').filter { it.isNotEmpty() }
         if (segments.size < 2) return null
         return safeName(segments[segments.size - 2]).takeIf { it.isNotEmpty() && it != "_" }
+    }
+
+    /**
+     * The local file behind an on-device result's `file:` URL, or null unless it is an existing file strictly inside
+     * [root] (canonical paths: no `..`, no symlink escapes, nothing else the app can read).
+     */
+    fun localSource(url: String, root: File): File? {
+        if (!url.startsWith("file:")) return null
+        val path = try {
+            File(URI(url))
+        } catch (_: IllegalArgumentException) {
+            return null
+        } catch (_: URISyntaxException) {
+            return null
+        }
+        val canonicalRoot = root.canonicalFile
+        val file = path.canonicalFile
+        if (!file.isFile || !file.path.startsWith(canonicalRoot.path + File.separator)) return null
+        return file
     }
 
     /** File name without any path, limited to a portable character set (never `..` or a separator). */

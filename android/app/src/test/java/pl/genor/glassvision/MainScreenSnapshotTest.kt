@@ -24,6 +24,20 @@ class MainScreenSnapshotTest {
         )
     }
 
+    /** Recognition on the phone: "On device" pill, the phone's pipelines, a named pose, a held OCR line. */
+    @Test
+    fun live_on_this_phone() {
+        paparazzi.snapshot(SnapshotFixtures.mainScreen(context, SnapshotFixtures.localState(), SnapshotFixtures.localDetections))
+    }
+
+    /** The HUD on the phone: engine (delegate), latency, engine time and real per-pipeline phone timings. */
+    @Test
+    fun on_this_phone_expanded_hud() {
+        paparazzi.snapshot(
+            SnapshotFixtures.mainScreen(context, SnapshotFixtures.localState(), SnapshotFixtures.localDetections, hudExpanded = true)
+        )
+    }
+
     @Test
     fun status_expanded_hud() {
         paparazzi.snapshot(

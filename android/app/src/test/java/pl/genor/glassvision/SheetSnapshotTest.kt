@@ -62,7 +62,8 @@ class SheetSnapshotTest {
     /** First run: nothing configured yet. */
     @Test
     fun connect_sheet_first_run() {
-        val sheet = ConnectionSheet(context, ServerEndpoint(""), tester = { _, _ -> }, onConnect = {})
+        // With "No server? Run on this phone" (zero-setup on-device mode).
+        val sheet = ConnectionSheet(context, ServerEndpoint(""), tester = { _, _ -> }, onRunLocal = {}, onConnect = {})
         paparazzi.snapshot(SnapshotFixtures.overCamera(context, sheet.sheet.view))
     }
 

@@ -47,6 +47,8 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         val facing: CameraFacing,
         /** Both cameras exist: show the flip button. */
         val canFlip: Boolean,
+        /** Server or on-device: pill/HUD/banner wording; on the phone nothing opens the connection sheet. */
+        val mode: ProcessingMode = ProcessingMode.SERVER,
     )
 
     private val context = root.context
@@ -95,8 +97,12 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
 
     init {
         statusPill.setOnClickListener {
-            val connection = last?.connection
-            if (connection != null && StatusText.needsSetup(connection)) callbacks.onConnectionSetup() else hudExpanded = !hudExpanded
+            val state = last
+            if (state != null && StatusText.needsSetup(state.connection, state.mode)) {
+                callbacks.onConnectionSetup()
+            } else {
+                hudExpanded = !hudExpanded
+            }
         }
         banner.setOnClickListener {
             if (bannerKind in SETUP_BANNERS) callbacks.onConnectionSetup()
@@ -116,16 +122,19 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     }
 
     private fun renderStatus(state: State) {
-        val pill = StatusText.pill(state.connection, state.paused, state.stats)
+        val pill = StatusText.pill(state.connection, state.paused, state.stats, state.mode)
         statusText.text = pill.text
         statusDot.backgroundTintList = ColorStateList.valueOf(toneColor(pill.tone))
         // Setup states: the pill opens the connection sheet, so no HUD chevron/HUD.
-        val showHud = hudExpanded && !StatusText.needsSetup(state.connection)
-        statusExpand.visibility = if (StatusText.needsSetup(state.connection)) View.GONE else View.VISIBLE
+        val setup = StatusText.needsSetup(state.connection, state.mode)
+        val showHud = hudExpanded && !setup
+        statusExpand.visibility = if (setup) View.GONE else View.VISIBLE
         statusExpand.setImageResource(if (hudExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
         hudCard.visibility = if (showHud) View.VISIBLE else View.GONE
         if (!showHud) return
-        val rows = StatusText.hudRows(state.connection, state.connectionDetail, state.serverInfo, state.paused, state.stats)
+        val rows = StatusText.hudRows(
+            state.connection, state.connectionDetail, state.serverInfo, state.paused, state.stats, state.mode,
+        )
         while (hudCard.childCount > rows.size) hudCard.removeViewAt(hudCard.childCount - 1)
         while (hudCard.childCount < rows.size) inflater.inflate(R.layout.item_hud_row, hudCard, true)
         rows.forEachIndexed { i, row ->
@@ -136,7 +145,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     }
 
     private fun renderChips(state: State) {
-        val kind = StatusText.banner(state.connection, state.pipelines)
+        val kind = StatusText.banner(state.connection, state.pipelines, state.mode)
         if (kind != null) {
             chipScroll.visibility = View.GONE
             banner.visibility = View.VISIBLE
@@ -161,7 +170,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     }
 
     private fun renderBanner(kind: ChipBanner, detail: String?) {
-        val busy = kind == ChipBanner.CONNECTING || kind == ChipBanner.WAITING_FOR_HELLO
+        val busy = kind == ChipBanner.CONNECTING || kind == ChipBanner.WAITING_FOR_HELLO || kind == ChipBanner.STARTING_LOCAL
         if (bannerKind != kind) {
             bannerKind = kind
             bannerPulse?.cancel()
@@ -197,6 +206,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
                 ChipBanner.OFFLINE -> R.string.banner_offline
                 ChipBanner.WAITING_FOR_HELLO -> R.string.banner_waiting
                 ChipBanner.NO_PIPELINES -> R.string.banner_no_pipelines
+                ChipBanner.STARTING_LOCAL -> R.string.banner_starting_local
             }
         )
         val showDetail = kind == ChipBanner.OFFLINE && !detail.isNullOrBlank()

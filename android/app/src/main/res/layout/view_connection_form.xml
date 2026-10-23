@@ -110,4 +110,17 @@
             android:minHeight="52dp"
             android:text="@string/connection_connect" />
     </LinearLayout>
+
+    <!-- First-run sheet only (ConnectionForm.showRunLocal): zero-setup on-device mode. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/connection_run_local"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        android:text="@string/connection_run_local"
+        android:visibility="gone"
+        app:icon="@drawable/ic_smartphone" />
 </LinearLayout>

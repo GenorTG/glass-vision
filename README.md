@@ -26,6 +26,14 @@ Each recognizer is a pipeline you switch on in the app; several can run at once.
 | Hand gestures | 21-point hand skeleton + 7 gestures (👍 👎 ✋ ✊ ☝️ ✌️ 🤟) | MediaPipe |
 | Body pose | 17-point skeleton of every person | YOLO11s-pose |
 
+You can run recognition **on the phone instead**: choose **On this phone** in Settings, or tap **Run on this phone**
+on the first screen. Objects, gestures, pose, face detection and OCR run locally; MediaPipe models download from
+Google the first time each feature is enabled. Find-by-text and face naming remain server-only. Phone OCR can read
+Latin, Chinese, Devanagari, Japanese and Korean scripts. Choose **Translate to** in the Text card to identify the
+source language and translate offline into one of 40+ targets; ML Kit downloads the required language model on
+first use. Translations and original OCR text are both shown. On-device mode is slower and uses battery, and the
+first model downloads need internet; downloaded models then work offline.
+
 New pipelines appear in the app automatically: the server describes each one (options, actions) when the app
 connects. Some models are **non-commercial only** — see [Model licenses](#model-licenses).
 
@@ -80,6 +88,10 @@ Without the service: `server/run -m glass_vision`.
 2. Enter the **server address** the installer printed — e.g. `192.168.1.20:8770` or your Tailscale IP — and the
    **access token** if you set one.
 3. Allow camera access. Tap a recognizer chip to switch it on; long-press it for its options.
+
+To use the phone without a server, tap **Run on this phone** (or choose **On this phone** under Settings →
+Processing). Switch scripts and the translation target in the Text recognition card. The first use of a recognizer
+downloads its model; the selected translation model downloads when a translatable line is first read.
 
 Check the server from any browser on the same network: `http://<address>:8770/health`.
 

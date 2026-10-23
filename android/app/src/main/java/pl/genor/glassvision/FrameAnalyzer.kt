@@ -6,15 +6,15 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 
 /**
- * CameraX analyzer (runs on the single analysis executor): gates frames on pause, the FPS cap and the
- * streamer's in-flight window *before* encoding, then encodes + sends on this same thread.
+ * CameraX analyzer (runs on the single analysis executor): gates frames on pause, the FPS cap and the active
+ * backend's capacity (in-flight window / engine busy) *before* any per-frame work, then hands the frame to that
+ * backend on this same thread (it encodes + sends, or converts + runs on the phone).
  */
 class FrameAnalyzer(
-    private val streamer: FrameStreamer,
+    private val backend: () -> RecognitionBackend?,
     private val settings: () -> StreamSettings,
     private val isPaused: () -> Boolean,
 ) : ImageAnalysis.Analyzer {
-    private val encoder = FrameEncoder()
     private var nextDueUptime = 0L
 
     override fun analyze(image: ImageProxy) {
@@ -33,10 +33,10 @@ class FrameAnalyzer(
         val s = settings()
         val now = SystemClock.uptimeMillis()
         if (now < nextDueUptime) return
-        if (!streamer.canSend()) return
+        val target = backend() ?: return
+        if (!target.canAcceptFrame()) return
 
-        val frame = encoder.encode(image, s.sendLongSide, s.jpegQuality)
-        if (streamer.sendFrame(frame)) nextDueUptime = nextDue(nextDueUptime, now, 1000L / s.targetFps)
+        if (target.submitFrame(image, s)) nextDueUptime = nextDue(nextDueUptime, now, 1000L / s.targetFps)
     }
 
     companion object {
