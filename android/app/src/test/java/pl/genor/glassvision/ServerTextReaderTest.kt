@@ -244,8 +244,14 @@ class ServerTextReaderTest {
     }
 
     @Test
-    fun captured_v3_hello_has_no_features() {
-        val text = requireNotNull(javaClass.classLoader?.getResource("hello_v3.json")).readText()
-        assertFalse((Protocol.parse(text) as ServerMessage.Hello).canReadText)
+    fun older_server_hello_without_features_cannot_read_text() {
+        // The captured fixture is from a v3.2 server; strip `features` to get what a v3.1 server sends.
+        val captured = JSONObject(requireNotNull(javaClass.classLoader?.getResource("hello_v3.json")).readText())
+        captured.remove("features")
+        val hello = Protocol.parse(captured.toString()) as ServerMessage.Hello
+        assertFalse(hello.canReadText)
+        // Without the Read button the server's own `live` default (keep reading live) is left alone.
+        val live = hello.pipelines.first { it.id == "text" }.options.first { it.key == "live" }
+        assertEquals(OptionValue.Str("Read live"), live.default)
     }
 }

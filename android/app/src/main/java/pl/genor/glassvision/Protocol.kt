@@ -152,19 +152,41 @@ object Protocol {
         else -> null
     }
 
+    /**
+     * The server defaults the text pipeline's `live` option to "Read live" so installed apps (which echo every
+     * default back) keep their behaviour; this app has the Read button, so its default is marking text areas.
+     * A user's explicit choice still wins (it is an override in [PipelineSettings]).
+     */
+    private fun markTextByDefault(spec: PipelineSpec): PipelineSpec {
+        if (spec.id != LocalCatalog.TEXT) return spec
+        return spec.copy(
+            options = spec.options.map { option ->
+                if (option.key == LocalCatalog.OPT_LIVE && LocalCatalog.LIVE_MARK in option.choices) {
+                    option.copy(default = OptionValue.Str(LocalCatalog.LIVE_MARK))
+                } else {
+                    option
+                }
+            },
+        )
+    }
+
     /** Returns null for malformed or unknown messages. */
     fun parse(text: String): ServerMessage? = try {
         val o = JSONObject(text)
         when (o.optString("type")) {
-            "hello" -> ServerMessage.Hello(
-                protocol = o.optInt("protocol", 0),
-                device = o.optString("device"),
-                version = o.optString("version"),
-                pipelines = o.optJSONArray("pipelines").objects().mapNotNull(::parsePipeline),
-                features = o.optJSONArray("features")
+            "hello" -> {
+                val features = o.optJSONArray("features")
                     ?.let { arr -> (0 until arr.length()).mapNotNull { arr.opt(it) as? String }.toSet() }
-                    .orEmpty(),
-            )
+                    .orEmpty()
+                ServerMessage.Hello(
+                    protocol = o.optInt("protocol", 0),
+                    device = o.optString("device"),
+                    version = o.optString("version"),
+                    pipelines = o.optJSONArray("pipelines").objects().mapNotNull(::parsePipeline)
+                        .map { if (FEATURE_TEXT_READ in features) markTextByDefault(it) else it },
+                    features = features,
+                )
+            }
             "pipeline_status" -> ServerMessage.PipelineStatusChange(
                 pipeline = o.getString("pipeline"),
                 status = PipelineStatus.fromWire(o.optString("status")),

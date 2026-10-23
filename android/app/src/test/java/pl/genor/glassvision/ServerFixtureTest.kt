@@ -29,6 +29,17 @@ class ServerFixtureTest {
     }
 
     @Test
+    fun real_hello_offers_read_text_and_this_app_marks_text_live() {
+        val hello = Protocol.parse(fixture("hello_v3.json")) as ServerMessage.Hello
+        assertTrue(hello.canReadText)
+        // The server's default stays "Read live" for installed apps; this app (with the Read button) marks.
+        assertTrue(fixture("hello_v3.json").contains("\"default\":\"Read live\""))
+        val live = hello.pipelines.first { it.id == "text" }.options.first { it.key == "live" }
+        assertEquals(OptionValue.Str("Mark text areas"), live.default)
+        assertEquals(OptionValue.Str("Mark text areas"), PipelineSettings().resolve(hello.pipelines).getValue("text").options["live"])
+    }
+
+    @Test
     fun real_detections_carry_tracks_of_three_pipelines() {
         val msg = Protocol.parse(fixture("detections_v3.json")) as ServerMessage.Detections
         assertEquals(setOf("objects", "faces", "pose"), msg.tracks.map { it.pipeline }.toSet())
