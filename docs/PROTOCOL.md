@@ -139,12 +139,18 @@ Live OCR on every frame is slow and reads small or distant text badly. So the `t
 once, translating it into any number of languages. All of this is HTTP (same auth as the WebSocket) so a large
 still never sits in the frame window.
 
-- `hello` gains `"features": ["text_read"]` (absent on older servers → the client hides Read).
-- Text pipeline option `live` (choice): `"Mark text areas"` (default; detector only, every track `label` = `"text"`)
-  or `"Read live"` (the old behaviour: recognized text as the label).
+- `hello` gains `"features": ["text_read"]` (absent on older servers → the client hides Read; `[]` on a server
+  without the OCR pipeline).
+- Text pipeline option `live` (choice): `"Mark text areas"` (detector only: every track `label` = `"text"`, `conf` 1,
+  no `detail`; 25–40 % cheaper per run on a 3090) or `"Read live"` (the old behaviour: recognized text as the label).
+  **Default `"Read live"`**: installed v3.1 apps send every option at the default `hello` advertises, so a Mark
+  default would turn their live OCR into unlabeled boxes they have no Read button for. A client that offers Read
+  sends `"live": "Mark text areas"` itself (e.g. while the user hasn't picked a mode). Changing `live` restarts the
+  text pipeline's tracks (no "text" label voted onto read lines).
 
-`POST /text/read` — body = the upright still as `image/jpeg` (any size; the server reads it at up to 2560 px long
-side). Query (all optional): `languages` = a value of the text pipeline's `languages` option (default: auto-detect),
+`POST /text/read` — body = the upright still as `image/jpeg` (any size up to 40 MB, else 413; an EXIF orientation
+is applied, `w`/`h` are the upright size; the server reads it at up to 2560 px long side). Query (all optional):
+`languages` = a value of the text pipeline's `languages` option (default: auto-detect among installed scripts),
 `translate_to` = comma-separated language codes (`pl,de`), `translate_from` = code (default: detect per line),
 `model` = a `translation_model` choice. Response:
 
@@ -156,17 +162,27 @@ side). Query (all optional): `languages` = a value of the text pipeline's `langu
  "errors": {}}
 ```
 
-- `lines` in reading order (top to bottom, then left to right); `box` normalized like `detections`; `block` groups
-  lines that belong together (same sign/paragraph: nearby, similar height); `lang` = detected source code or null.
-- `translations.<code>` aligns with `lines`; an entry is null where the line is not translated (digits only,
-  already in that language, translation failed). A target that failed entirely is absent from `translations` and
-  listed in `errors.<code>` (message). No text found → `lines: []`, still HTTP 200.
-- 400 = not a JPEG / bad query value; 503 = the OCR model could not be loaded (message in `detail`).
+- `lines` in reading order, block by block: blocks top to bottom, then left to right (blocks starting at about the
+  same height are one row), and inside a block its lines top to bottom, then left to right — so a block's lines are
+  contiguous and `block` ids count up from 0 in that order. `block` groups lines that belong together (same
+  sign/paragraph: similar height, stacked ≤ ~1 line height apart or side by side on one row). `box` normalized like
+  `detections`. `script` = the recognizer group that read it (`latin`, `cyrillic`, `zh_sim`…).
+- `lang` = source language code (detected per line among the script's languages; a weak guess borrows its block's
+  language, then the whole still's), the `translate_from` code if one was given, or null (digits/codes/URLs, or no
+  confident guess). Only lines with a `lang` are translated.
+- `translations.<code>` aligns with `lines`; an entry is null where the line is not translated (no `lang`, already in
+  that language, model returned it unchanged). A target that failed entirely is absent from `translations` and
+  listed in `errors.<code>` (message). No text found → `lines: []`, `translations.<code>: []`, still HTTP 200.
+- `ms.ocr` = detection + recognition (auto mode tries every installed script on one detection), `ms.translate` =
+  language detection + every target.
+- 400 = not a JPEG / bad query value (checked before anything loads); 503 = the OCR model could not be loaded
+  (message in `detail`).
 
 `POST /text/translate` — add a language without reading again. Body
 `{"lines": ["Ausgang", "Notausgang 2"], "from": ["de", "de"], "to": "fr", "model": null}`
-(`from` optional, per line, null = detect) → `{"to": "fr", "translations": ["Sortie", "Sortie de secours 2"]}`
-(same null rules).
+(`from` optional, per line, null = detect among the languages of the lines' script) →
+`{"to": "fr", "translations": ["Sortie", "Sortie de secours 2"]}` (same null rules; at most 500 lines). 400 = body
+not JSON / bad field; 503 = OCR pipeline or translation model unavailable (`detail`).
 
 `GET /text/languages` → `{"languages": [{"code": "pl", "name": "Polish"}, …]}`: targets `translate_to` accepts.
 

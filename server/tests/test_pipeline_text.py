@@ -158,13 +158,30 @@ def test_auto_reads_a_sign_after_a_blank_start(pipeline):
     pipeline._auto_group_key, pipeline._auto_probe_after = None, 0.0
     blank = np.full((H, W, 3), 255, np.uint8)
     img, drawn = make_sign()
-    auto = ctx(languages=TextPipeline.info.options[0].default)
+    auto = ctx(languages=next(o.default for o in TextPipeline.info.options if o.key == "languages"))
     assert pipeline.run(blank, auto) == []
     for _ in range(3):  # well inside the retry window: no probe is due
         assert pipeline.run(blank, auto) == []
     anns = pipeline.run(img, auto)
     assert similar(read_region(anns, drawn["GLASS VISION"]), "GLASS VISION") >= 0.8, anns
     assert pipeline._auto_group_key == DEFAULT_GROUP.key
+
+
+def test_mark_mode_boxes_every_line_without_reading(pipeline):
+    """`live` = "Mark text areas": CRAFT only, one box per drawn line, label "text"; doesn't touch auto-detect state."""
+    img, drawn = make_sign()
+    state = (pipeline._auto_group_key, pipeline._auto_probe_after)
+    anns = pipeline.run(img, ctx(languages="Auto-detect (available scripts)", live="Mark text areas"))
+    assert (pipeline._auto_group_key, pipeline._auto_probe_after) == state
+    assert anns and all(a.label == "text" and a.conf == 1.0 and a.detail is None for a in anns)
+    for text, (x1, y1, x2, y2) in drawn.items():
+        hits = [
+            a
+            for a in anns
+            if a.box[0] <= x1 + 20 and a.box[1] <= y1 + 20 and a.box[2] >= x2 - 20 and a.box[3] >= y2 - 20
+        ]
+        assert len(hits) == 1, (text, anns)  # the whole line, as one box
+    assert pipeline.run(np.full((H, W, 3), 255, np.uint8), ctx(live="Mark text areas")) == []
 
 
 @pytest.mark.parametrize("group", SCRIPT_GROUPS, ids=lambda g: g.key)

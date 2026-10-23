@@ -294,42 +294,71 @@ class Translator:
             found = self._detectors[sources] = SourceDetector(sources)
         return found
 
-    def _sources_for(self, texts: Sequence[str], sources: SourceLanguages) -> list[str | None]:
-        """Source language per (normalized, translatable) line; None = leave it as read."""
+    def _sources_for(
+        self, texts: Sequence[str], sources: SourceLanguages, blocks: Sequence[int] | None = None
+    ) -> list[str | None]:
+        """Source language per (normalized, translatable) line; None = leave it as read. A weakly detected line takes
+        its block's language (`blocks`: block id per line, lines of one sign), else the whole frame's, if that one is
+        sure."""
         detector = self.detector(sources)
-        frame: Guess | None = None
+        guesses: dict[int | None, Guess] = {}  # block id (None = all lines) → guess on its joined text
+
+        def joined(block: int | None) -> Guess:
+            if block not in guesses:
+                group = [t for t, b in zip(texts, blocks or [None] * len(texts), strict=True) if block in (None, b)]
+                guesses[block] = detector.guess(" ".join(group)) if len(group) > 1 else Guess(None, 0.0, False)
+            return guesses[block]
+
         out: list[str | None] = []
-        for text in texts:
+        for k, text in enumerate(texts):
             guess = detector.guess(text)
             code = guess.language
             if not guess.sure:
-                if frame is None:  # the whole frame's text: a sign is usually one language
-                    frame = detector.guess(" ".join(texts)) if len(texts) > 1 else Guess(None, 0.0, False)
-                if frame.sure:
-                    code = frame.language
+                context = [joined(blocks[k]), joined(None)] if blocks is not None else [joined(None)]
+                sure = next((g for g in context if g.sure), None)
+                if sure is not None:
+                    code = sure.language
                 elif letter_count(text) < LONG_LETTERS:
                     code = None
             out.append(code)
         return out
 
     # --- API --------------------------------------------------------------------------------------------------
+    def detect_sources(
+        self, lines: Sequence[str], sources: SourceLanguages, blocks: Sequence[int] | None = None
+    ) -> list[str | None]:
+        """Source language per line as `translate` would detect it (M2M100 code); None = not translatable (number,
+        code, URL) or no confident guess. `blocks` (block id per line) adds the line's block as detection context."""
+        texts = [normalize(line) for line in lines]
+        todo = [i for i, t in enumerate(texts) if is_translatable(t)]
+        todo_blocks = [blocks[i] for i in todo] if blocks is not None else None
+        out: list[str | None] = [None] * len(lines)
+        for i, code in zip(todo, self._sources_for([texts[i] for i in todo], sources, todo_blocks), strict=True):
+            out[i] = code
+        return out
+
     def translate(
         self,
         lines: Sequence[str],
         target: str,
         sources: SourceLanguages,
         *,
-        source: str | None = None,
+        source: str | Sequence[str | None] | None = None,
         model: str = DEFAULT_MODEL,
     ) -> list[Translation | None]:
         """One result per line: None = keep the line as read (number/code/URL, already `target`, unknown source, or
-        the model returned it unchanged). `source` (M2M100 code) skips detection."""
+        the model returned it unchanged). `source` (M2M100 code) skips detection; a sequence gives one code per line,
+        None entries are detected (as part of all lines, so a weak line still borrows the others' language)."""
         texts = [normalize(line) for line in lines]
         todo = [i for i, t in enumerate(texts) if is_translatable(t)]
-        if source is not None:
+        if isinstance(source, str):
             src: list[str | None] = [source] * len(todo)
         else:
-            src = self._sources_for([texts[i] for i in todo], sources)
+            given = list(source) if source is not None else [None] * len(lines)
+            if len(given) != len(lines):
+                raise ValueError(f"{len(given)} source languages for {len(lines)} lines")
+            detected = self.detect_sources(lines, sources) if any(given[i] is None for i in todo) else given
+            src = [given[i] if given[i] is not None else detected[i] for i in todo]
 
         results: list[Translation | None] = [None] * len(lines)
         keys: dict[int, tuple[str, str, str, str]] = {}

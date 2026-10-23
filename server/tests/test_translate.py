@@ -159,6 +159,23 @@ def test_weak_short_line_alone_stays_as_read_unless_the_source_is_given(fake):
     assert out[0].text == "[pl>en] Uwaga" and out[0].source == "pl"
 
 
+def test_per_line_sources(fake):
+    """Read text: `source` per line (None = detect, with all lines as context); a mismatched length is an error."""
+    lines = ["Bitte nicht berühren", "Uwaga", "Rauchen verboten"]
+    out = fake.translate(lines, "en", LATIN, source=[None, "pl", None])
+    assert [o.source for o in out] == ["de", "pl", "de"]
+    assert out[1].text == "[pl>en] Uwaga"
+    with pytest.raises(ValueError, match="2 source languages for 3 lines"):
+        fake.translate(lines, "en", LATIN, source=["de", "de"])
+
+
+def test_detect_sources_uses_the_block_before_the_whole_frame(fake):
+    # "Notausgang" alone is a weak guess; its block says German. The Polish block next to it doesn't drag it along.
+    lines = ["Notausgang", "Bitte nicht berühren", "Wyjście ewakuacyjne", "Zakaz palenia tytoniu", "12:30"]
+    assert fake.detect_sources(lines, LATIN, blocks=[0, 0, 1, 1, 2]) == ["de", "de", "pl", "pl", None]
+    assert fake.detect_sources(["Uwaga"], LATIN) == [None]  # alone and weak: unknown
+
+
 def test_unchanged_output_is_not_a_translation(detectors):
     class Echo(FakeTranslator):
         def _generate(self, items, target, model):
@@ -204,6 +221,8 @@ def test_options_and_legacy_language_values():
     specs = {o.key: o for o in TextPipeline.info.options}
     latin = SCRIPT_GROUPS[0].label
     assert specs["languages"].default == AUTO_SCRIPTS
+    # Installed v3.1 apps send every option at its advertised default: "Read live" keeps their live OCR as it was.
+    assert specs["live"].default == "Read live" and specs["live"].choices == ["Mark text areas", "Read live"]
     assert specs["languages"].coerce("en") == latin  # saved by older app versions
     assert specs["languages"].coerce("en+pl") == latin
     with pytest.raises(ValueError):

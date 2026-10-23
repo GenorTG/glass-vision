@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import FileResponse, HTMLResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from . import captures, session
+from . import captures, session, text_read
 from .apk_info import read_apk_info
 from .config import REPO_ROOT, Settings, resolve_device, settings
 from .pipelines import available_pipelines
@@ -189,6 +189,7 @@ def create_app(config: Settings) -> FastAPI:
             raise HTTPException(500, "bad APK metadata") from exc
 
     api.include_router(captures.router)  # GET /captures/<id>/<file> (`command_result.files`), behind TokenAuth
+    api.include_router(text_read.create_router(lambda: state.manager))  # /text/* ("Read text"), behind TokenAuth
 
     @api.get("/", response_class=HTMLResponse)
     async def index(token: str | None = None) -> str:

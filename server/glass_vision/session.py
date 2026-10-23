@@ -18,7 +18,7 @@ import logging
 import threading
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, TypeVar
 
 import cv2
 import numpy as np
@@ -33,9 +33,17 @@ log = logging.getLogger("glass_vision")
 IDLE_UNLOAD_S = 600  # unload a pipeline nobody used for 10 min
 ERROR_RETRY_S = 30  # a pipeline that failed to load/run may be retried after this
 ASYNC_HOLD_FACTOR = 2.5  # slow pipelines' tracks are held at least this many intervals
+# Options that change what a pipeline's labels mean: a change restarts its tracks, else the label vote keeps the old
+# kind of label for a while (text `live`: Mark's "text" boxes would linger as "text" after switching to Read live).
+RESET_TRACKS_OPTIONS = {("text", "live")}
 LOAD_TIMEOUT_S = 120
 
 Listener = Callable[[dict[str, Any]], Awaitable[None]]
+T = TypeVar("T")
+
+
+class PipelineUnavailable(RuntimeError):
+    """`PipelineManager.call`: the pipeline isn't registered or could not be loaded (message = why)."""
 
 
 class PipelineHandle:
@@ -59,6 +67,10 @@ class PipelineManager:
 
     def infos(self) -> dict[str, PipelineInfo]:
         return {pid: h.info for pid, h in self.handles.items()}
+
+    def features(self) -> list[str]:
+        """`hello.features`: optional server capabilities beyond the pipelines (docs/PROTOCOL.md)."""
+        return ["text_read"] if "text" in self.handles else []
 
     def describe(self) -> list[dict[str, Any]]:
         out = []
@@ -161,6 +173,30 @@ class PipelineManager:
 
         return await asyncio.to_thread(command)
 
+    async def call(self, pid: str, fn: Callable[[Pipeline], T]) -> T:
+        """Run `fn(instance)` in a worker thread under the pipeline's lock, loading it first if needed: HTTP endpoints
+        that use the same model instance as the live streams (`glass_vision/text_read.py`). Exceptions from `fn`
+        propagate and leave the pipeline loaded (a bad request is not a broken model)."""
+        h = self.handles.get(pid)
+        if h is None:
+            raise PipelineUnavailable(f"pipeline {pid!r} is not available on this server")
+        try:
+            ready = await self.ensure_ready(pid)
+        except TimeoutError as exc:
+            raise PipelineUnavailable(f"{h.info.name} is still loading") from exc
+        instance = h.instance
+        if not ready or instance is None:
+            raise PipelineUnavailable(f"{h.info.name} could not be loaded: {h.message or h.status}")
+
+        def call() -> T:
+            with h.lock:
+                try:
+                    return fn(instance)
+                finally:
+                    h.last_used = time.monotonic()  # a long call must not count as idle time
+
+        return await asyncio.to_thread(call)
+
     async def _unload(self, h: PipelineHandle) -> None:
         instance, h.instance = h.instance, None
         if instance is None:
@@ -233,6 +269,7 @@ class StreamSession:
                 "protocol": PROTOCOL_VERSION,
                 "device": self.device_label,
                 "version": self.version,
+                "features": self.manager.features(),
                 "pipelines": self.manager.describe(),
             }
         )
@@ -276,7 +313,16 @@ class StreamSession:
                 raise ProtocolError("expected a JSON object")
             kind = message.get("type")
             if kind == "config":
+                before = {
+                    (pid, key): self.config.pipelines[pid].options.get(key)
+                    for pid, key in RESET_TRACKS_OPTIONS
+                    if pid in self.config.pipelines
+                }
                 self.config.apply(message)
+                for (pid, key), value in before.items():
+                    if self.config.pipelines[pid].options.get(key) != value and pid in self.trackers:
+                        self.trackers[pid] = TrackSmoother(pid)
+                        self.async_raw.pop(pid, None)
                 if "pipelines" in message or message.get("protocol", 0) >= PROTOCOL_VERSION:
                     self.legacy_client = False
                 self.reconcile()
