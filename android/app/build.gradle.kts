@@ -84,7 +84,7 @@ android {
         unitTests.isReturnDefaultValues = true
     }
     packaging {
-        // Compress the native libraries (MediaPipe + ML Kit OCR, ~60 MB for 3 ABIs) inside the APK: the APK is
+        // Compress native libraries inside the APK: the APK is
         // downloaded by the in-app updater and from GitHub, so download size beats the install-time extraction
         // AGP's default (stored uncompressed) avoids.
         jniLibs.useLegacyPackaging = true
@@ -125,13 +125,9 @@ dependencies {
     // API but adds LiteRT-LM (~21 MB, LLM tasks this app doesn't use).
     // https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector/android
     implementation("com.google.mediapipe:tasks-vision:0.10.35")
-    // ML Kit Text Recognition v2, bundled model (works offline, ~4 MB per ABI; the unbundled one needs Play
-    // services to download it). https://developers.google.com/ml-kit/vision/text-recognition/v2/android
-    implementation("com.google.mlkit:text-recognition:16.0.1")
-    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
-    implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
-    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
-    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+    // Tesseract 5 LSTM OCR; language data is downloaded on demand to app-private storage.
+    // https://github.com/adaptech-cz/Tesseract4Android
+    implementation("cz.adaptech.tesseract4android:tesseract4android-openmp:4.9.0")
     // On-device language identification + offline translation; ML Kit downloads language models on first use.
     // https://developers.google.com/ml-kit/language/translation/android
     implementation("com.google.mlkit:language-id:17.0.6")

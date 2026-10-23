@@ -73,7 +73,7 @@ object LocalCatalog {
     const val OPT_NUM_HANDS = "num_hands"
     const val OPT_MIN_CONF = "min_conf"
     const val OPT_TRANSLATE_TO = "translate_to"
-    const val OPT_OCR_SCRIPT = "ocr_script"
+    const val OPT_OCR_LANGUAGE = "ocr_language"
     const val ACTION_CAPTURE = "capture"
 
     const val OBJECTS_FAST = "Lite0 · fast"
@@ -81,12 +81,7 @@ object LocalCatalog {
     const val POSE_LITE = "Lite · fast"
     const val POSE_FULL = "Full · higher accuracy"
     const val TRANSLATE_OFF = "Off"
-    const val OCR_LATIN = "Latin"
-    const val OCR_CHINESE = "Chinese"
-    const val OCR_DEVANAGARI = "Devanagari"
-    const val OCR_JAPANESE = "Japanese"
-    const val OCR_KOREAN = "Korean"
-    val ocrScriptChoices = listOf(OCR_LATIN, OCR_CHINESE, OCR_DEVANAGARI, OCR_JAPANESE, OCR_KOREAN)
+    val ocrLanguageChoices = OcrLanguage.entries.map { it.choice }
 
     /** ML Kit translation language tags; language models download on demand and work offline afterwards. */
     val translationChoices = listOf(
@@ -164,14 +159,14 @@ object LocalCatalog {
         PipelineSpec(
             id = TEXT,
             name = "Text (OCR)",
-            description = "Reads Latin text offline; optionally translates it offline after downloading the language model.",
+            description = "Reads 41 languages offline with downloadable language packs; optionally translates text offline.",
             options = listOf(
                 OptionSpec(
-                    OPT_OCR_SCRIPT,
-                    "Read script",
+                    OPT_OCR_LANGUAGE,
+                    "OCR language",
                     OptionType.CHOICE,
-                    OptionValue.Str(OCR_LATIN),
-                    choices = ocrScriptChoices,
+                    OptionValue.Str(OcrLanguage.ENGLISH.choice),
+                    choices = ocrLanguageChoices,
                 ),
                 OptionSpec(
                     OPT_TRANSLATE_TO,

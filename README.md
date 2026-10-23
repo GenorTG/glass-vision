@@ -22,17 +22,17 @@ Each recognizer is a pipeline you switch on in the app; several can run at once.
 | Objects | 80 everyday classes: people, vehicles, animals, food, electronics… | YOLO11s |
 | Find by text | anything you type: "red mug, keys, glasses" | YOLOE-11s + MobileCLIP |
 | Faces | detects faces and names people you taught it ("Learn face") | InsightFace buffalo_l |
-| Text (OCR) | signs, labels, screens in 80+ languages (Latin, Cyrillic, Chinese, Japanese, Korean, Arabic, Devanagari, Thai… — pick the script); optional translation into 40+ languages | EasyOCR + M2M100 |
+| Text (OCR) | signs, labels, screens in 80+ languages; auto-detects among installed script models, or pin a script; optional translation into 40+ languages | EasyOCR + M2M100 |
 | Hand gestures | 21-point hand skeleton + 7 gestures (👍 👎 ✋ ✊ ☝️ ✌️ 🤟) | MediaPipe |
 | Body pose | 17-point skeleton of every person | YOLO11s-pose |
 
 You can run recognition **on the phone instead**: choose **On this phone** in Settings, or tap **Run on this phone**
 on the first screen. Objects, gestures, pose, face detection and OCR run locally; MediaPipe models download from
-Google the first time each feature is enabled. Find-by-text and face naming remain server-only. Phone OCR can read
-Latin, Chinese, Devanagari, Japanese and Korean scripts. Choose **Translate to** in the Text card to identify the
-source language and translate offline into one of 40+ targets; ML Kit downloads the required language model on
-first use. Translations and original OCR text are both shown. On-device mode is slower and uses battery, and the
-first model downloads need internet; downloaded models then work offline.
+Google the first time each feature is enabled. Find-by-text and face naming remain server-only. Phone OCR has
+downloadable Tesseract language packs for 41 languages; choose **OCR language** in the Text card and its pack
+downloads on first use (then works offline). Choose **Translate to** to identify the source language and translate
+offline into one of 40+ targets; ML Kit downloads the required translation model on first use. Translations and
+original OCR text are both shown. On-device mode is slower and uses battery; first model downloads need internet.
 
 New pipelines appear in the app automatically: the server describes each one (options, actions) when the app
 connects. Some models are **non-commercial only** — see [Model licenses](#model-licenses).

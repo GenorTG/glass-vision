@@ -17,19 +17,13 @@ import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizer
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.TextRecognizer
-import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
-import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
-import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.googlecode.tesseract.android.TessBaseAPI
+import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -38,11 +32,11 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /*
- * The on-device pipelines: MediaPipe Tasks Vision 0.10.35 (objects, gestures, pose, faces, + hands for pose capture)
- * and ML Kit Text Recognition v2 (text). Android-only glue around the pure parts (LocalBackend, LocalTracker,
+ * The on-device pipelines: MediaPipe Tasks Vision 0.10.35 (objects, gestures, pose, faces, + hands for pose capture),
+ * Tesseract4Android (multilingual text), and ML Kit offline translation. Android-only glue around the pure parts (LocalBackend, LocalTracker,
  * PoseNames, OpenPose), which are unit-tested on the JVM; these run in the instrumented tests.
  * API: https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector/android (and the gesture_recognizer,
- * pose_landmarker, face_detector, hand_landmarker pages), https://developers.google.com/ml-kit/vision/text-recognition/v2/android
+ * pose_landmarker, face_detector, hand_landmarker pages), https://github.com/adaptech-cz/Tesseract4Android
  */
 
 /** A [LocalFrame] backed by an upright ARGB_8888 bitmap (shared read-only by the lanes; never recycled early). */
@@ -92,15 +86,25 @@ class OnDeviceLoader(
 
     override fun configKey(pipeline: String, options: Map<String, OptionValue>, gpu: Boolean): String = when (pipeline) {
         LocalCatalog.GESTURES -> "gestures/${hands(options)}/${minConf(options)}/$gpu"
-        LocalCatalog.TEXT -> "text/${options[LocalCatalog.OPT_OCR_SCRIPT]}" // ML Kit picks its own acceleration
+        LocalCatalog.TEXT -> "text/${options[LocalCatalog.OPT_OCR_LANGUAGE]}"
         else -> "$pipeline/${LocalCatalog.modelFor(pipeline, options)}/$gpu"
     }
 
     override fun load(pipeline: String, options: Map<String, OptionValue>, gpu: Boolean): LocalPipeline {
-        if (pipeline == LocalCatalog.TEXT) return TextPipeline(
-            TextRecognition.getClient(textOptions(options)),
-            LanguageIdentification.getClient(),
-        )
+        if (pipeline == LocalCatalog.TEXT) {
+            val language = OcrLanguage.fromChoice(
+                (options[LocalCatalog.OPT_OCR_LANGUAGE] as? OptionValue.Str)?.value ?: OcrLanguage.ENGLISH.choice,
+            )
+            val model = models.ensure(language.spec)
+            val ocr = TessBaseAPI()
+            val dataRoot = requireNotNull(model.parentFile?.parentFile) { "Invalid OCR model path" }
+            if (!ocr.init(dataRoot.absolutePath, language.code, TessBaseAPI.OEM_LSTM_ONLY)) {
+                ocr.recycle()
+                throw ModelUnavailableException("OCR model could not be loaded: ${language.title}")
+            }
+            ocr.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO)
+            return TextPipeline(ocr, LanguageIdentification.getClient())
+        }
         val model = LocalCatalog.modelFor(pipeline, options) ?: throw IllegalArgumentException("unknown pipeline $pipeline")
         val file = models.ensure(model.spec)
         val create: (Delegate) -> MediaPipePipeline = { delegate ->
@@ -186,16 +190,6 @@ class OnDeviceLoader(
     private fun hands(o: Map<String, OptionValue>) = o.num(LocalCatalog.OPT_NUM_HANDS, 2.0).toInt().coerceIn(1, 4)
 
     private fun minConf(o: Map<String, OptionValue>) = Math.round(o.num(LocalCatalog.OPT_MIN_CONF, 0.5) * 1000).toFloat() / 1000f
-
-    private fun textOptions(options: Map<String, OptionValue>) = when (
-        (options[LocalCatalog.OPT_OCR_SCRIPT] as? OptionValue.Str)?.value ?: LocalCatalog.OCR_LATIN
-    ) {
-        LocalCatalog.OCR_CHINESE -> ChineseTextRecognizerOptions.Builder().build()
-        LocalCatalog.OCR_DEVANAGARI -> DevanagariTextRecognizerOptions.Builder().build()
-        LocalCatalog.OCR_JAPANESE -> JapaneseTextRecognizerOptions.Builder().build()
-        LocalCatalog.OCR_KOREAN -> KoreanTextRecognizerOptions.Builder().build()
-        else -> TextRecognizerOptions.DEFAULT_OPTIONS
-    }
 
     companion object {
         private const val TAG = "OnDeviceLoader"
@@ -379,9 +373,9 @@ class PosePipeline(
     }
 }
 
-/** ML Kit OCR + optional ML Kit offline translation; OCR runs even when detection/translation cannot identify a line. */
+/** Downloadable Tesseract OCR + optional ML Kit offline translation. */
 class TextPipeline(
-    private val recognizer: TextRecognizer,
+    private val recognizer: TessBaseAPI,
     private val languageIdentifier: com.google.mlkit.nl.languageid.LanguageIdentifier,
 ) : LocalPipeline {
     private val translators = LinkedHashMap<Pair<String, String>, Translator>(8, 0.75f, true)
@@ -389,17 +383,26 @@ class TextPipeline(
 
     override fun run(frame: LocalFrame, timestampMs: Long, options: Map<String, OptionValue>): List<PixelDetection> {
         val f = frame.bitmapFrame()
-        val text = Tasks.await(recognizer.process(InputImage.fromBitmap(f.bitmap, 0)), TIMEOUT_S, TimeUnit.SECONDS)
+        recognizer.setImage(f.bitmap)
+        val iterator = recognizer.resultIterator ?: return emptyList()
         val targetChoice = (options[LocalCatalog.OPT_TRANSLATE_TO] as? OptionValue.Str)?.value ?: LocalCatalog.TRANSLATE_OFF
         val targetTag = LocalCatalog.translationTag(targetChoice)
-        return text.textBlocks.flatMap { it.lines }.mapNotNull { line ->
-            val r = line.boundingBox ?: return@mapNotNull null
-            val original = line.text.trim().ifEmpty { return@mapNotNull null }
-            val translation = targetTag?.let { translate(original, it) }
-            val label = translation ?: original
-            val conf = line.confidence.takeIf { it > 0f } ?: 1f
-            val detection = box(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat(), f, conf, label)
-            detection?.copy(detail = original.takeIf { translation != null && it != label })
+        return try {
+            buildList {
+                do {
+                    val r = iterator.getBoundingRect(PageIteratorLevel.RIL_TEXTLINE)
+                    val original = iterator.getUTF8Text(PageIteratorLevel.RIL_TEXTLINE)?.trim().orEmpty()
+                    if (r.width() > 0 && r.height() > 0 && original.isNotEmpty()) {
+                        val translation = targetTag?.let { translate(original, it) }
+                        val label = translation ?: original
+                        val confidence = (iterator.confidence(PageIteratorLevel.RIL_TEXTLINE) / 100f).coerceIn(0f, 1f)
+                        box(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat(), f, confidence, label)
+                            ?.let { add(it.copy(detail = original.takeIf { translation != null && it != label })) }
+                    }
+                } while (iterator.next(PageIteratorLevel.RIL_TEXTLINE))
+            }
+        } finally {
+            iterator.delete()
         }
     }
 
@@ -449,7 +452,7 @@ class TextPipeline(
     }
 
     override fun close() {
-        recognizer.close()
+        recognizer.recycle()
         languageIdentifier.close()
         synchronized(translators) { translators.values.forEach(Translator::close); translators.clear() }
         synchronized(translated) { translated.clear() }
@@ -470,7 +473,7 @@ class TextPipeline(
 class CaptureStore(val root: File) {
     fun write(photo: Bitmap, people: List<OpenPosePerson>, looseHands: List<List<NormPoint>>): List<ServerMessage.CommandResult.ResultFile> {
         prune()
-        val (id, dir) = newCapture()
+        val (_, dir) = newCapture()
         val w = photo.width
         val h = photo.height
         val pixels = IntArray(w * h)

@@ -106,7 +106,10 @@ class ModelManager(
             val target = file(model)
             if (isReady(model)) return target
             if (target.exists()) target.delete() // wrong size: a leftover of another version
-            if (!dir.isDirectory && !dir.mkdirs()) throw ModelUnavailableException("Can't create the model folder")
+            val parent = target.parentFile ?: throw ModelUnavailableException("Invalid model path")
+            if (!parent.isDirectory && !parent.mkdirs()) {
+                throw ModelUnavailableException("Can't create the model folder")
+            }
             try {
                 download(model, onProgress)
             } catch (e: ModelUnavailableException) {

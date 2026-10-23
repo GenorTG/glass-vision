@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from glass_vision.pipelines.text import SCRIPT_GROUPS, TextPipeline
+from glass_vision.pipelines.text import AUTO_SCRIPTS, SCRIPT_GROUPS, TextPipeline
 from glass_vision.translate import (
     DEFAULT_MODEL,
     LANGUAGES,
@@ -203,13 +203,13 @@ def test_download_script_matches_the_pipeline():
 def test_options_and_legacy_language_values():
     specs = {o.key: o for o in TextPipeline.info.options}
     latin = SCRIPT_GROUPS[0].label
-    assert specs["languages"].default == latin
+    assert specs["languages"].default == AUTO_SCRIPTS
     assert specs["languages"].coerce("en") == latin  # saved by older app versions
     assert specs["languages"].coerce("en+pl") == latin
     with pytest.raises(ValueError):
         specs["languages"].coerce("klingon")
     assert "aliases" not in specs["languages"].to_json()
-    assert specs["languages"].to_json()["choices"] == [g.label for g in SCRIPT_GROUPS]
+    assert specs["languages"].to_json()["choices"] == [AUTO_SCRIPTS, *(g.label for g in SCRIPT_GROUPS)]
     assert specs["translate_to"].default == "Off" and specs["translate_to"].choices[1:] == list(LANGUAGES)
     assert specs["translate_from"].default == "Auto-detect"
     assert specs["show_original"].default is True

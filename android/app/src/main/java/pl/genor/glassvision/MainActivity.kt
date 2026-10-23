@@ -107,7 +107,11 @@ class MainActivity :
 
         store = SettingsStore(this)
         pipelineStore = PipelineStore(this)
-        models = ModelManager(File(filesDir, MODELS_DIR), OkHttpDownloader())
+        models = ModelManager(
+            File(filesDir, MODELS_DIR),
+            OkHttpDownloader(),
+            LocalModel.entries.map { it.spec } + OcrLanguage.entries.map { it.spec },
+        )
         captureStore = CaptureStore(File(cacheDir, CAPTURES_DIR))
         // Backend events arrive on the main thread (the switch hops and drops a replaced backend's late events).
         backends = BackendSwitch(this, ContextCompat.getMainExecutor(this), ::createBackend)

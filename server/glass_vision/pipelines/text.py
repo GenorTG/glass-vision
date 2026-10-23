@@ -92,6 +92,7 @@ LEGACY_LANGUAGES = {"en": DEFAULT_GROUP.label, "en+pl": DEFAULT_GROUP.label}
 
 TRANSLATE_OFF = "Off"
 AUTO_DETECT = "Auto-detect"
+AUTO_SCRIPTS = "Auto-detect (available scripts)"
 
 
 @dataclass(frozen=True)
@@ -128,7 +129,7 @@ class TextPipeline(Pipeline):
     info = PipelineInfo(
         id="text",
         name="Text (OCR)",
-        description="Reads text on signs, labels and screens (80+ languages: pick the script) and can translate it.",
+        description="Reads text on signs, labels and screens (80+ languages); choose a script or auto-detect installed scripts.",
         default_enabled=False,
         uses_global_conf=False,
         interval_ms=400,
@@ -137,8 +138,8 @@ class TextPipeline(Pipeline):
                 "languages",
                 "Script / languages",
                 "choice",
-                DEFAULT_GROUP.label,
-                choices=list(GROUPS),
+                AUTO_SCRIPTS,
+                choices=[AUTO_SCRIPTS, *GROUPS],
                 aliases=tuple(LEGACY_LANGUAGES.items()),
             ),
             OptionSpec("min_conf", "Minimum confidence", "number", 0.3, min=0.1, max=0.9, step=0.05),
@@ -206,9 +207,45 @@ class TextPipeline(Pipeline):
         return reader
 
     def run(self, image: np.ndarray, ctx: RunContext) -> list[Annotation]:
-        group = GROUPS[LEGACY_LANGUAGES.get(ctx.options["languages"], ctx.options["languages"])]
+        selected = LEGACY_LANGUAGES.get(ctx.options["languages"], ctx.options["languages"])
+        if selected == AUTO_SCRIPTS:
+            candidates = [
+                group
+                for group in SCRIPT_GROUPS
+                if group.key == DEFAULT_GROUP.key or (EASYOCR_DIR / group.model_file).is_file()
+            ]
+        else:
+            candidates = [GROUPS[selected]]
+
+        best_group = candidates[0]
+        best: list[Annotation] = []
+        best_score = -1.0
+        for group in candidates:
+            try:
+                annotations = self._read_group(image, group, float(ctx.options["min_conf"]))
+            except Exception:
+                if len(candidates) == 1:
+                    raise
+                log.exception("text: auto-detect could not run %s; trying the remaining installed scripts", group.key)
+                continue
+            # Prefer recognitions that return more high-confidence letters, while capping each line so a single
+            # hallucinated paragraph cannot swamp several valid short signs. Ties retain the earlier script.
+            score = sum(a.conf * min(sum(ch.isalpha() for ch in a.label), 40) for a in annotations)
+            if score > best_score:
+                best_group, best, best_score = group, annotations, score
+
+        if selected == AUTO_SCRIPTS and not best:
+            # Latin is always installed by the normal server setup; preserve its clear empty result if every
+            # optional recognizer failed to initialize.
+            best_group = DEFAULT_GROUP
+        out = best
+        target = ctx.options.get("translate_to", TRANSLATE_OFF)
+        if out and target != TRANSLATE_OFF:
+            self._translate(out, best_group, ctx.options, LANGUAGES[target])
+        return out
+
+    def _read_group(self, image: np.ndarray, group: ScriptGroup, min_conf: float) -> list[Annotation]:
         reader = self._reader(group)
-        min_conf = float(ctx.options["min_conf"])
         h, w = image.shape[:2]
 
         scale = min(1.0, MAX_SIDE / max(h, w))
@@ -231,9 +268,6 @@ class TextPipeline(Pipeline):
                 continue
             out.append(Annotation(box=(float(x1), float(y1), float(x2), float(y2)), conf=float(conf), label=label))
 
-        target = ctx.options.get("translate_to", TRANSLATE_OFF)
-        if out and target != TRANSLATE_OFF:
-            self._translate(out, group, ctx.options, LANGUAGES[target])
         return out
 
     def _translate(self, anns: list[Annotation], group: ScriptGroup, options: dict[str, Any], target: str) -> None:
