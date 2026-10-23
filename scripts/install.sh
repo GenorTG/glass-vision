@@ -118,6 +118,21 @@ fi
   || die "$PYTHON can't create venvs. Debian/Ubuntu: sudo apt install python3-venv (or python$("$PYTHON" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')-venv)"
 echo "    $PYTHON ($("$PYTHON" -V 2>&1))"
 
+# System libraries Python wheels can't ship: opencv needs libGL/libglib, MediaPipe (gestures, pose capture) loads
+# libEGL/libGLESv2 even on its CPU path. Headless servers and minimal images often lack them.
+if [[ "$OS" == "Linux" ]] && command -v ldconfig >/dev/null; then
+  missing=()
+  for lib in libGL.so.1 libglib-2.0.so.0 libEGL.so.1 libGLESv2.so.2; do
+    ldconfig -p | grep -q "$lib" || missing+=("$lib")
+  done
+  if (( ${#missing[@]} )); then
+    warn "missing system libraries: ${missing[*]} — gestures/pose capture (and possibly OpenCV) won't load. Install them:"
+    echo "    Debian/Ubuntu: sudo apt install libgl1 libglib2.0-0 libegl1 libgles2" >&2
+    echo "    Fedora:        sudo dnf install mesa-libGL glib2 mesa-libEGL mesa-libGLES" >&2
+    echo "    Arch:          sudo pacman -S mesa glib2 libglvnd" >&2
+  fi
+fi
+
 free_gb=$(df -Pk "$SERVER" | awk 'NR==2 {print int($4 / 1048576)}')
 [[ "$free_gb" -ge "$MIN_FREE_GB" ]] || warn "only ${free_gb} GB free under $SERVER; a GPU install needs ~8 GB (PyTorch+CUDA ~5 GB, models ~1.2 GB)"
 

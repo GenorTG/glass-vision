@@ -30,6 +30,9 @@ jobs:
         with:
           path: server/models
           key: models-${{ hashFiles('scripts/download_models.py') }}
+      # MediaPipe loads libEGL/libGLESv2 even on its CPU path; the runner image has no GL stack.
+      - name: System libraries
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libegl1 libgles2
       # The real installer, CPU build: also tests install.sh itself.
       - name: Install (scripts/install.sh, CPU)
         run: scripts/install.sh --non-interactive --cuda cpu --python "$(command -v python)" --no-token --no-systemd --no-apk
