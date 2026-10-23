@@ -22,7 +22,7 @@ Each recognizer is a pipeline you switch on in the app; several can run at once.
 | Objects | 80 everyday classes: people, vehicles, animals, food, electronics… | YOLO11s |
 | Find by text | anything you type: "red mug, keys, glasses" | YOLOE-11s + MobileCLIP |
 | Faces | detects faces and names people you taught it ("Learn face") | InsightFace buffalo_l |
-| Text (OCR) | signs, labels, screens (English, Polish) | EasyOCR |
+| Text (OCR) | signs, labels, screens in 80+ languages (Latin, Cyrillic, Chinese, Japanese, Korean, Arabic, Devanagari, Thai… — pick the script); optional translation into 40+ languages | EasyOCR + M2M100 |
 | Hand gestures | 21-point hand skeleton + 7 gestures (👍 👎 ✋ ✊ ☝️ ✌️ 🤟) | MediaPipe |
 | Body pose | 17-point skeleton of every person | YOLO11s-pose |
 
@@ -31,8 +31,8 @@ connects. Some models are **non-commercial only** — see [Model licenses](#mode
 
 ## Requirements
 
-- **Server**: Linux with an NVIDIA GPU (driver ≥ 525; ≥ 580 recommended) and ~8 GB of disk. About 4 GB of GPU
-  memory with every pipeline on. No GPU? It still runs on the CPU — just slowly (a few frames per second).
+- **Server**: Linux with an NVIDIA GPU (driver ≥ 525; ≥ 580 recommended) and ~10 GB of disk. About 5 GB of GPU
+  memory with every pipeline on (incl. OCR translation; the optional larger translation model adds ~1.5 GB). No GPU? It still runs on the CPU — just slowly (a few frames per second).
   macOS works CPU-only (best effort).
 - **Phone**: Android 8+ (the app is in [Releases](../../releases)).
 - Phone and server on the same network: your Wi-Fi/LAN, or [Tailscale](https://tailscale.com) from anywhere.
@@ -48,7 +48,7 @@ git clone https://github.com/GenorTG/glass-vision.git && cd glass-vision
 cp .env.example .env
 # edit .env: GV_BIND = this machine's LAN or Tailscale IP, GV_TOKEN = a secret (openssl rand -hex 16)
 docker compose up -d
-docker compose logs -f        # first start downloads ~1 GB of models, then "Uvicorn running on …"
+docker compose logs -f        # first start downloads ~3 GB of models, then "Uvicorn running on …"
 ```
 
 No NVIDIA GPU: `docker compose --profile cpu up -d glass-vision-cpu`.
@@ -133,7 +133,7 @@ project's license. Summary (details, links and checksums: [docs/MODELS.md](docs/
 - YOLO11 / YOLOE weights (objects, pose, find-by-text): **AGPL-3.0** (Ultralytics).
 - MobileCLIP text encoder (find-by-text): Apple ML Research license — **non-commercial research only**.
 - InsightFace buffalo_l (faces): **non-commercial research only**.
-- EasyOCR (text), MediaPipe (gestures, hands): Apache-2.0.
+- EasyOCR (text), MediaPipe (gestures, hands): Apache-2.0. M2M100 (text translation): MIT.
 
 ## How it works
 

@@ -1,4 +1,5 @@
-"""Text (OCR) pipeline against the real EasyOCR models on a synthetic sign. Run with -s to see timing + VRAM."""
+"""Text (OCR) pipeline against the real EasyOCR models on synthetic signs, plus translation end to end.
+Run with -s to see timing + VRAM."""
 
 import os
 
@@ -7,7 +8,9 @@ import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 
 import difflib
+import shutil
 import statistics
+import subprocess
 import time
 from pathlib import Path
 
@@ -18,7 +21,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 
 from glass_vision.pipelines.base import Annotation, RunContext
-from glass_vision.pipelines.text import TextPipeline
+from glass_vision.pipelines.text import DEFAULT_GROUP, EASYOCR_DIR, SCRIPT_GROUPS, TextPipeline
+from glass_vision.translate import DEFAULT_MODEL, MODELS, TRANSLATION_DIR
 
 pytestmark = pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
 
@@ -45,8 +49,35 @@ def make_sign() -> tuple[np.ndarray, dict[str, Box]]:
     return img, drawn
 
 
-def ctx(languages: str = "en+pl", min_conf: float = 0.3) -> RunContext:
-    return RunContext(options={"languages": languages, "min_conf": min_conf}, conf=0.25, imgsz=640)
+GROUP = {g.key: g for g in SCRIPT_GROUPS}
+
+
+def ctx(languages: str = DEFAULT_GROUP.label, min_conf: float = 0.3, **options) -> RunContext:
+    return RunContext(options={"languages": languages, "min_conf": min_conf, **options}, conf=0.25, imgsz=640)
+
+
+def font_for(lang: str) -> Path | None:
+    """A TTF/OTF with glyphs for `lang` (fontconfig), or None."""
+    if not shutil.which("fc-list"):
+        return None
+    out = subprocess.run(["fc-list", f":lang={lang}", "file"], capture_output=True, text=True, check=False).stdout
+    files = sorted(line.split(":")[0].strip() for line in out.splitlines() if line.strip())
+    preferred = [f for f in files if "DejaVuSans.ttf" in f or "DroidSansFallback" in f or "NotoSansCJK" in f]
+    candidates = [f for f in preferred + files if f.endswith((".ttf", ".otf", ".ttc"))]
+    return Path(candidates[0]) if candidates else None
+
+
+def render(lines: list[str], font: Path, size: int = 72) -> tuple[np.ndarray, dict[str, Box]]:
+    """Black lines of text on a white 960x720 BGR canvas → (image, {text: drawn box})."""
+    pil = Image.new("RGB", (W, H), "white")
+    draw = ImageDraw.Draw(pil)
+    face = ImageFont.truetype(str(font), size)
+    drawn: dict[str, Box] = {}
+    for i, text in enumerate(lines):
+        xy = (60, 60 + i * (size * 2))
+        draw.text(xy, text, font=face, fill=(0, 0, 0))
+        drawn[text] = draw.textbbox(xy, text, font=face)
+    return np.asarray(pil)[:, :, ::-1].copy(), drawn
 
 
 def read_region(anns: list[Annotation], region: Box, pad: float = 20) -> str:
@@ -69,7 +100,7 @@ def pipeline():
     before = torch.cuda.memory_allocated()
     p = TextPipeline()
     p.load("cuda:0")
-    print(f"\n[text] VRAM after load (en+pl reader): {(torch.cuda.memory_allocated() - before) / 2**20:.0f} MiB")
+    print(f"\n[text] VRAM after load (Latin reader): {(torch.cuda.memory_allocated() - before) / 2**20:.0f} MiB")
     yield p
     p.unload()
     print(f"[text] VRAM after unload: {(torch.cuda.memory_allocated() - before) / 2**20:.0f} MiB")
@@ -112,26 +143,102 @@ def test_min_conf_filters(pipeline):
     assert len(high) < len(low)
 
 
-def test_language_switch(pipeline):
+def test_legacy_language_values(pipeline):
+    """Legacy values "en" / "en+pl" (saved by older apps) still work: both are the Latin group now."""
     img, drawn = make_sign()
+    for legacy in ("en", "en+pl"):
+        anns = pipeline.run(img, ctx(languages=legacy))
+        assert similar(read_region(anns, drawn["GLASS VISION"]), "GLASS VISION") >= 0.8
+    assert set(pipeline._readers) == {"latin"}
+
+
+@pytest.mark.parametrize("group", SCRIPT_GROUPS, ids=lambda g: g.key)
+def test_every_script_group_builds(pipeline, group):
+    if not (EASYOCR_DIR / group.model_file).is_file():
+        pytest.skip(f"{group.model_file} not downloaded (scripts/download_models.py --ocr-scripts {group.key})")
     before = torch.cuda.memory_allocated()
-    anns = pipeline.run(img, ctx(languages="en"))
-    print(f"\n[text] VRAM for the extra 'en' reader: {(torch.cuda.memory_allocated() - before) / 2**20:.0f} MiB")
-    assert set(pipeline._readers) == {"en", "en+pl"}
-    for text in ("GLASS VISION", "TEST 2026"):
-        assert similar(read_region(anns, drawn[text]), text) >= 0.8
-    reader = pipeline._readers["en"]
-    pipeline.run(img, ctx(languages="en"))
-    assert pipeline._readers["en"] is reader  # cached, not rebuilt
+    reader = pipeline._reader(group)
+    print(f"\n[text] reader {group.key}: +{(torch.cuda.memory_allocated() - before) / 2**20:.0f} MiB VRAM")
+    assert reader.detector is pipeline._readers[DEFAULT_GROUP.key].detector  # one shared CRAFT detector
+    assert pipeline._reader(group) is reader  # cached, not rebuilt
+    anns = pipeline.run(make_sign()[0], ctx(languages=group.label))  # every group also reads English
+    assert similar(read_region(anns, make_sign()[1]["GLASS VISION"]), "GLASS VISION") >= 0.6, anns
+
+
+def test_reads_cyrillic(pipeline):
+    font = font_for("ru")
+    if font is None:
+        pytest.skip("no font with Cyrillic glyphs (fc-list :lang=ru)")
+    if not (EASYOCR_DIR / GROUP["cyrillic"].model_file).is_file():
+        pytest.skip("cyrillic_g2.pth not downloaded (scripts/download_models.py --ocr-scripts cyrillic)")
+    img, drawn = render(["Привет мир", "Выход"], font)
+    anns = pipeline.run(img, ctx(languages=GROUP["cyrillic"].label))
+    for text, region in drawn.items():
+        got = read_region(anns, region)
+        print(f"\n[text] cyrillic {text!r} → {got!r} ({similar(got, text):.2f}) using {font.name}")
+        assert similar(got, text) >= 0.8, (text, got, anns)
+
+
+@pytest.mark.parametrize(("key", "lang", "lines"), [("zh_sim", "zh", ["出口", "中文"]), ("japanese", "ja", ["非常口"])])
+def test_reads_cjk(pipeline, key, lang, lines):
+    font = font_for(lang)
+    if font is None:
+        pytest.skip(f"no font with {lang} glyphs (fc-list :lang={lang})")
+    if not (EASYOCR_DIR / GROUP[key].model_file).is_file():
+        pytest.skip(f"{GROUP[key].model_file} not downloaded (scripts/download_models.py --ocr-scripts {key})")
+    img, drawn = render(lines, font, size=96)
+    anns = pipeline.run(img, ctx(languages=GROUP[key].label))
+    for text, region in drawn.items():
+        got = read_region(anns, region)
+        print(f"\n[text] {key} {text!r} → {got!r} using {font.name}")
+        assert got == text, (text, anns)
+
+
+@pytest.mark.skipif(
+    not (TRANSLATION_DIR / MODELS[DEFAULT_MODEL].dir / "pytorch_model.bin").is_file(),
+    reason="M2M100 418M not downloaded (scripts/download_models.py --only text)",
+)
+def test_translates_a_german_sign(pipeline):
+    img, _ = render(["NOTAUSGANG", "Rauchen verboten", "Tel. 0800 123"], FONT)
+    options = {"translate_to": "English", "translate_from": "Auto-detect", "show_original": True}
+    t0 = time.perf_counter()
+    anns = pipeline.run(img, ctx(**options))
+    first = (time.perf_counter() - t0) * 1000
+    times = []
+    for _ in range(5):
+        t0 = time.perf_counter()
+        again = pipeline.run(img, ctx(**options))
+        times.append((time.perf_counter() - t0) * 1000)
+    plain = pipeline.run(img, ctx())
+    print(f"\n[text] translated sign: first run {first:.0f} ms (loads detector + M2M100), "
+          f"cached runs median {statistics.median(times):.0f} ms")  # fmt: skip
+    for a in anns:
+        print(f"[text]   {a.label!r}  ({a.detail})")
+    assert [(a.label, a.detail) for a in again] == [(a.label, a.detail) for a in anns]
+
+    exit_sign = [a for a in anns if a.detail and "NOTAUSGANG" in a.detail]
+    assert exit_sign and "exit" in exit_sign[0].label.lower(), anns
+    assert exit_sign[0].detail == "DE: NOTAUSGANG"
+    smoking = [a for a in anns if a.detail == "DE: Rauchen verboten"]
+    assert smoking and "smok" in smoking[0].label.lower(), anns
+    phone = [a for a in anns if "0800" in a.label]
+    assert phone and phone[0].detail is None  # numbers stay as read
+    assert [(a.box, a.conf) for a in anns] == [(a.box, a.conf) for a in plain]  # translation only relabels
+    assert all(a.detail is None for a in plain)  # translate_to defaults to Off
+
+    hidden = pipeline.run(img, ctx(**{**options, "show_original": False}))
+    assert [a.label for a in hidden] == [a.label for a in anns] and all(a.detail is None for a in hidden)
 
 
 def test_timing(pipeline):
     img, _ = make_sign()
-    for languages in ("en+pl", "en"):
-        pipeline.run(img, ctx(languages=languages))  # warm-up
+    for group in (GROUP["latin"], GROUP["cyrillic"]):
+        if group.key not in pipeline._readers:
+            continue
+        pipeline.run(img, ctx(languages=group.label))  # warm-up
         times = []
         for _ in range(10):
             t = time.perf_counter()
-            pipeline.run(img, ctx(languages=languages))
+            pipeline.run(img, ctx(languages=group.label))
             times.append((time.perf_counter() - t) * 1000)
-        print(f"\n[text] {languages}: median {statistics.median(times):.1f} ms, max {max(times):.1f} ms (960x720)")
+        print(f"\n[text] {group.key}: median {statistics.median(times):.1f} ms, max {max(times):.1f} ms (960x720)")

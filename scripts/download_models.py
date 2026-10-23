@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Download every model the server's pipelines need, from its ORIGINAL upstream source, into GV_MODELS_DIR.
 
-    python3 scripts/download_models.py                 # all pipelines
+    python3 scripts/download_models.py                 # all pipelines (OCR: Latin script only)
     python3 scripts/download_models.py --only faces,text
+    python3 scripts/download_models.py --only text --ocr-scripts cyrillic,japanese   # + OCR models for more scripts
+    python3 scripts/download_models.py --ocr-scripts all                            # + every OCR script (~1.5 GB)
+    python3 scripts/download_models.py --only text --translation-models 1.2B        # + the larger translator (4.6 GB)
     python3 scripts/download_models.py --check         # verify only (exit 1 if anything is missing/corrupt)
     python3 scripts/download_models.py --list          # URLs + licenses, no download
 
@@ -10,8 +13,9 @@ Standard library only (runs before/without the server venv, e.g. in the Docker e
 `--models-dir`, else GV_MODELS_DIR (environment or server/config.env), else server/models.
 
 - Resume-safe: downloads go to `<file>.part` (resumed with an HTTP Range request), are verified, then renamed.
-- Verified: every file has a pinned sha256. The hashes were recorded on 2026-10-22 from files downloaded from these
+- Verified: every file has a pinned sha256. The hashes were recorded on 2026-10-22/23 from files downloaded from these
   same official URLs; EasyOCR additionally publishes md5 sums of its weights (easyocr/config.py), checked too.
+  Hugging Face files are fetched at a pinned git revision (`resolve/<commit>/<file>`), never a moving branch.
   A hash mismatch means upstream changed the file (or the download is corrupt): the file is NOT installed.
 - Layout matches each pipeline's load code (server/glass_vision/pipelines/*.py). Licenses: docs/MODELS.md.
 """
@@ -35,6 +39,7 @@ SERVER = Path(__file__).resolve().parents[1] / "server"
 ULTRALYTICS = "https://github.com/ultralytics/assets/releases/download/v8.4.0"
 MEDIAPIPE = "https://storage.googleapis.com/mediapipe-models"
 EASYOCR = "https://github.com/JaidedAI/EasyOCR/releases/download"
+HF = "https://huggingface.co"
 CHUNK = 1 << 20
 
 
@@ -57,6 +62,7 @@ class Asset:
     size: int
     dest: str | None = None  # relative to the models dir; None = zip that is extracted (see members)
     members: tuple[Member, ...] = field(default_factory=tuple)
+    option: str | None = None  # opt-in extra (e.g. "ocr:cyrillic"); None = part of its pipelines' default set
 
     @property
     def outputs(self) -> list[tuple[str, str, str | None]]:
@@ -98,14 +104,73 @@ ASSETS: list[Asset] = [
           "", 77251756, members=(Member("craft_mlt_25k.pth", "easyocr/craft_mlt_25k.pth",
                                         "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
                                         "2f8227d2def4037cdb3b34389dcf9ec1"),)),
-    Asset(("text",), f"{EASYOCR}/v1.3/english_g2.zip", "Apache-2.0",
-          "", 14040947, members=(Member("english_g2.pth", "easyocr/english_g2.pth",
-                                        "e2272681d9d67a04e2dff396b6e95077bc19001f8f6d3593c307b9852e1c29e8",
-                                        "5864788e1821be9e454ec108d61b887d"),)),
-    Asset(("text",), f"{EASYOCR}/v1.3/latin_g2.zip", "Apache-2.0",
-          "", 14284936, members=(Member("latin_g2.pth", "easyocr/latin_g2.pth",
-                                        "aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55",
-                                        "469869130aad1a34e8f9086f4262bc59"),)),
+]  # fmt: skip
+
+# EasyOCR recognition models, one per script group of the text pipeline (`SCRIPT_GROUPS` in pipelines/text.py; the
+# keys are the --ocr-scripts names). Latin is the default; the others are opt-in. url, zip size, file, sha256, md5.
+OCR_SCRIPTS: dict[str, tuple[str, int, str, str, str]] = {
+    "latin": (f"{EASYOCR}/v1.3/latin_g2.zip", 14284936, "latin_g2.pth",
+              "aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55", "469869130aad1a34e8f9086f4262bc59"),
+    "cyrillic": (f"{EASYOCR}/v1.6.1/cyrillic_g2.zip", 14140353, "cyrillic_g2.pth",
+                 "48d0f3b58f28aa64651ab1032cc2d498c4de25135829668e87c14e7a07529f29", "19f85f43d9128a89ac21b8d6a06973fe"),
+    "zh_sim": (f"{EASYOCR}/v1.3/zh_sim_g2.zip", 20288076, "zh_sim_g2.pth",
+               "cb678fdef09d651e7763ca551ad790dc89f0b2e3d2a640484330e338fb574c7a", "b601ce7143293387d3ec4f41a66edc07"),
+    "zh_tra": (f"{EASYOCR}/pre-v1.1.6/chinese.zip", 209821039, "chinese.pth",
+               "19ecc60f4e079eb2cd7f25f3513fc996cf80819fc1f1d0aee24c58402cc4776d", "dfba8e364cd98ed4fed7ad54d71e3965"),
+    "japanese": (f"{EASYOCR}/v1.3/japanese_g2.zip", 16065475, "japanese_g2.pth",
+                 "afbb32b0485297de5a7c1f59aeecac12c69f32b15cedd3c3d8c2e8529de85af3", "bad5146990ccb1272cb0908440fbe15e"),
+    "korean": (f"{EASYOCR}/v1.3/korean_g2.zip", 14910151, "korean_g2.pth",
+               "ecdead53c909748aad74bc2f2beeab3e3ad751134db6335e97ea19f879ca407e", "befecf7b1ca2fffb5af814a51443682d"),
+    "arabic": (f"{EASYOCR}/pre-v1.1.6/arabic.zip", 199916962, "arabic.pth",
+               "2a9afd42c374deb98aed0b53c9b77d75e1d00d4e0501f3b0276c54190c89b1a8", "993074555550e4e06a6077d55ff0449a"),
+    "devanagari": (f"{EASYOCR}/pre-v1.1.6/devanagari.zip", 199886824, "devanagari.pth",
+                   "1a8d0abb2032c0ec9d06639bc078b7686c10cf3b8193fe42a6382bc6846ae4a3",
+                   "db6b1f074fae3070f561675db908ac08"),
+    "bengali": (f"{EASYOCR}/v1.1.8/bengali.zip", 199852959, "bengali.pth",
+                "28d10d7dab96bf38c1d190d09a65a732130f5f34b28dcbd7e51aba3366146896", "cea9e897e2c0576b62cbb1554997ce1c"),
+    "thai": (f"{EASYOCR}/pre-v1.1.6/thai.zip", 199881630, "thai.pth",
+             "3ebbb9321b9c7c694e169cd23cc37f3c0bd2a160f5b539602bbef80e663e0a17", "40a06b563a2b3d7897e2d19df20dc709"),
+    "telugu": (f"{EASYOCR}/v1.2/telugu.zip", 14108882, "telugu.pth",
+               "a73ba1c65f8b3e7b18df3104c1f137970510ce51e3e1d9341506292730fa3c43", "f7576012a3abe593950c47bfa1bd8ddc"),
+    "kannada": (f"{EASYOCR}/v1.2/kannada.zip", 14105056, "kannada.pth",
+                "3cc308972bccb2c483741e90e87f2941c1b40d84cf548115f48372d288deb0f0", "c240c97e4adb8773b53b3b3dec728627"),
+}  # fmt: skip
+DEFAULT_OCR_SCRIPTS = ("latin",)
+ASSETS += [
+    Asset(("text",), url, "Apache-2.0", "", size, members=(Member(name, f"easyocr/{name}", sha, md5),),
+          option=None if key in DEFAULT_OCR_SCRIPTS else f"ocr:{key}")
+    for key, (url, size, name, sha, md5) in OCR_SCRIPTS.items()
+]  # fmt: skip
+
+# Translation for the text pipeline (glass_vision/translate.py `MODELS`): M2M100 at a pinned commit of its original
+# repo. --translation-models key → (repo, commit, dir under the models dir, [(file, size, sha256)]). 418M is the
+# default; 1.2B (better on one-word signs, 4.6 GB) is opt-in.
+_M2M_SHARED = (
+    ("generation_config.json", 233, "aed76366507333ddbb8bd49960f23c82fe6446b3319a46a54befdb45324ccf61"),
+    ("sentencepiece.bpe.model", 2423393, "d8f7c76ed2a5e0822be39f0a4f95a55eb19c78f4593ce609e2edbc2aea4d380a"),
+    ("special_tokens_map.json", 1140, "c1a4f86c3874d279ae1b2a05162858db5dd6c61665d84223ed886cbcff08fda6"),
+    ("vocab.json", 3708092, "b6e77e474aeea8f441363aca7614317c06381f3eacfe10fb9856d5081d1074cc"),
+)
+TRANSLATION_MODELS: dict[str, tuple[str, str, str, tuple[tuple[str, int, str], ...]]] = {
+    "418M": ("facebook/m2m100_418M", "55c2e61bbf05dfb8d7abccdc3fae6fc8512fd636", "translation/m2m100_418M", (
+        ("config.json", 908, "df0ae43e4e4b0d7e3c97b7f447857a70ef6b6a2aa1f145cedbcc730d95f67134"),
+        ("tokenizer_config.json", 298, "a53e6aa83da0b82565ed90c3849056307a9453843322ac5b8439ec4b9497fe48"),
+        ("pytorch_model.bin", 1935796948, "d907ea45e4e4b9db163382a6674f6218b3c59566fe06d77f4055c208b4e87ed1"),
+        *_M2M_SHARED,
+    )),
+    "1.2B": ("facebook/m2m100_1.2B", "7b36184180524c1a1bbfa37f120a608046250b98", "translation/m2m100_1.2B", (
+        ("config.json", 909, "13b5191c92371b2d587baac6c9a04de018a5264d7179020d379a276769051f95"),
+        ("tokenizer_config.json", 271, "1566a6cfa4f541a55594c9d5e090f530812d5de7c94882ea3af156962d9933ae"),
+        ("pytorch_model.bin", 4958230644, "a58ef8f42362ef12adeddc600b3425f1e2bbd019cfa6aae6b0051e2e3e055cd4"),
+        *_M2M_SHARED,
+    )),
+}  # fmt: skip
+DEFAULT_TRANSLATION_MODELS = ("418M",)
+ASSETS += [
+    Asset(("text",), f"{HF}/{repo}/resolve/{commit}/{name}", "MIT", sha, size, f"{folder}/{name}",
+          option=None if key in DEFAULT_TRANSLATION_MODELS else f"translation:{key}")
+    for key, (repo, commit, folder, files) in TRANSLATION_MODELS.items()
+    for name, size, sha in files
 ]  # fmt: skip
 PIPELINES = sorted({p for a in ASSETS for p in a.pipelines})
 NON_COMMERCIAL = ("faces", "open_vocab")
@@ -196,7 +261,7 @@ def install(root: Path, asset: Asset) -> None:
     name = asset.url.rsplit("/", 1)[1]
     downloads = root / ".downloads"
     downloads.mkdir(parents=True, exist_ok=True)
-    part = downloads / (name + ".part")
+    part = downloads / ((asset.dest or name).replace("/", "_") + ".part")  # unique: several repos have config.json
     fetch(asset.url, part, asset.size, name)
     if asset.sha256 and digest(part, "sha256") != asset.sha256:
         part.unlink()
@@ -241,6 +306,19 @@ def main() -> int:
         action="store_true",
         help="verify only; exit 1 if anything is missing or corrupt",
     )
+    parser.add_argument(
+        "--ocr-scripts",
+        action="append",
+        default=[],
+        help=f"text pipeline: OCR models for more scripts, comma-separated or 'all' (default: latin): {list(OCR_SCRIPTS)}",
+    )
+    parser.add_argument(
+        "--translation-models",
+        action="append",
+        default=[],
+        help=f"text pipeline: extra translation models, comma-separated or 'all' (default: 418M): "
+        f"{list(TRANSLATION_MODELS)}",
+    )
     parser.add_argument("--list", action="store_true", help="print URLs and licenses, download nothing")
     parser.add_argument(
         "--fast-check",
@@ -253,11 +331,23 @@ def main() -> int:
     wanted = {p.strip() for item in args.only for p in item.split(",") if p.strip()} or set(PIPELINES)
     if unknown := wanted - set(PIPELINES):
         parser.error(f"unknown pipeline(s) {sorted(unknown)}; known: {PIPELINES}")
-    assets = [a for a in ASSETS if wanted & set(a.pipelines)]
+    scripts = {k.strip() for item in args.ocr_scripts for k in item.split(",") if k.strip()}
+    if "all" in scripts:
+        scripts = set(OCR_SCRIPTS)
+    if unknown := scripts - set(OCR_SCRIPTS):
+        parser.error(f"unknown OCR script(s) {sorted(unknown)}; known: {list(OCR_SCRIPTS)}")
+    translation = {k.strip() for item in args.translation_models for k in item.split(",") if k.strip()}
+    if "all" in translation:
+        translation = set(TRANSLATION_MODELS)
+    if unknown := translation - set(TRANSLATION_MODELS):
+        parser.error(f"unknown translation model(s) {sorted(unknown)}; known: {list(TRANSLATION_MODELS)}")
+    options = {f"ocr:{k}" for k in scripts} | {f"translation:{k}" for k in translation}
+    assets = [a for a in ASSETS if wanted & set(a.pipelines) and (a.option is None or a.option in options)]
 
     if args.list:
         for a in assets:
-            print(f"{','.join(a.pipelines):<11} {a.size / 2**20:7.1f} MiB  {a.license:<52} {a.url}")
+            what = ",".join(a.pipelines) + (f" ({a.option})" if a.option else "")
+            print(f"{what:<22} {a.size / 2**20:7.1f} MiB  {a.license:<52} {a.url}")
         return 0
 
     root = (args.models_dir or default_models_dir()).expanduser().resolve()
@@ -265,7 +355,7 @@ def main() -> int:
     missing = [a for a in assets if not is_installed(root, a, deep=not args.fast_check)]
     if args.check:
         for a in missing:
-            print(f"  missing/corrupt: {a.url.rsplit('/', 1)[1]} ({','.join(a.pipelines)})")
+            print(f"  missing/corrupt: {a.dest or a.url.rsplit('/', 1)[1]} ({','.join(a.pipelines)})")
         print("all models present" if not missing else f"{len(missing)} of {len(assets)} model files need download")
         return 1 if missing else 0
 

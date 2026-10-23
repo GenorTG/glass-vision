@@ -42,6 +42,8 @@ Subclass `Pipeline` (`server/glass_vision/pipelines/base.py` docstring), add it 
 - Slow lanes (OCR) are held for 2.5 × max(interval, measured run time); on a CPU an OCR run takes seconds and a hold based on the interval alone would never show a box.
 - Front camera: PreviewView mirrors the preview, ImageAnalysis frames are not mirrored → the overlay mirrors x (`BoxMapper`); the server and gesture handedness need nothing.
 - OpenPose export (`openpose.py`) copies comfyui_controlnet_aux's renderer and JSON format (normalized coords, confidence 1.0, missing hand = `[]`); don't "fix" it towards pixel coordinates — ComfyUI wouldn't load it back.
+- EasyOCR 1.7.2: `sa`/`bgc`/`mni` are listed but have no character files, and `tamil.pth` doesn't load (size mismatch with its own character list) — those scripts are left out of the text pipeline's groups.
+- OCR translation (`translate.py`): M2M100 418M mistranslates one-word signs ("Ausgang" → "output"); the 1.2B option fixes most. ALL-CAPS lines are sentence-cased before translating ("ВХОД ВОСПРЕЩЁН" otherwise became "Entrance allowed"); digit-heavy lines are never translated. Language detection on single short words is unreliable → short lines inherit the sign's language; users can pin `translate_from`.
 - Kotlin: `/*` inside a KDoc comment opens a nested comment (e.g. a glob like `resources/*.json`) → "Unclosed comment".
 - org.json on the JVM test classpath doesn't preserve key order (Android's does): assert JSON maps as sets in unit tests.
 - Agent runs that open many snapshot PNGs can die on output size (`CLI JSONL output exceeded …`). Look at a handful of changed PNGs per run, not all of them.

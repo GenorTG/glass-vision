@@ -134,7 +134,7 @@ if [[ "$OS" == "Linux" ]] && command -v ldconfig >/dev/null; then
 fi
 
 free_gb=$(df -Pk "$SERVER" | awk 'NR==2 {print int($4 / 1048576)}')
-[[ "$free_gb" -ge "$MIN_FREE_GB" ]] || warn "only ${free_gb} GB free under $SERVER; a GPU install needs ~8 GB (PyTorch+CUDA ~5 GB, models ~1.2 GB)"
+[[ "$free_gb" -ge "$MIN_FREE_GB" ]] || warn "only ${free_gb} GB free under $SERVER; a GPU install needs ~10 GB (PyTorch+CUDA ~5 GB, models ~3.1 GB)"
 
 # --- 2. GPU → PyTorch build ---------------------------------------------------------------------------------------
 # PyTorch 2.12 publishes CPU, CUDA 12.6, 13.0 and 13.2 builds (https://pytorch.org/get-started/locally/, compatibility
@@ -233,7 +233,7 @@ fi
 say "Checking the install"
 "$SERVER/run" - <<'EOF'
 import onnxruntime, torch, torchvision
-import clip, easyocr, insightface, mediapipe, ultralytics  # noqa: F401  (all import cleanly)
+import clip, easyocr, insightface, lingua, mediapipe, sentencepiece, transformers, ultralytics  # noqa: F401  (all import cleanly)
 from torchvision.ops import nms
 
 nms(torch.zeros((1, 4)), torch.zeros(1), 0.5)  # the op a mismatched torchvision lacks

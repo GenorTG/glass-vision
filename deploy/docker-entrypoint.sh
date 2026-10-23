@@ -1,5 +1,5 @@
 #!/bin/sh
-# Docker entrypoint: fetch missing models into /models on first start (resumes; ~1.2 GB), then run the server.
+# Docker entrypoint: fetch missing models into /models on first start (resumes; ~3 GB with the translation model), then run the server.
 # GV_SKIP_MODEL_DOWNLOAD=1 skips the download (pipelines without their weights then report an error in the app).
 set -eu
 cd /app/server
