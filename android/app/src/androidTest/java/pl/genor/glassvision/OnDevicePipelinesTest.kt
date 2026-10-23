@@ -146,7 +146,7 @@ class OnDevicePipelinesTest {
             }
             drawText("EXIT 42", 90f, 220f, paint)
         }
-        val lines = run(LocalCatalog.TEXT, sign)
+        val lines = run(LocalCatalog.TEXT, sign, defaults(LocalCatalog.TEXT) + (LocalCatalog.OPT_LIVE to OptionValue.Str(LocalCatalog.LIVE_READ)))
         assertTrue(lines.map { it.label }.toString(), lines.any { "EXIT" in it.label.uppercase() })
     }
 

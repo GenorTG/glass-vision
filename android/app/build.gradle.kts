@@ -125,8 +125,17 @@ dependencies {
     // API but adds LiteRT-LM (~21 MB, LLM tasks this app doesn't use).
     // https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector/android
     implementation("com.google.mediapipe:tasks-vision:0.10.35")
-    // Tesseract 5 LSTM OCR; language data is downloaded on demand to app-private storage.
-    // https://github.com/adaptech-cz/Tesseract4Android
+    // Text recognition v2 (scene text: signs, labels, screens). Latin is bundled (~4 MB/ABI): the main reader must
+    // work at once, offline and on phones without Google Play services. Chinese/Japanese/Korean/Devanagari are
+    // the unbundled Play-services variants (~260 KB each; the model downloads through Play services on first use)
+    // instead of +4 MB × 3 ABIs each. https://developers.google.com/ml-kit/vision/text-recognition/v2/android
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-chinese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-japanese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-devanagari:16.0.1")
+    // Tesseract 5 LSTM OCR, only on ML Kit's line crops for scripts ML Kit can't read (Cyrillic, Arabic, Greek…);
+    // language data is downloaded on demand to app-private storage. https://github.com/adaptech-cz/Tesseract4Android
     implementation("cz.adaptech.tesseract4android:tesseract4android-openmp:4.9.0")
     // On-device language identification + offline translation; ML Kit downloads language models on first use.
     // https://developers.google.com/ml-kit/language/translation/android

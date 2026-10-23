@@ -63,7 +63,18 @@ class LocalBackendTest {
         }
     }
 
+    private class FakeReader(val options: () -> Map<String, OptionValue>) : TextReader, AutoCloseable {
+        var closed = false
+        override fun read(still: android.graphics.Bitmap, translateTo: List<String>) = error("not used")
+        override fun translate(lines: List<String>, from: List<String?>, to: String) = error("not used")
+        override fun languages() = emptyList<TranslationLanguage>()
+        override fun close() { closed = true }
+    }
+
     private class FakeLoader : LocalPipelineLoader {
+        val readers = mutableListOf<FakeReader>()
+        override fun textReader(options: () -> Map<String, OptionValue>): TextReader = FakeReader(options).also { readers += it }
+
         val created = mutableListOf<FakePipeline>()
         val failures = mutableMapOf<String, Exception>()
         var output: (String, LocalFrame) -> List<PixelDetection> = { _, _ -> emptyList() }
@@ -344,5 +355,29 @@ class LocalBackendTest {
         b.shutdown()
         assertTrue(loader.created.all { it.closed })
         assertEquals(ConnectionState.DISCONNECTED, recorder.states.last())
+    }
+
+    @Test
+    fun text_reader_is_created_once_follows_the_text_options_and_closes_on_shutdown() {
+        val b = backend()
+        b.start()
+        assertTrue("created only when the Read button needs it", loader.readers.isEmpty())
+        val reader = b.textReader as FakeReader
+        assertTrue(b.textReader === reader)
+        assertEquals(OptionValue.Str(OcrLanguage.AUTO_CHOICE), reader.options()[LocalCatalog.OPT_OCR_LANGUAGE])
+        // The text pipeline doesn't need to be on: the reader uses its OCR language choice either way.
+        b.setPipelineSettings(PipelineSettings().withOption(LocalCatalog.TEXT, LocalCatalog.OPT_OCR_LANGUAGE, OptionValue.Str(OcrLanguage.RUSSIAN.choice)))
+        assertEquals(OptionValue.Str(OcrLanguage.RUSSIAN.choice), reader.options()[LocalCatalog.OPT_OCR_LANGUAGE])
+        b.shutdown()
+        assertTrue(reader.closed)
+        assertEquals(1, loader.readers.size)
+    }
+
+    @Test
+    fun a_backend_whose_reader_was_never_used_creates_none() {
+        val b = backend()
+        b.start()
+        b.shutdown()
+        assertTrue(loader.readers.isEmpty())
     }
 }

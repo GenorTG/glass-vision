@@ -59,6 +59,12 @@ interface LocalPipelineLoader {
 
     /** Blocking (load thread). Throws with a message meant for the user (e.g. "No internet — model download failed"). */
     fun load(pipeline: String, options: Map<String, OptionValue>, gpu: Boolean): LocalPipeline
+
+    /**
+     * The Read button's reader, or null if this loader has none; [options] = the text pipeline's current options
+     * (its OCR language), read on every call. Closed with the backend if it is [AutoCloseable].
+     */
+    fun textReader(options: () -> Map<String, OptionValue>): TextReader? = null
 }
 
 /** The engine's threads: fast pipelines in sequence, slow ones (OCR) separately, loading/downloads separately. */
@@ -126,6 +132,13 @@ class LocalBackend(
     private var seq = 0L
     private val nextReq = AtomicLong(1)
 
+    /** Created on first use (it holds its own models, apart from the live pipeline's), closed in [shutdown]. */
+    private val reader = lazy {
+        loader.textReader { synchronized(lock) { slots[LocalCatalog.TEXT]?.let(::optionsLocked).orEmpty() } }
+    }
+
+    override val textReader: TextReader? get() = reader.value
+
     // --- lifecycle ---------------------------------------------------------------------------------
 
     override fun start() {
@@ -160,6 +173,7 @@ class LocalBackend(
                 closeOnLane(slot, old)
             }
         }
+        if (reader.isInitialized()) (reader.value as? AutoCloseable)?.let(::closeQuietly)
         lanes.shutdown()
     }
 
@@ -305,9 +319,9 @@ class LocalBackend(
         }
     }
 
-    private fun closeQuietly(pipeline: LocalPipeline) {
+    private fun closeQuietly(closeable: AutoCloseable) {
         try {
-            pipeline.close()
+            closeable.close()
         } catch (_: Exception) {
             // Nothing useful to do: it is gone either way.
         }

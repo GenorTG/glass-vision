@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
-import com.google.android.gms.tasks.Tasks
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.framework.image.MPImage
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
@@ -17,26 +16,18 @@ import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizer
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
-import com.google.mlkit.nl.languageid.LanguageIdentification
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.Translator
-import com.google.mlkit.nl.translate.TranslatorOptions
-import com.googlecode.tesseract.android.TessBaseAPI
-import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 /*
  * The on-device pipelines: MediaPipe Tasks Vision 0.10.35 (objects, gestures, pose, faces, + hands for pose capture),
- * Tesseract4Android (multilingual text), and ML Kit offline translation. Android-only glue around the pure parts (LocalBackend, LocalTracker,
- * PoseNames, OpenPose), which are unit-tested on the JVM; these run in the instrumented tests.
+ * and text (OnDeviceText.kt). Android-only glue around the pure parts (LocalBackend, LocalTracker, PoseNames, OpenPose,
+ * TextLayout), which are unit-tested on the JVM; these run in the instrumented tests.
  * API: https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector/android (and the gesture_recognizer,
- * pose_landmarker, face_detector, hand_landmarker pages), https://github.com/adaptech-cz/Tesseract4Android
+ * pose_landmarker, face_detector, hand_landmarker pages)
  */
 
 /** A [LocalFrame] backed by an upright ARGB_8888 bitmap (shared read-only by the lanes; never recycled early). */
@@ -91,26 +82,7 @@ class OnDeviceLoader(
     }
 
     override fun load(pipeline: String, options: Map<String, OptionValue>, gpu: Boolean): LocalPipeline {
-        if (pipeline == LocalCatalog.TEXT) {
-            val choice = (options[LocalCatalog.OPT_OCR_LANGUAGE] as? OptionValue.Str)?.value ?: OcrLanguage.ENGLISH.choice
-            val automatic = choice == OcrLanguage.AUTO_CHOICE
-            val language = if (automatic) OcrLanguage.ENGLISH else OcrLanguage.fromChoice(choice)
-            fun createRecognizer(selected: OcrLanguage): TessBaseAPI {
-                val model = models.ensure(selected.spec)
-                val ocr = TessBaseAPI()
-                val dataRoot = requireNotNull(model.parentFile?.parentFile) { "Invalid OCR model path" }
-                if (!ocr.init(dataRoot.absolutePath, selected.code, TessBaseAPI.OEM_LSTM_ONLY)) {
-                    ocr.recycle()
-                    throw ModelUnavailableException("OCR model could not be loaded: ${selected.title}")
-                }
-                ocr.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO)
-                return ocr
-            }
-            return TextPipeline(
-                createRecognizer(language), LanguageIdentification.getClient(),
-                autoDetectLanguage = automatic, recognizerFactory = ::createRecognizer,
-            )
-        }
+        if (pipeline == LocalCatalog.TEXT) return loadText(options)
         val model = LocalCatalog.modelFor(pipeline, options) ?: throw IllegalArgumentException("unknown pipeline $pipeline")
         val file = models.ensure(model.spec)
         val create: (Delegate) -> MediaPipePipeline = { delegate ->
@@ -179,6 +151,29 @@ class OnDeviceLoader(
         }
         return create(Delegate.CPU)
     }
+
+    /**
+     * ML Kit text (+ Tesseract on line crops, see [OcrPlan]). A chosen pack downloads now, so a failed download is
+     * the pipeline's error; so does the fallback pack of a Play-services script that isn't there (yet).
+     */
+    private fun loadText(options: Map<String, OptionValue>): LocalPipeline {
+        val plan = planFor(options, models)
+        val mlKit = MlKitReaders(context)
+        val tesseract = TesseractCrops(models)
+        try {
+            val available = mlKit.available(plan.script)
+            val packs = if (available) plan.packs else plan.fallback + plan.packs
+            if (!plan.auto) packs.forEach(tesseract::prepare)
+            val note = if (available) null else "${plan.script.title} text model downloads through Google Play services; Tesseract reads meanwhile"
+            return TextPipeline(TextEngine(mlKit, tesseract), plan, Translations(), note)
+        } catch (e: Exception) {
+            mlKit.close()
+            tesseract.close()
+            throw e
+        }
+    }
+
+    override fun textReader(options: () -> Map<String, OptionValue>): TextReader = LocalTextReader(context, models, options)
 
     /** Pose capture's hands: IMAGE mode on the CPU (one-off, like the server), model downloaded on first capture. */
     private fun createHandLandmarker(): HandLandmarker {
@@ -376,130 +371,6 @@ class PosePipeline(
         const val MIN_CAPTURE_POINTS = 5
 
         fun keyPoint(lm: NormalizedLandmark) = KeyPoint(lm.x(), lm.y(), lm.visibility().orElse(0f))
-    }
-}
-
-/** Downloadable Tesseract OCR + optional ML Kit offline translation. */
-class TextPipeline(
-    private var recognizer: TessBaseAPI,
-    private val languageIdentifier: com.google.mlkit.nl.languageid.LanguageIdentifier,
-    private val autoDetectLanguage: Boolean = false,
-    private val recognizerFactory: ((OcrLanguage) -> TessBaseAPI)? = null,
-) : LocalPipeline {
-    private val translators = LinkedHashMap<Pair<String, String>, Translator>(8, 0.75f, true)
-    private val translated = LinkedHashMap<String, String>(256, 0.75f, true)
-    private var currentLanguage = OcrLanguage.ENGLISH
-
-    override fun run(frame: LocalFrame, timestampMs: Long, options: Map<String, OptionValue>): List<PixelDetection> {
-        val f = frame.bitmapFrame()
-        recognizer.setImage(f.bitmap)
-        val iterator = recognizer.resultIterator ?: return emptyList()
-        val targetChoice = (options[LocalCatalog.OPT_TRANSLATE_TO] as? OptionValue.Str)?.value ?: LocalCatalog.TRANSLATE_OFF
-        val targetTag = LocalCatalog.translationTag(targetChoice)
-        val lines = mutableListOf<String>()
-        val detections = try {
-            buildList {
-                do {
-                    val r = iterator.getBoundingRect(PageIteratorLevel.RIL_TEXTLINE)
-                    val original = iterator.getUTF8Text(PageIteratorLevel.RIL_TEXTLINE)?.trim().orEmpty()
-                    if (r.width() > 0 && r.height() > 0 && original.isNotEmpty()) {
-                        lines += original
-                        val translation = targetTag?.let { translate(original, it) }
-                        val label = translation ?: original
-                        val confidence = (iterator.confidence(PageIteratorLevel.RIL_TEXTLINE) / 100f).coerceIn(0f, 1f)
-                        box(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat(), f, confidence, label)
-                            ?.let { add(it.copy(detail = original.takeIf { translation != null && it != label })) }
-                    }
-                } while (iterator.next(PageIteratorLevel.RIL_TEXTLINE))
-            }
-        } finally {
-            iterator.delete()
-        }
-        if (autoDetectLanguage) switchToDetectedLanguage(lines)
-        return detections
-    }
-
-    /** Use OCR text to identify a supported language, then load its verified pack for subsequent frames. */
-    private fun switchToDetectedLanguage(lines: List<String>) {
-        val factory = recognizerFactory ?: return
-        val candidate = lines.asSequence().filter { it.length >= 4 && it.any(Char::isLetter) }
-            .take(3).joinToString(" ").take(500)
-        if (candidate.length < 4) return
-        val tag = try {
-            Tasks.await(languageIdentifier.identifyLanguage(candidate), TIMEOUT_S, TimeUnit.SECONDS)
-        } catch (_: Exception) {
-            return
-        }
-        val detected = OcrLanguage.fromLanguageTag(tag) ?: return
-        if (detected == currentLanguage) return
-        try {
-            val replacement = factory(detected)
-            val previous = recognizer
-            recognizer = replacement
-            currentLanguage = detected
-            previous.recycle()
-        } catch (e: Exception) {
-            // Keep using the current recognizer if the detected language pack cannot be obtained.
-            Log.w("TextPipeline", "Could not switch OCR language to ${detected.title}", e)
-        }
-    }
-
-    private fun translate(text: String, targetTag: String): String? {
-        if (text.length < 2 || text.none(Char::isLetter)) return null
-        val sourceTag = try {
-            Tasks.await(languageIdentifier.identifyLanguage(text), TIMEOUT_S, TimeUnit.SECONDS)
-        } catch (_: Exception) {
-            return null
-        }
-        if (sourceTag == "und" || sourceTag == targetTag) return null
-        val source = TranslateLanguage.fromLanguageTag(sourceTag) ?: return null
-        val target = TranslateLanguage.fromLanguageTag(targetTag) ?: return null
-        val key = "$sourceTag\u0000$targetTag\u0000$text"
-        synchronized(translated) { translated[key]?.let { return it } }
-        return try {
-            val translator = translator(source, target)
-            // This is intentionally lazy: selecting a target downloads its pair the first time OCR sees a line.
-            Tasks.await(translator.downloadModelIfNeeded(), TIMEOUT_S, TimeUnit.SECONDS)
-            val result = Tasks.await(translator.translate(text), TIMEOUT_S, TimeUnit.SECONDS).trim()
-            if (result.isEmpty()) return null
-            synchronized(translated) {
-                translated[key] = result
-                while (translated.size > MAX_CACHE) translated.entries.iterator().run { next(); remove() }
-            }
-            result
-        } catch (_: Exception) {
-            // Keep the raw OCR result visible; a failed model download must not take the OCR pipeline down.
-            null
-        }
-    }
-
-    private fun translator(source: String, target: String): Translator {
-        val key = source to target
-        synchronized(translators) {
-            translators[key]?.let { return it }
-            val instance = Translation.getClient(
-                TranslatorOptions.Builder().setSourceLanguage(source).setTargetLanguage(target).build(),
-            )
-            translators[key] = instance
-            while (translators.size > MAX_TRANSLATORS) {
-                val eldest = translators.entries.iterator().run { next().value.also { remove() } }
-                eldest.close()
-            }
-            return instance
-        }
-    }
-
-    override fun close() {
-        recognizer.recycle()
-        languageIdentifier.close()
-        synchronized(translators) { translators.values.forEach(Translator::close); translators.clear() }
-        synchronized(translated) { translated.clear() }
-    }
-
-    private companion object {
-        const val TIMEOUT_S = 10L
-        const val MAX_CACHE = 512
-        const val MAX_TRANSLATORS = 8
     }
 }
 
