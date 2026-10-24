@@ -1,10 +1,13 @@
 package pl.genor.glassvision
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.CalendarContract
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -12,9 +15,9 @@ import java.util.concurrent.Executor
 
 /**
  * The Read button: takes a still ([StillCapture]), opens a [ReadTextSheet] in its reading state, reads the still with
- * the backend's [TextReader] on [worker], shows the result; "Add language" translates the lines already read (no
- * second read). Target languages are remembered ([ReadTargets]). Only the open sheet's results are shown: a sheet
- * closed while reading drops them. Main thread only.
+ * the backend's [TextReader] on [worker], shows the result; "Add language" translates the blocks already read (no
+ * second read). Target languages ([ReadTargets]) and the result view ([ReadViewChoice]) are remembered. Only the open
+ * sheet's results are shown: a sheet closed while reading drops them. Main thread only.
  */
 class ReadTextFlow(
     private val context: Context,
@@ -24,6 +27,7 @@ class ReadTextFlow(
     private val worker: Executor,
     /** Called when [busy] changes (the Read button shows "Reading…"). */
     private val onBusyChanged: () -> Unit,
+    private val views: ReadViewChoice = ReadViewChoice.of(context),
 ) {
     private val main = Handler(Looper.getMainLooper())
     private var session: Session? = null
@@ -62,7 +66,7 @@ class ReadTextFlow(
     }
 
     private inner class Session(val textReader: TextReader) : ReadTextSheet.Callbacks {
-        val sheet = ReadTextSheet(context, this)
+        val sheet = ReadTextSheet(context, this, views.get())
         var capturing = false
         var reading = false
         private var still: Still? = null
@@ -138,9 +142,7 @@ class ReadTextFlow(
             val read = result ?: return
             targets.add(code)
             sheet.setTranslation(code, ReadTextSheet.Translation.Pending)
-            val lines = read.lines.map { it.text }
-            val from = read.lines.map { it.lang }
-            async({ textReader.translate(lines, from, code) }) { r ->
+            async({ textReader.translateBlocks(read.blocks, code) }) { r ->
                 // Removed again while translating: nothing to show.
                 if (code !in sheet.targets) return@async
                 sheet.setTranslation(
@@ -169,10 +171,40 @@ class ReadTextFlow(
             val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
             context.startActivity(Intent.createChooser(send, context.getString(R.string.read_share)))
         }
+
+        override fun onViewChanged(view: ReadView) = views.set(view)
+
+        override fun onAction(detected: Detected) {
+            val intent = when (detected.kind) {
+                DetectedKind.PHONE -> Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detected.value))
+                DetectedKind.URL -> Intent(Intent.ACTION_VIEW, Uri.parse(detected.value))
+                DetectedKind.EMAIL -> Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + detected.value))
+                DetectedKind.DATE -> Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
+                    .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
+                    .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, ReadActions.dateMillis(detected.value))
+            }
+            try {
+                context.startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                sheet.showMessage(context.getString(R.string.read_no_app))
+            }
+        }
     }
 
     private companion object {
         const val TAG = "ReadTextFlow"
         const val THUMBNAIL_LONG_SIDE = 720
+    }
+}
+
+/** Pure parts of the Read text actions. */
+object ReadActions {
+    /** Local midnight of an ISO date (yyyy-mm-dd) in epoch ms, for a calendar entry. */
+    fun dateMillis(iso: String, zone: java.util.TimeZone = java.util.TimeZone.getDefault()): Long {
+        val (y, m, d) = iso.split('-').map(String::toInt)
+        return java.util.Calendar.getInstance(zone).apply {
+            clear()
+            set(y, m - 1, d)
+        }.timeInMillis
     }
 }

@@ -38,10 +38,16 @@ sealed interface ServerMessage {
         val device: String,
         val version: String,
         val pipelines: List<PipelineSpec>,
-        /** Optional server capabilities (v3.2: `text_read`); empty for older servers. */
+        /** Optional server capabilities (v3.2: `text_read`; v3.3: `text_blocks`, `text_careful`); empty for older servers. */
         val features: Set<String> = emptySet(),
     ) : ServerMessage {
         val canReadText: Boolean get() = Protocol.FEATURE_TEXT_READ in features
+
+        /** `/text/read?format=blocks` and block translation (docs/PROTOCOL.md "Read text v3.3"). */
+        val canReadBlocks: Boolean get() = canReadText && Protocol.FEATURE_TEXT_BLOCKS in features
+
+        /** `POST /text/careful` (heavy-model re-read of suspect blocks). */
+        val canReadCarefully: Boolean get() = canReadText && Protocol.FEATURE_TEXT_CAREFUL in features
     }
 
     data class PipelineStatusChange(
@@ -94,6 +100,12 @@ object Protocol {
     const val HEADER_SIZE = 16
     /** `hello.features` entry: the server answers `POST /text/read` (docs/PROTOCOL.md "Read text"). */
     const val FEATURE_TEXT_READ = "text_read"
+
+    /** `hello.features` entry: `/text/read` answers `format=blocks` (docs/PROTOCOL.md "Read text v3.3"). */
+    const val FEATURE_TEXT_BLOCKS = "text_blocks"
+
+    /** `hello.features` entry: the server answers `POST /text/careful` (v3.3, wave 2). */
+    const val FEATURE_TEXT_CAREFUL = "text_careful"
 
     /** 16-byte big-endian header `[u32 seq, i64 client_ts ms, u32 reserved=0]` followed by the JPEG. */
     fun encodeFrame(seq: Long, clientTsMs: Long, jpeg: ByteArray, jpegLength: Int = jpeg.size): ByteArray {

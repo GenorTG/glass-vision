@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Read text block card (ReadTextSheet). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/gv_surface_container_high" />
+    <stroke android:width="2dp" android:color="@android:color/transparent" />
+    <corners android:radius="20dp" />
+</shape>

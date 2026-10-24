@@ -41,4 +41,5 @@
     <color name="gv_status_busy">#FFFBBF24</color>
     <color name="gv_status_bad">#FFF87171</color>
     <color name="gv_status_idle">#FF94A3B8</color>
+    <color name="gv_on_status_busy">#FF3A2A00</color>
 </resources>

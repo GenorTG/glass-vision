@@ -1,6 +1,5 @@
 package pl.genor.glassvision
 
-import android.graphics.RectF
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -10,31 +9,61 @@ import org.junit.Test
 /** Read text's pure parts: button availability, blocks, copy/share text, remembered target languages. */
 class ReadTextTest {
 
-    private fun line(text: String, block: Int, lang: String? = "de") = ReadLine(text, 0.9f, RectF(), block, lang)
+    private fun line(text: String, block: Int, lang: String? = "de", box: TextBox = TextBox(0.1f, 0.1f, 0.5f, 0.2f)) =
+        ReadLine(text, 0.9f, box, block, lang)
 
-    /** A sign (2 lines) and a timetable line, read in reading order. */
+    /** A sign (2 lines) and a timetable line, read in reading order (a v3.2 answer: blocks from the lines). */
+    private val lines = listOf(line("Ausgang", 0), line("Notausgang 2", 0), line("Gleis 3", 1), line("12:45", 1, null))
     private val reading = TextReading(
-        width = 4000, height = 3000,
-        lines = listOf(line("Ausgang", 0), line("Notausgang 2", 0), line("Gleis 3", 1), line("12:45", 1, null)),
-        translations = mapOf("pl" to listOf("Wyjście", "Wyjście awaryjne 2", "Peron 3", null)),
+        width = 4000, height = 3000, lines = lines,
+        blocks = ReadBlocks.fromLines(lines, mapOf("pl" to listOf("Wyjście", "Wyjście awaryjne 2", "Peron 3", null))),
     )
 
     @Test
-    fun blocks_group_lines_in_reading_order() {
-        assertEquals(listOf(ReadBlock(0, listOf(0, 1)), ReadBlock(1, listOf(2, 3))), ReadBlocks.of(reading.lines))
+    fun v32_lines_become_blocks_with_joined_translations() {
+        val blocks = reading.blocks
+        assertEquals(listOf(listOf(0, 1), listOf(2, 3)), blocks.map { it.lines })
+        assertEquals(listOf(0, 1), blocks.map { it.id })
+        assertEquals("Ausgang\nNotausgang 2", blocks[0].text)
+        assertEquals(listOf(BlockKind.LIST, BlockKind.LIST), blocks.map { it.kind })
+        assertEquals(listOf("de", "de"), blocks.map { it.lang })
+        // Untranslated lines (digits only…) keep the original inside a translated block.
+        assertEquals(listOf("Wyjście\nWyjście awaryjne 2", "Peron 3\n12:45"), reading.translation("pl"))
+        assertEquals(setOf("pl"), reading.translated)
         // Interleaved ids (a sign beside a paragraph): each block keeps its lines, ordered by first appearance.
-        val mixed = listOf(line("a", 5), line("b", 2), line("c", 5))
-        assertEquals(listOf(ReadBlock(5, listOf(0, 2)), ReadBlock(2, listOf(1))), ReadBlocks.of(mixed))
-        assertEquals(emptyList<ReadBlock>(), ReadBlocks.of(emptyList()))
+        val mixed = ReadBlocks.fromLines(listOf(line("a", 5), line("b", 2), line("c", 5)))
+        assertEquals(listOf(5 to listOf(0, 2), 2 to listOf(1)), mixed.map { it.id to it.lines })
+        assertEquals(emptyList<ReadBlock>(), ReadBlocks.fromLines(emptyList()))
+    }
+
+    @Test
+    fun v32_block_box_is_the_union_and_prose_is_reflowed() {
+        val prose = listOf(
+            line("Bitte halten Sie diese", 0, box = TextBox(0.1f, 0.10f, 0.6f, 0.15f)),
+            line("Tür immer geschlossen", 0, box = TextBox(0.1f, 0.16f, 0.58f, 0.21f)),
+        )
+        val b = ReadBlocks.fromLines(prose, mapOf("en" to listOf("Please keep this", "door closed at all times"), "fr" to listOf(null, null))).single()
+        assertEquals(TextBox(0.1f, 0.10f, 0.6f, 0.21f), b.box)
+        assertEquals(BlockKind.PROSE, b.kind)
+        assertEquals("Bitte halten Sie diese Tür immer geschlossen", b.display)
+        assertEquals("Please keep this door closed at all times", b.translations["en"])
+        // A target that translated none of the block's lines: present, null.
+        assertTrue("fr" in b.translations)
+        assertNull(b.translations["fr"])
     }
 
     @Test
     fun copy_text() {
         assertEquals("Ausgang\nNotausgang 2\n\nGleis 3\n12:45", ReadTextFormat.original(reading))
-        // Untranslated lines (digits only…) keep the original.
         assertEquals(
             "Wyjście\nWyjście awaryjne 2\n\nPeron 3\n12:45",
-            ReadTextFormat.translated(reading, reading.translations.getValue("pl")),
+            ReadTextFormat.translated(reading, reading.translation("pl")),
+        )
+        // Untranslated blocks keep the original.
+        assertEquals("Exit\n\nGleis 3\n12:45", ReadTextFormat.translated(reading, listOf("Exit", null)))
+        assertEquals(
+            "Ausgang\nNotausgang 2\n\n— Polish —\nWyjście\nWyjście awaryjne 2",
+            ReadTextFormat.block(reading.blocks[0], listOf("Polish" to "Wyjście\nWyjście awaryjne 2", "German" to null)),
         )
     }
 
@@ -42,7 +71,7 @@ class ReadTextTest {
     fun share_text_skips_unchanged_translations() {
         val share = ReadTextFormat.share(
             reading,
-            listOf("Polish" to reading.translations.getValue("pl"), "German" to listOf(null, null, null, null)),
+            listOf("Polish" to reading.translation("pl"), "German" to listOf(null, null)),
         )
         assertEquals(
             "Ausgang\nNotausgang 2\n\nGleis 3\n12:45\n\n— Polish —\nWyjście\nWyjście awaryjne 2\n\nPeron 3\n12:45",
@@ -55,7 +84,43 @@ class ReadTextTest {
     @Test
     fun source_language_is_the_most_common() {
         assertEquals("de", ReadTextFormat.sourceLanguage(reading))
-        assertNull(ReadTextFormat.sourceLanguage(reading.copy(lines = listOf(line("1", 0, null)))))
+        val digits = listOf(line("1", 0, null))
+        assertNull(ReadTextFormat.sourceLanguage(reading.copy(lines = digits, blocks = ReadBlocks.fromLines(digits))))
+    }
+
+    /** The interface's default block translation (readers without one): line by line, recombined per block. */
+    @Test
+    fun default_block_translation_goes_line_by_line() {
+        val calls = mutableListOf<Triple<List<String>, List<String?>, String>>()
+        val reader = object : TextReader {
+            override fun read(still: android.graphics.Bitmap, translateTo: List<String>) = throw UnsupportedOperationException()
+            override fun languages() = emptyList<TranslationLanguage>()
+            override fun translate(lines: List<String>, from: List<String?>, to: String): List<String?> {
+                calls += Triple(lines, from, to)
+                return lines.map { mapOf("Ausgang" to "Exit", "Gleis 3" to "Platform 3")[it] }
+            }
+        }
+        val blocks = reading.blocks + ReadBlock(9, emptyList(), text = "42", lang = null)
+        assertEquals(listOf("Exit\nNotausgang 2", "Platform 3\n12:45", null), reader.translateBlocks(blocks, "en"))
+        assertEquals(Triple(listOf("Ausgang", "Notausgang 2", "Gleis 3", "12:45", "42"), listOf("de", "de", "de", "de", null), "en"), calls.single())
+    }
+
+    @Test
+    fun the_view_choice_is_remembered() {
+        var stored: String? = null
+        val views = ReadViewChoice({ stored }, { stored = it })
+        assertEquals(ReadView.CARDS, views.get())
+        views.set(ReadView.OVERLAY)
+        assertEquals("OVERLAY", stored)
+        assertEquals(ReadView.OVERLAY, views.get())
+        stored = "SOMETHING_OLD"
+        assertEquals(ReadView.CARDS, views.get())
+    }
+
+    @Test
+    fun calendar_dates_are_local_midnight() {
+        val utc = java.util.TimeZone.getTimeZone("UTC")
+        assertEquals(1_792_281_600_000L, ReadActions.dateMillis("2026-10-18", utc))
     }
 
     @Test

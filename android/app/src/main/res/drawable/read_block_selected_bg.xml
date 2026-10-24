@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The block card whose block was tapped on the still. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/gv_surface_container_highest" />
+    <stroke android:width="2dp" android:color="@color/gv_primary" />
+    <corners android:radius="20dp" />
+</shape>

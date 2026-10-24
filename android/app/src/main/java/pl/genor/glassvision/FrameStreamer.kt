@@ -268,7 +268,7 @@ class FrameStreamer(
                 synchronized(lock) {
                     specs = msg.pipelines
                     sentPipelines = null
-                    reader = if (msg.canReadText) ServerTextReader(endpoint, ::readOptions) else null
+                    reader = if (msg.canReadText) ServerTextReader(endpoint, ::readOptions, features = msg.features) else null
                     socket?.let(::sendPipelineConfigLocked)
                 }
                 listener.onHello(msg)

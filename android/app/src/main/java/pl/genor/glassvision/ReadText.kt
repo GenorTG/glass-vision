@@ -24,27 +24,55 @@ object ReadAvailability {
     }
 }
 
-/** One sign/paragraph: [lines] are indices into [TextReading.lines], in reading order. */
-data class ReadBlock(val id: Int, val lines: List<Int>)
-
 object ReadBlocks {
-    /** Lines grouped by `block`, blocks in order of their first line (lines are already in reading order). */
-    fun of(lines: List<ReadLine>): List<ReadBlock> {
+    /**
+     * Blocks of a reader that only numbers lines (v3.2 server: `block` per line, translations per line): lines grouped
+     * by `block` in order of their first line, box = union of the lines, kind guessed like the phone does
+     * ([TextBlocks.kind]); a block's translation = its lines' translations (untranslated lines keep the original),
+     * null when none of its lines was translated.
+     */
+    fun fromLines(lines: List<ReadLine>, translations: Map<String, List<String?>> = emptyMap()): List<ReadBlock> {
         val groups = LinkedHashMap<Int, MutableList<Int>>()
         lines.forEachIndexed { i, line -> groups.getOrPut(line.block) { ArrayList() } += i }
-        return groups.map { (id, idx) -> ReadBlock(id, idx) }
+        return groups.map { (id, idx) ->
+            val members = idx.map { lines[it] }
+            val box = members.map { it.box }.reduce(TextBox::union)
+            val kind = TextBlocks.kind(members.map { it.text }, members.map { it.box.width }, box.width)
+            val texts = members.map { it.text }
+            ReadBlock(
+                id = id,
+                lines = idx,
+                box = box,
+                quad = members.singleOrNull()?.quad,
+                text = texts.joinToString("\n"),
+                kind = kind,
+                lang = majority(members.mapNotNull { it.lang }),
+                suspect = TextSuspect.block(members.map { it.text to it.suspect }),
+                translations = translations.mapValues { (_, t) ->
+                    val entries = idx.map { t.getOrNull(it) }
+                    if (entries.all { it == null }) {
+                        null
+                    } else {
+                        val joined = entries.mapIndexed { i, e -> e ?: texts[i] }
+                        if (kind == BlockKind.PROSE) TextBlocks.joinProse(joined) else joined.joinToString("\n")
+                    }
+                },
+            )
+        }
     }
+
+    fun majority(codes: List<String>): String? = codes.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
 }
 
 object ReadTextFormat {
-    /** The recognized text: lines of a block on separate lines, blocks separated by a blank line. */
-    fun original(reading: TextReading): String = render(reading) { i -> reading.lines[i].text }
+    /** The recognized text: one block per paragraph ([ReadBlock.display]), blocks separated by a blank line. */
+    fun original(reading: TextReading): String = reading.blocks.joinToString("\n\n") { it.display }
 
-    /** [translation] (aligned with the lines) the same way; untranslated entries show the original line. */
+    /** [translation] (aligned with the blocks) the same way; untranslated blocks show the original. */
     fun translated(reading: TextReading, translation: List<String?>): String =
-        render(reading) { i -> translation.getOrNull(i) ?: reading.lines[i].text }
+        reading.blocks.mapIndexed { i, b -> translation.getOrNull(i) ?: b.display }.joinToString("\n\n")
 
-    /** True when no line got a translation (already in that language, digits only…). */
+    /** True when no block got a translation (already in that language, digits only…). */
     fun isUnchanged(translation: List<String?>): Boolean = translation.all { it == null }
 
     /** Text for Share: the original, then each translation under its language name. */
@@ -57,12 +85,43 @@ object ReadTextFormat {
         }
     }
 
-    /** The most frequent detected source language, or null if none was detected. */
-    fun sourceLanguage(reading: TextReading): String? =
-        reading.lines.mapNotNull { it.lang }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+    /** One block for Copy/Share: its text, then each of its [translations] (language name → text) that exists. */
+    fun block(block: ReadBlock, translations: List<Pair<String, String?>>): String = buildString {
+        append(block.display)
+        for ((name, t) in translations) {
+            if (t == null) continue
+            append("\n\n— ").append(name).append(" —\n").append(t)
+        }
+    }
 
-    private fun render(reading: TextReading, text: (Int) -> String): String =
-        ReadBlocks.of(reading.lines).joinToString("\n\n") { b -> b.lines.joinToString("\n") { text(it) } }
+    /** The most frequent detected source language (per line), or null if none was detected. */
+    fun sourceLanguage(reading: TextReading): String? =
+        ReadBlocks.majority(reading.lines.mapNotNull { it.lang }) ?: ReadBlocks.majority(reading.blocks.mapNotNull { it.lang })
+}
+
+/** How the Read text sheet shows its result. */
+enum class ReadView {
+    /** One card per block under a thumbnail. */
+    CARDS,
+
+    /** The still, large, with each block's translation painted over it (and the cards under it). */
+    OVERLAY,
+}
+
+/** The remembered [ReadView]; [load]/[save] = the raw stored value. */
+class ReadViewChoice(private val load: () -> String?, private val save: (String) -> Unit) {
+    fun get(): ReadView = ReadView.entries.firstOrNull { it.name == load() } ?: ReadView.CARDS
+
+    fun set(view: ReadView) = save(view.name)
+
+    companion object {
+        private const val KEY_VIEW = "view"
+
+        fun of(context: Context): ReadViewChoice {
+            val prefs = context.applicationContext.getSharedPreferences(ReadTargets.PREFS_NAME, Context.MODE_PRIVATE)
+            return ReadViewChoice({ prefs.getString(KEY_VIEW, null) }, { prefs.edit().putString(KEY_VIEW, it).apply() })
+        }
+    }
 }
 
 /**
@@ -87,7 +146,7 @@ class ReadTargets(private val load: () -> String?, private val save: (String) ->
     private fun current(): List<String> = stored().orEmpty()
 
     companion object {
-        private const val PREFS_NAME = "glass_vision_read_text"
+        const val PREFS_NAME = "glass_vision_read_text"
         private const val KEY_TARGETS = "translate_to"
 
         fun of(context: Context): ReadTargets {

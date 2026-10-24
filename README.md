@@ -35,9 +35,11 @@ under **OCR language** in the Text card and downloaded on first use (then offlin
 ML Kit into 50+ languages; each translation model downloads on first use. On-device mode is slower and uses battery;
 first model downloads need internet.
 
-**Read text**: with Text (OCR) on, the live view marks where text is. Tap **Read text** above the shutter: the app
-takes a full-resolution photo, reads it (on your server, or on the phone in on-device mode) and opens a sheet with the
-text grouped by sign, its translation, and **Add language** for more translations. Copy and share work from the sheet.
+**Read text**: with Text (OCR) on, the live view marks each block of text (a sign, a paragraph). Tap **Read text**
+above the shutter: the app takes a full-resolution photo, reads it (on your server, or on the phone in on-device mode)
+and opens a sheet with one card per block: the text (paragraphs reflowed), its translations, copy/share, and taps for
+phone numbers, links, e-mail addresses and dates. **On picture** paints the translation over the photo instead, block by
+block (**Show original** to compare); tap a block on the photo to find its card. **Add language** adds translations.
 Prefer the old behaviour of reading every frame? Set **While streaming** to **Read live** in the Text card.
 
 New pipelines appear in the app automatically: the server describes each one (options, actions) when the app

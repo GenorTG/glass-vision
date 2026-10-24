@@ -1,7 +1,6 @@
 package pl.genor.glassvision
 
 import android.graphics.Bitmap
-import android.graphics.RectF
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
@@ -32,13 +31,18 @@ class TextReadException(message: String, cause: Throwable? = null) : IOException
 /**
  * [TextReader] over the server's HTTP API (docs/PROTOCOL.md "Read text"): `POST /text/read` with the still as JPEG,
  * `POST /text/translate`, `GET /text/languages` (cached). Same token as everything else ([ServerEndpoint.authorization]).
- * [options] is read per call, so a changed text-pipeline setting applies to the next read. Blocking; worker threads only.
+ * [options] is read per call, so a changed text-pipeline setting applies to the next read. [features] = `hello.features`:
+ * with `text_blocks` (v3.3) reads ask for `format=blocks` and "Add language" translates whole blocks. Blocking; worker
+ * threads only.
  */
 class ServerTextReader(
     private val endpoint: ServerEndpoint,
     private val options: () -> ReadOptions = { ReadOptions() },
     private val client: OkHttpClient = defaultClient,
+    private val features: Set<String> = emptySet(),
 ) : TextReader {
+    private val blocks: Boolean get() = Protocol.FEATURE_TEXT_BLOCKS in features
+
     @Volatile private var languagesCache: List<TranslationLanguage>? = null
 
     override fun read(still: Bitmap, translateTo: List<String>): TextReading = readJpeg(encode(still), translateTo)
@@ -51,6 +55,7 @@ class ServerTextReader(
             if (translateTo.isNotEmpty()) addQueryParameter("translate_to", translateTo.joinToString(","))
             fromCode(opts)?.let { addQueryParameter("translate_from", it) }
             opts.model?.takeIf { it.isNotBlank() }?.let { addQueryParameter("model", it) }
+            if (blocks) addQueryParameter("format", "blocks")
         }.build()
         return TextReadJson.reading(call(url, jpeg.toRequestBody(JPEG)))
     }
@@ -64,6 +69,17 @@ class ServerTextReader(
             .put("model", options().model?.takeIf { it.isNotBlank() } ?: JSONObject.NULL)
         val json = call(url("/text/translate"), body.toString().toRequestBody(JSON))
         return TextReadJson.translations(json, lines.size)
+    }
+
+    /** v3.3: `{"blocks": [{text, lang, kind}], "to"}`, prose blocks translated as one text; older servers: per line. */
+    override fun translateBlocks(blocks: List<ReadBlock>, to: String): List<String?> {
+        if (!this.blocks) return super.translateBlocks(blocks, to)
+        if (blocks.isEmpty()) return emptyList()
+        val body = JSONObject()
+            .put("blocks", JSONArray(blocks.map { b -> JSONObject().put("text", b.text).put("lang", b.lang ?: JSONObject.NULL).put("kind", b.kind.wire) }))
+            .put("to", to)
+            .put("model", options().model?.takeIf { it.isNotBlank() } ?: JSONObject.NULL)
+        return TextReadJson.translations(call(url("/text/translate"), body.toString().toRequestBody(JSON)), blocks.size)
     }
 
     override fun languages(): List<TranslationLanguage> {
@@ -136,31 +152,41 @@ class ServerTextReader(
     }
 }
 
-/** JSON of the Read text endpoints → [TextReading] & co. Lenient like [Protocol]: bad entries are skipped. */
+/**
+ * JSON of the Read text endpoints → [TextReading] & co. Lenient like [Protocol]: bad entries are skipped. A v3.3
+ * answer (`blocks`) is taken as is; a v3.2 one gets its blocks from the lines' `block` ids ([ReadBlocks.fromLines]).
+ */
 object TextReadJson {
     fun reading(o: JSONObject): TextReading {
-        // Translations align with the server's line indices: keep each kept line's index to pick its entries.
+        // Line indices (block members, v3.2 translations) refer to the server's lines: map them past skipped ones.
         val raw = o.optJSONArray("lines")
         val kept = ArrayList<Int>()
+        val index = HashMap<Int, Int>()
         val lines = ArrayList<ReadLine>()
         for (i in 0 until (raw?.length() ?: 0)) {
             val line = raw?.optJSONObject(i)?.let { line(it, i) } ?: continue
+            index[i] = lines.size
             lines += line
             kept += i
         }
-        val translations = LinkedHashMap<String, List<String?>>()
-        o.optJSONObject("translations")?.let { t ->
-            for (code in t.keys()) t.optJSONArray(code)?.let { arr -> translations[code] = kept.map { entry(arr, it) } }
-        }
         val errors = LinkedHashMap<String, String>()
         o.optJSONObject("errors")?.let { e -> for (code in e.keys()) errors[code] = e.optString(code).ifEmpty { "failed" } }
+        val parsed = o.optJSONArray("blocks").objects().mapIndexedNotNull { i, b -> block(b, i, index, lines) }
+        val blocks = parsed.ifEmpty {
+            val translations = LinkedHashMap<String, List<String?>>()
+            o.optJSONObject("translations")?.let { t ->
+                for (code in t.keys()) t.optJSONArray(code)?.let { arr -> translations[code] = kept.map { entry(arr, it) } }
+            }
+            if (lines.isEmpty()) emptyList() else ReadBlocks.fromLines(lines, translations)
+        }
         return TextReading(
             width = o.optInt("w", 0),
             height = o.optInt("h", 0),
             lines = lines,
-            translations = translations,
+            blocks = blocks,
             errors = errors,
             script = o.optStringOrNull("script"),
+            angle = o.optDouble("angle", 0.0).toFloat().takeIf { it.isFinite() } ?: 0f,
         )
     }
 
@@ -192,23 +218,59 @@ object TextReadJson {
 
     private fun line(l: JSONObject, index: Int): ReadLine? {
         val text = l.optString("text").trim().ifEmpty { return null }
-        val b = l.optJSONArray("box")
-        // RectF's fields, not its constructor: the JVM unit tests run against android.jar stubs.
-        val box = RectF().apply {
-            if (b != null && b.length() >= 4) {
-                left = b.optDouble(0, 0.0).toFloat()
-                top = b.optDouble(1, 0.0).toFloat()
-                right = b.optDouble(2, 0.0).toFloat()
-                bottom = b.optDouble(3, 0.0).toFloat()
-            }
-        }
         return ReadLine(
             text = text,
             conf = l.optDouble("conf", 0.0).toFloat(),
-            box = box,
+            box = box(l.optJSONArray("box")) ?: TextBox(0f, 0f, 0f, 0f),
             block = if (l.has("block") && !l.isNull("block")) l.optInt("block", index) else index,
             lang = l.optStringOrNull("lang"),
+            quad = quad(l.optJSONArray("quad")),
+            script = l.optStringOrNull("script"),
+            suspect = l.optBoolean("suspect", false),
         )
+    }
+
+    /** A v3.3 block; null if none of its lines survived. [index] = server line index → ours. */
+    private fun block(b: JSONObject, position: Int, index: Map<Int, Int>, lines: List<ReadLine>): ReadBlock? {
+        val members = b.optJSONArray("lines").let { arr -> (0 until (arr?.length() ?: 0)).mapNotNull { arr?.opt(it) as? Number } }
+            .mapNotNull { index[it.toInt()] }.distinct()
+        if (members.isEmpty()) return null
+        val texts = members.map { lines[it].text }
+        val box = box(b.optJSONArray("box")) ?: members.map { lines[it].box }.reduce(TextBox::union)
+        val translations = LinkedHashMap<String, String?>()
+        b.optJSONObject("translations")?.let { t ->
+            for (code in t.keys()) translations[code] = if (t.isNull(code)) null else (t.opt(code) as? String)?.takeIf { it.isNotBlank() }
+        }
+        return ReadBlock(
+            id = b.optInt("id", position),
+            lines = members,
+            box = box,
+            quad = quad(b.optJSONArray("quad")),
+            text = b.optStringOrNull("text")?.trim()?.takeIf { it.isNotEmpty() } ?: texts.joinToString("\n"),
+            kind = BlockKind.of(b.optStringOrNull("kind")) ?: TextBlocks.kind(texts, members.map { lines[it].box.width }, box.width),
+            lang = b.optStringOrNull("lang"),
+            suspect = b.optBoolean("suspect", false),
+            translations = translations,
+        )
+    }
+
+    private fun box(b: JSONArray?): TextBox? {
+        if (b == null || b.length() < 4) return null
+        return TextBox(b.optDouble(0, 0.0).toFloat(), b.optDouble(1, 0.0).toFloat(), b.optDouble(2, 0.0).toFloat(), b.optDouble(3, 0.0).toFloat())
+    }
+
+    /** `[[x, y] × 4]`, or null if it isn't exactly that. */
+    private fun quad(q: JSONArray?): Quad? {
+        if (q == null || q.length() != 4) return null
+        val points = (0 until 4).map { i ->
+            val p = q.optJSONArray(i) ?: return null
+            if (p.length() < 2) return null
+            val x = p.optDouble(0, Double.NaN)
+            val y = p.optDouble(1, Double.NaN)
+            if (x.isNaN() || y.isNaN()) return null
+            Pt(x.toFloat(), y.toFloat())
+        }
+        return Quad(points)
     }
 
     private fun aligned(arr: JSONArray, count: Int): List<String?> = List(count) { entry(arr, it) }

@@ -1,26 +1,79 @@
 package pl.genor.glassvision
 
 import java.util.Locale
+import kotlin.math.atan2
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 /*
- * The pure half of on-device text reading (OnDeviceText.kt is the Android half): reading order, crop geometry for
+ * The pure half of on-device text reading (OnDeviceText.kt is the Android half): geometry types, crop geometry for
  * Tesseract, which engine reads which OCR language choice, per-line source languages and translation rules.
+ * Grouping lines into blocks and reading order: TextBlocks.kt.
  * Plain floats and strings, so all of it is unit-tested on the JVM.
  */
 
-/** A pixel box (left, top, right, bottom). */
+/** A box (left, top, right, bottom): pixels, or normalized 0..1 where documented. */
 data class TextBox(val left: Float, val top: Float, val right: Float, val bottom: Float) {
     val width: Float get() = right - left
     val height: Float get() = bottom - top
 
     fun union(o: TextBox) = TextBox(min(left, o.left), min(top, o.top), max(right, o.right), max(bottom, o.bottom))
+
+    /** This box divided by [w]×[h] (pixels → normalized). */
+    fun normalized(w: Float, h: Float) = TextBox(left / w, top / h, right / w, bottom / h)
 }
 
-/** One line as an engine read it, in pixels of the image it read; [block] = the engine's block (sign/paragraph). */
-data class OcrLine(val text: String, val conf: Float, val box: TextBox, val block: Int)
+/** A point (pixels or normalized, like the [Quad] it belongs to). */
+data class Pt(val x: Float, val y: Float)
+
+/**
+ * Four corners of a text region, clockwise from the reading-order top-left (ML Kit `cornerPoints`, PROTOCOL.md
+ * `quad`): [points] 0→1 runs along the text, 0→3 down across it. Not necessarily a rectangle.
+ */
+data class Quad(val points: List<Pt>) {
+    init {
+        require(points.size == 4) { "a quad has 4 points" }
+    }
+
+    fun bounds(): TextBox = TextBox(points.minOf { it.x }, points.minOf { it.y }, points.maxOf { it.x }, points.maxOf { it.y })
+
+    fun map(f: (Pt) -> Pt) = Quad(points.map(f))
+
+    /** Clockwise degrees of the text direction (0 = horizontal, left to right). */
+    val angle: Float get() = Math.toDegrees(atan2((points[1].y - points[0].y).toDouble(), (points[1].x - points[0].x).toDouble())).toFloat()
+
+    /** Length along the text (mean of the top and bottom edges). */
+    val length: Float get() = (dist(points[0], points[1]) + dist(points[3], points[2])) / 2f
+
+    /** Height across the text (mean of the left and right edges): unlike the box height it doesn't grow with tilt. */
+    val thickness: Float get() = (dist(points[0], points[3]) + dist(points[1], points[2])) / 2f
+
+    companion object {
+        fun of(b: TextBox) = Quad(listOf(Pt(b.left, b.top), Pt(b.right, b.top), Pt(b.right, b.bottom), Pt(b.left, b.bottom)))
+
+        private fun dist(a: Pt, b: Pt): Float = hypot(a.x - b.x, a.y - b.y)
+    }
+}
+
+/**
+ * One line as an engine read it, in pixels of the image it read; [block] = the engine's block (sign/paragraph),
+ * a prior for [TextBlocks]. [quad] = its corners when the engine knows them (ML Kit), [lang] = the engine's language
+ * tag (ML Kit `recognizedLanguage`), [script] = the recognizer that read it ("latin", a Tesseract pack code…).
+ */
+data class OcrLine(
+    val text: String,
+    val conf: Float,
+    val box: TextBox,
+    val block: Int,
+    val quad: Quad? = null,
+    val lang: String? = null,
+    val script: String? = null,
+) {
+    /** [quad], or the box's corners. */
+    val corners: Quad get() = quad ?: Quad.of(box)
+}
 
 /** Integer crop rectangle [left, right) × [top, bottom) inside an image. */
 data class CropRect(val left: Int, val top: Int, val right: Int, val bottom: Int) {
@@ -45,52 +98,15 @@ object TextLayout {
         return overlap > 0 && overlap >= ROW_OVERLAP * min(a.height, b.height)
     }
 
-    /** Top to bottom; items sharing a row (see [sameRow]) left to right. */
-    fun <T> rowOrder(items: List<T>, box: (T) -> TextBox): List<T> {
+    /** Top to bottom; items sharing a row (see [sameRow]) left to right, or right to left when [rtl]. */
+    fun <T> rowOrder(items: List<T>, rtl: Boolean = false, box: (T) -> TextBox): List<T> {
         val rows = ArrayList<MutableList<T>>()
         for (item in items.sortedBy { box(it).top }) {
             val row = rows.lastOrNull()
             if (row != null && row.any { sameRow(box(it), box(item)) }) row += item else rows += mutableListOf(item)
         }
-        return rows.flatMap { row -> row.sortedWith(compareBy({ box(it).left }, { box(it).top })) }
-    }
-
-    /** Blocks whose line heights differ by more than this factor are different signs. */
-    const val BLOCK_HEIGHT_RATIO = 1.6f
-
-    /** Blocks stacked with a gap up to this many line heights (of the smaller text) are one sign. */
-    const val BLOCK_GAP = 1.0f
-
-    /**
-     * Joins blocks that belong together (docs/PROTOCOL.md: "nearby, similar height"): ML Kit often makes every line
-     * of a sign its own block. Two blocks join if they overlap horizontally, their median line heights are within
-     * [BLOCK_HEIGHT_RATIO] and the vertical gap between them is at most [BLOCK_GAP] line heights. Block numbers
-     * afterwards are arbitrary (see [readingOrder]).
-     */
-    fun mergeBlocks(lines: List<OcrLine>): List<OcrLine> {
-        val ids = lines.map { it.block }.distinct()
-        val box = ids.associateWith { id -> lines.filter { it.block == id }.map { it.box }.reduce(TextBox::union) }
-        val lineHeight = ids.associateWith { id -> lines.filter { it.block == id }.map { it.box.height }.sorted().let { it[it.size / 2] } }
-        val parent = ids.associateWithTo(HashMap()) { it }
-        fun root(id: Int): Int {
-            var r = id
-            while (parent.getValue(r) != r) r = parent.getValue(r)
-            return r
-        }
-        for ((i, a) in ids.withIndex()) {
-            for (b in ids.drop(i + 1)) {
-                val ba = box.getValue(a)
-                val bb = box.getValue(b)
-                val ha = lineHeight.getValue(a)
-                val hb = lineHeight.getValue(b)
-                if (min(ha, hb) <= 0f || max(ha, hb) / min(ha, hb) > BLOCK_HEIGHT_RATIO) continue
-                if (min(ba.right, bb.right) - max(ba.left, bb.left) <= 0f) continue
-                val gap = max(ba.top, bb.top) - min(ba.bottom, bb.bottom)
-                if (gap > BLOCK_GAP * min(ha, hb)) continue
-                parent[root(a)] = root(b)
-            }
-        }
-        return lines.map { it.copy(block = root(it.block)) }
+        val across = if (rtl) compareByDescending<T> { box(it).right } else compareBy { box(it).left }
+        return rows.flatMap { row -> row.sortedWith(across.thenBy { box(it).top }) }
     }
 
     /** Share of [a]'s area that [b] covers (0..1). */
@@ -99,17 +115,6 @@ object TextLayout {
         val h = min(a.bottom, b.bottom) - max(a.top, b.top)
         val area = a.width * a.height
         return if (w <= 0f || h <= 0f || area <= 0f) 0f else (w * h / area).coerceAtMost(1f)
-    }
-
-    /**
-     * Reading order for a still (docs/PROTOCOL.md "Read text"): blocks (after [mergeBlocks]) top to bottom / left
-     * to right, each block's lines together and in the same order, so two signs side by side don't interleave.
-     * Blocks are renumbered 0, 1, 2… in that order; empty lines are dropped.
-     */
-    fun readingOrder(lines: List<OcrLine>): List<OcrLine> {
-        val blocks = mergeBlocks(lines.filter { it.text.isNotBlank() }).groupBy { it.block }.values.toList()
-        val ordered = rowOrder(blocks) { b -> b.map { it.box }.reduce(TextBox::union) }
-        return ordered.flatMapIndexed { i, block -> rowOrder(block) { it.box }.map { it.copy(block = i) } }
     }
 
     /** [line] padded by [CROP_PAD] × its height, clipped to the image; null if nothing usable is left. */
@@ -268,10 +273,10 @@ object TextLanguages {
      * Source language per line ([lines] in reading order, their blocks set): long-enough lines are identified on
      * their own; the rest inherit their block's language (identified on the whole block's text), then the
      * language most lines of the still have — one-word lines ("Ausgang") are unreliable alone. [identify] maps
-     * text to a code or null.
+     * text to a code or null; where it has no answer for a long line, the engine's own tag ([OcrLine.lang]) counts.
      */
     fun assign(lines: List<OcrLine>, identify: (String) -> String?): List<String?> {
-        val own = lines.map { if (letters(it.text) >= MIN_ID_LETTERS) identify(it.text) else null }
+        val own = lines.map { if (letters(it.text) >= MIN_ID_LETTERS) identify(it.text) ?: sourceCode(it.lang) else null }
         val blockLang = HashMap<Int, String?>()
         for ((block, members) in lines.indices.groupBy { lines[it].block }) {
             val known = members.mapNotNull { own[it] }
