@@ -27,9 +27,11 @@ Project status for the next contributor (human or agent). Host-specific notes: `
 - Back-compat: the previously installed app (c98fb97) parses the v3.2 server's fixtures (15/15); old apps keep "Read live".
 - **Emulator end-to-end, both backends**: live marks → Read text → sheet with German detected; server: 1.2B "Exit / Emergency Exit 2 / Departure at 12.45"; phone: ML Kit "Exit / Emergency exit 2 / Track 3 / Departure 12:45"; Add language (Czech) works. First phone read waits ~25 s for the translation-model download.
 - Fixed today: server auto-script mode went permanently blank after one textless frame (0.6.0.9); short misread lines got a wrong language ("cerỌ" → vi).
-- **Not yet on a physical phone**: Read text, still-capture resolution, front-camera stills, ML Kit CJK/Devanagari recognizers (emulator Play services never downloads them), copy/share sheets, photo button, token flow.
+- **Not yet on a physical phone**: still-capture resolution, front-camera stills, ML Kit CJK/Devanagari recognizers (emulator Play services never downloads them), copy/share sheets, photo button, token flow.
+- **Device feedback (2026-10-24) on Read text**: one visual block comes back as many word objects, sideways stills are not rotated, no image processing. Diagnosed + researched in `docs/OCR-RESEARCH.md` (step 1); step-2 plan P0–P5 there. Bench: EasyOCR 46% key-phrase recall vs PP-OCRv6 stack 76%, 0/4 vs 4/4 rotated signs.
 
 ## Next / open
+0. **OCR step 2** — follow `docs/OCR-RESEARCH.md` §4 (P0 eval set first), after Genor answers §5.
 1. Install the new APK (in-app update from the server) and device-test Read text on real signs, both backends.
 2. APK grew 59 → 75 MB (bundled ML Kit Latin, 3 ABIs); drop x86_64 from release builds (−4.9 MB) if size matters.
 3. Box alignment assumes preview and analysis are both full-frame 4:3 (FIT_CENTER); if offset on some phone, bind with a CameraX `UseCaseGroup` + `previewView.viewPort`.

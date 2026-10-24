@@ -1,0 +1,48 @@
+{
+ "render_de": [
+  "NOTAUSGANG",
+  "Bitte freihalten",
+  "Abfahrt 12:45 · Gleis 3"
+ ],
+ "render_pl_paragraph": [
+  "Szanowni Państwo,",
+  "w związku z remontem wejście",
+  "główne jest nieczynne do",
+  "30 listopada. Prosimy korzystać",
+  "z wejścia od ulicy Piwnej.",
+  "Dziękujemy za wyrozumiałość!"
+ ],
+ "render_ru": [
+  "ВЫХОД В ГОРОД",
+  "к улице Арбат",
+  "Не загораживать!"
+ ],
+ "render_de_rot90": [
+  "NOTAUSGANG",
+  "Bitte freihalten",
+  "Abfahrt 12:45 · Gleis 3"
+ ],
+ "render_de_rot180": [
+  "NOTAUSGANG",
+  "Bitte freihalten",
+  "Abfahrt 12:45 · Gleis 3"
+ ],
+ "render_de_rot270": [
+  "NOTAUSGANG",
+  "Bitte freihalten",
+  "Abfahrt 12:45 · Gleis 3"
+ ],
+ "render_de_persp": [
+  "NOTAUSGANG",
+  "Bitte freihalten",
+  "Abfahrt 12:45 · Gleis 3"
+ ],
+ "render_pl_tilt15": [
+  "Szanowni Państwo,",
+  "w związku z remontem wejście",
+  "główne jest nieczynne do",
+  "30 listopada. Prosimy korzystać",
+  "z wejścia od ulicy Piwnej.",
+  "Dziękujemy za wyrozumiałość!"
+ ]
+}

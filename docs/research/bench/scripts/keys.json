@@ -1,0 +1,12 @@
+{
+ "bus": {"lang": "es", "keys": ["cero emisiones"]},
+ "Emergency_exit_sign_01": {"lang": "de", "keys": ["Notausgang", "freihalten"]},
+ "Taiwan_exit_sign_white_backgrounded": {"lang": "chinese_cht", "keys": ["緊急出口", "EXIT"]},
+ "Tokyo_Station_Sign_Yamanote_Line_": {"lang": "japan", "keys": ["東京", "とうきょう", "有楽町", "Yūrakuchō", "神田", "Kanda", "Tōkyō", "山区"]},
+ "Moscow_Arbatskaya_metro_sign": {"lang": "ru", "keys": ["АРБАТСКАЯ"]},
+ "Arabic_English_street_sign_Sidi_El_Wasti": {"lang": "ar", "keys": ["شارع سيدى الوسطى", "SIDI EL WASTI ST.", "N-P 21131", "الرقم البريدى", "٢١١٣١"]},
+ "Drive_thru_menu_board_at_Del_Taco_in_Alb": {"lang": "en", "keys": ["DEL TACO", "SLOW-COOKED", "CARNITAS", "STREET TACOS", "TACOS", "EPIC BURRITOS", "CLASSIC BURRITOS", "BURGERS", "CRINKLE CUT FRIES", "QUESADILLAS", "NACHOS & SALADS", "DRINKS, SHAKES & DESSERTS", "20% OFF", "INDEPENDENCE POPPERS", "BREAKFAST", "BIG FAT TACOS", "CRUNCHTADA", "Please Present Coupons", "FUNNEL CAKE FRIES"]},
+ "Paper_menus_and_white_board_menu_in_the_": {"lang": "chinese_cht", "keys": ["家常便餸", "即叫即炒", "外賣自取", "電話24318638", "星期一", "星期二", "星期三", "星期四", "星期五", "奉送例湯", "$39快餐", "每款60元", "翠湖茶餐廳", "$46凍飲加2元"]},
+ "Piwna_Street_Warsaw_05": {"lang": "pl", "keys": ["DOM KSIĄŻKI"]},
+ "Macro_laptop_coding_Unsplash_": {"lang": "en", "keys": ["Sublime Text", "File", "Edit", "Selection", "main.js", "function hexSearch() {", "var re = /[0-9A-Fa-f]{6}/g;", "var re2 = /[0-9A-Fa-f]{3}/g;", "} else {", "return;", "var color0 = '#7822C8';", "var color1 = '#60FFFF';", "colorOne = color0;", "colorTwo = color1;"]}
+}

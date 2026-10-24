@@ -1,0 +1,334 @@
+{
+ "doc_ori": {
+  "Arabic_English_street_sign_Sidi_El_Wasti": {
+   "label": "0",
+   "score": 0.921
+  },
+  "Drive_thru_menu_board_at_Del_Taco_in_Alb": {
+   "label": "0",
+   "score": 0.729
+  },
+  "Emergency_exit_sign_01": {
+   "label": "0",
+   "score": 0.919
+  },
+  "Macro_laptop_coding_Unsplash_": {
+   "label": "0",
+   "score": 0.913
+  },
+  "Moscow_Arbatskaya_metro_sign": {
+   "label": "0",
+   "score": 0.921
+  },
+  "Paper_menus_and_white_board_menu_in_the_": {
+   "label": "0",
+   "score": 0.755
+  },
+  "Piwna_Street_Warsaw_05": {
+   "label": "90",
+   "score": 0.737
+  },
+  "Taiwan_exit_sign_white_backgrounded": {
+   "label": "0",
+   "score": 0.356
+  },
+  "Tokyo_Station_Sign_Yamanote_Line_": {
+   "label": "180",
+   "score": 0.479
+  },
+  "bus": {
+   "label": "0",
+   "score": 0.924
+  },
+  "render_de": {
+   "label": "0",
+   "score": 0.926
+  },
+  "render_de_persp": {
+   "label": "0",
+   "score": 0.926
+  },
+  "render_de_rot180": {
+   "label": "180",
+   "score": 0.925
+  },
+  "render_de_rot270": {
+   "label": "270",
+   "score": 0.921
+  },
+  "render_de_rot90": {
+   "label": "90",
+   "score": 0.924
+  },
+  "render_pl_paragraph": {
+   "label": "0",
+   "score": 0.924
+  },
+  "render_pl_tilt15": {
+   "label": "0",
+   "score": 0.922
+  },
+  "render_ru": {
+   "label": "0",
+   "score": 0.926
+  }
+ },
+ "enhance": {
+  "bus": {
+   "orig": {
+    "hits": 1,
+    "of": 1,
+    "ms": 84,
+    "n_lines": 7
+   },
+   "clahe": {
+    "hits": 1,
+    "of": 1,
+    "ms": 72,
+    "n_lines": 7
+   },
+   "sharpen": {
+    "hits": 1,
+    "of": 1,
+    "ms": 63,
+    "n_lines": 6
+   },
+   "clahe+sharpen": {
+    "hits": 1,
+    "of": 1,
+    "ms": 54,
+    "n_lines": 5
+   },
+   "up2x": {
+    "hits": 0,
+    "of": 1,
+    "ms": 210,
+    "n_lines": 9
+   }
+  },
+  "Emergency_exit_sign_01": {
+   "orig": {
+    "hits": 2,
+    "of": 2,
+    "ms": 1083,
+    "n_lines": 2
+   },
+   "clahe": {
+    "hits": 2,
+    "of": 2,
+    "ms": 1055,
+    "n_lines": 2
+   },
+   "sharpen": {
+    "hits": 2,
+    "of": 2,
+    "ms": 481,
+    "n_lines": 2
+   },
+   "clahe+sharpen": {
+    "hits": 2,
+    "of": 2,
+    "ms": 747,
+    "n_lines": 2
+   },
+   "up2x": {
+    "hits": 2,
+    "of": 2,
+    "ms": 3583,
+    "n_lines": 2
+   }
+  },
+  "Taiwan_exit_sign_white_backgrounded": {
+   "orig": {
+    "hits": 2,
+    "of": 2,
+    "ms": 66,
+    "n_lines": 2
+   },
+   "clahe": {
+    "hits": 2,
+    "of": 2,
+    "ms": 67,
+    "n_lines": 2
+   },
+   "sharpen": {
+    "hits": 2,
+    "of": 2,
+    "ms": 63,
+    "n_lines": 2
+   },
+   "clahe+sharpen": {
+    "hits": 2,
+    "of": 2,
+    "ms": 62,
+    "n_lines": 2
+   },
+   "up2x": {
+    "hits": 2,
+    "of": 2,
+    "ms": 206,
+    "n_lines": 3
+   }
+  },
+  "Tokyo_Station_Sign_Yamanote_Line_": {
+   "orig": {
+    "hits": 7,
+    "of": 8,
+    "ms": 306,
+    "n_lines": 8
+   },
+   "clahe": {
+    "hits": 7,
+    "of": 8,
+    "ms": 306,
+    "n_lines": 8
+   },
+   "sharpen": {
+    "hits": 7,
+    "of": 8,
+    "ms": 297,
+    "n_lines": 8
+   },
+   "clahe+sharpen": {
+    "hits": 7,
+    "of": 8,
+    "ms": 301,
+    "n_lines": 8
+   },
+   "up2x": {
+    "hits": 6,
+    "of": 8,
+    "ms": 1609,
+    "n_lines": 9
+   }
+  },
+  "Drive_thru_menu_board_at_Del_Taco_in_Alb": {
+   "orig": {
+    "hits": 14,
+    "of": 19,
+    "ms": 1972,
+    "n_lines": 375
+   },
+   "clahe": {
+    "hits": 14,
+    "of": 19,
+    "ms": 1937,
+    "n_lines": 361
+   },
+   "sharpen": {
+    "hits": 13,
+    "of": 19,
+    "ms": 1916,
+    "n_lines": 365
+   },
+   "clahe+sharpen": {
+    "hits": 14,
+    "of": 19,
+    "ms": 1880,
+    "n_lines": 358
+   },
+   "up2x": {
+    "hits": 13,
+    "of": 19,
+    "ms": 4372,
+    "n_lines": 369
+   }
+  },
+  "Paper_menus_and_white_board_menu_in_the_": {
+   "orig": {
+    "hits": 9,
+    "of": 14,
+    "ms": 814,
+    "n_lines": 84
+   },
+   "clahe": {
+    "hits": 10,
+    "of": 14,
+    "ms": 1211,
+    "n_lines": 82
+   },
+   "sharpen": {
+    "hits": 9,
+    "of": 14,
+    "ms": 824,
+    "n_lines": 85
+   },
+   "clahe+sharpen": {
+    "hits": 9,
+    "of": 14,
+    "ms": 1218,
+    "n_lines": 74
+   },
+   "up2x": {
+    "hits": 10,
+    "of": 14,
+    "ms": 2761,
+    "n_lines": 85
+   }
+  },
+  "Piwna_Street_Warsaw_05": {
+   "orig": {
+    "hits": 0,
+    "of": 1,
+    "ms": 446,
+    "n_lines": 5
+   },
+   "clahe": {
+    "hits": 0,
+    "of": 1,
+    "ms": 1134,
+    "n_lines": 4
+   },
+   "sharpen": {
+    "hits": 0,
+    "of": 1,
+    "ms": 478,
+    "n_lines": 3
+   },
+   "clahe+sharpen": {
+    "hits": 0,
+    "of": 1,
+    "ms": 531,
+    "n_lines": 3
+   },
+   "up2x": {
+    "hits": 0,
+    "of": 1,
+    "ms": 1231,
+    "n_lines": 3
+   }
+  },
+  "Macro_laptop_coding_Unsplash_": {
+   "orig": {
+    "hits": 13,
+    "of": 14,
+    "ms": 553,
+    "n_lines": 34
+   },
+   "clahe": {
+    "hits": 14,
+    "of": 14,
+    "ms": 527,
+    "n_lines": 28
+   },
+   "sharpen": {
+    "hits": 14,
+    "of": 14,
+    "ms": 556,
+    "n_lines": 33
+   },
+   "clahe+sharpen": {
+    "hits": 12,
+    "of": 14,
+    "ms": 560,
+    "n_lines": 32
+   },
+   "up2x": {
+    "hits": 14,
+    "of": 14,
+    "ms": 705,
+    "n_lines": 36
+   }
+  }
+ }
+}
