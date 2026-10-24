@@ -2,7 +2,7 @@
 
 Status for the next contributor. Host-specific notes: `HANDOFF.local.md` / `AGENTS.local.md` (gitignored).
 
-## Current state (v0.6.0.14)
+## Current state
 
 - **Android app** (`android/`): CameraX preview/analysis/stills, Material3 UI, server and on-device recognition, text reading.
 - **Server** (`server/`): FastAPI pipelines over WebSocket plus still-read HTTP endpoints; YOLO objects/open-vocab/pose, InsightFace, MediaPipe gestures, PP-OCR text, and M2M100 translation. Lazy loading, optional token auth (`GV_TOKEN`), config at `server/config.env`.
