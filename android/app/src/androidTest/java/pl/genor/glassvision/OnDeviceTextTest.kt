@@ -120,17 +120,41 @@ class OnDeviceTextTest {
         assertTrue(marked.map { it.label }.toString(), marked.all { it.label == LocalCatalog.TEXT_LABEL })
         val read = live(bus, textOptions())
         assertTrue(read.map { it.label }.toString(), read.any { "emisiones" in it.label.lowercase() })
-        assertEquals(marked.size, read.size)
+        // Marks are one box per block (a sign), reading is per line.
+        assertTrue("${marked.size} marks, ${read.size} lines", marked.size in 1..read.size)
     }
 
     @Test
-    fun reads_a_latin_sign_and_keeps_reading_order_per_block() {
-        // Two signs side by side, two lines each: left sign first, its lines together.
+    fun two_signs_are_two_blocks_in_reading_order() {
+        // Two signs side by side, two lines each: left sign first, its lines together, one block each.
         val image = sign(80f to listOf("EXIT", "GATE 42"), 720f to listOf("TOILETS", "LIFT"))
         val reading = reader { it.read(image, emptyList()) }
-        Log.i(TAG, "two signs via ${reading.script}: ${reading.lines.map { "${it.text} b${it.block}" }}")
+        Log.i(TAG, "two signs via ${reading.script}: ${reading.lines.map { "${it.text} b${it.block}" }} blocks ${reading.blocks.map { it.text }}")
         assertEquals(listOf("EXIT", "GATE42", "TOILETS", "LIFT"), reading.lines.map { squash(it.text) })
         assertEquals(listOf(0, 0, 1, 1), reading.lines.map { it.block })
+        assertEquals(listOf(listOf(0, 1), listOf(2, 3)), reading.blocks.map { it.lines })
+        assertEquals(listOf("EXITGATE42", "TOILETSLIFT"), reading.blocks.map { squash(it.text) })
+        // Each block's box holds its own lines and not the other sign's.
+        val (left, right) = reading.blocks
+        assertTrue(left.box.right < right.box.left)
+        assertTrue(reading.lines.take(2).all { it.box.left >= left.box.left - 0.01f && it.box.right <= left.box.right + 0.01f })
+        assertTrue(reading.blocks.none { it.suspect })
+    }
+
+    @Test
+    fun tilted_signs_are_still_two_blocks() {
+        // The same two signs photographed at a 12° tilt: axis-aligned boxes of their lines overlap.
+        val flat = sign(80f to listOf("EXIT", "GATE 42"), 720f to listOf("TOILETS", "LIFT"))
+        val tilted = Bitmap.createBitmap(flat.width, flat.height, Bitmap.Config.ARGB_8888)
+        Canvas(tilted).apply {
+            drawColor(Color.WHITE)
+            rotate(12f, flat.width / 2f, flat.height / 2f)
+            drawBitmap(flat, 0f, 0f, Paint(Paint.FILTER_BITMAP_FLAG))
+        }
+        val reading = reader { it.read(tilted, emptyList()) }
+        Log.i(TAG, "tilted signs via ${reading.script}: angle ${reading.angle} blocks ${reading.blocks.map { it.text }}")
+        assertEquals(listOf("EXITGATE42", "TOILETSLIFT"), reading.blocks.map { squash(it.text) })
+        assertEquals(12f, reading.angle, 4f)
     }
 
     /**
@@ -176,14 +200,18 @@ class OnDeviceTextTest {
     fun translates_per_target_and_reports_bad_targets() {
         val image = sign(100f to listOf("NOTAUSGANG", "Bitte freihalten"))
         val reading = reader { it.read(image, listOf("pl", "xx")) }
-        Log.i(TAG, "translate: ${reading.lines.map { "${it.text}/${it.lang}" }} → ${reading.translations} errors ${reading.errors}")
+        Log.i(TAG, "translate: ${reading.lines.map { "${it.text}/${it.lang}" }} → ${reading.blocks.map { it.translations }} errors ${reading.errors}")
         assertTrue(reading.lines.joinToString { "${it.text}/${it.lang}" }, reading.lines.all { it.lang == "de" })
-        val pl = reading.translations["pl"]
-        assertNotNull(reading.errors.toString(), pl)
-        pl!!
-        assertEquals(reading.lines.size, pl.size)
-        assertTrue(pl.toString(), pl.any { it != null })
-        assertTrue(reading.errors.toString(), "xx" in reading.errors && "xx" !in reading.translations)
+        assertTrue(reading.errors.toString(), "pl" in reading.translated)
+        val pl = reading.translation("pl")
+        assertEquals(1, pl.size) // one sign = one block = one translation
+        assertNotNull(pl.single())
+        assertTrue(reading.errors.toString(), "xx" in reading.errors && "xx" !in reading.translated)
+
+        // "Add language": the same blocks into another target.
+        val en = reader { it.translateBlocks(reading.blocks, "en") }
+        Log.i(TAG, "translateBlocks(): $en")
+        assertNotNull(en.single())
 
         val more = reader { it.translate(listOf("Bitte freihalten", "42"), listOf(null, null), "en") }
         Log.i(TAG, "translate(): $more")

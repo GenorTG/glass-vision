@@ -12,42 +12,29 @@ class TextLayoutTest {
         OcrLine(text, conf, TextBox(l, t, r, b), block)
 
     @Test
-    fun two_signs_side_by_side_read_sign_by_sign() {
-        // ML Kit made every line its own block (as on a rendered two-sign image); the right sign starts higher.
-        val lines = listOf(
-            line("LIFT", 720f, 246f, 900f, 310f, 3),
-            line("TOILETS", 720f, 120f, 1050f, 190f, 1),
-            line("EXIT", 80f, 130f, 300f, 200f, 0),
-            line("GATE 42", 80f, 256f, 460f, 320f, 2),
-        )
-        val ordered = TextLayout.readingOrder(lines)
-        assertEquals(listOf("EXIT", "GATE 42", "TOILETS", "LIFT"), ordered.map { it.text })
-        assertEquals(listOf(0, 0, 1, 1), ordered.map { it.block })
-    }
-
-    @Test
-    fun rows_go_top_to_bottom_then_left_to_right() {
-        val lines = listOf(
-            line("b", 300f, 12f, 400f, 40f, 1), // same row as "a", a bit lower
-            line("c", 0f, 100f, 100f, 130f, 2),
-            line("a", 0f, 10f, 100f, 38f, 0),
-            line(" ", 0f, 200f, 100f, 230f, 3), // blank: dropped
-        )
-        assertEquals(listOf("a", "b", "c"), TextLayout.readingOrder(lines).map { it.text })
+    fun rows_go_top_to_bottom_then_across() {
+        val boxes = listOf(TextBox(300f, 12f, 400f, 40f), TextBox(0f, 100f, 100f, 130f), TextBox(0f, 10f, 100f, 38f))
+        assertEquals(listOf(2, 0, 1), TextLayout.rowOrder(boxes.indices.toList()) { boxes[it] })
+        assertEquals(listOf(0, 2, 1), TextLayout.rowOrder(boxes.indices.toList(), rtl = true) { boxes[it] })
         assertTrue(TextLayout.sameRow(TextBox(0f, 10f, 1f, 38f), TextBox(0f, 12f, 1f, 40f)))
         assertFalse(TextLayout.sameRow(TextBox(0f, 10f, 1f, 38f), TextBox(0f, 30f, 1f, 58f)))
     }
 
     @Test
-    fun blocks_merge_only_when_near_aligned_and_alike() {
-        val title = line("NOTAUSGANG", 100f, 100f, 500f, 160f, 0)
-        val below = line("Bitte freihalten", 100f, 200f, 520f, 250f, 1) // gap 40 ≤ 50: same sign
-        val far = line("Etage 2", 100f, 400f, 300f, 450f, 2) // gap 150: another sign
-        val small = line("small print", 100f, 165f, 300f, 180f, 3) // height 15 vs 60: different text size
-        val aside = line("Kasse", 600f, 100f, 800f, 160f, 4) // no horizontal overlap
-        val merged = TextLayout.mergeBlocks(listOf(title, below, far, small, aside)).associate { it.text to it.block }
-        assertEquals(merged["NOTAUSGANG"], merged["Bitte freihalten"])
-        assertEquals(4, merged.values.toSet().size)
+    fun quads_measure_along_and_across_the_text() {
+        val q = Quad(listOf(Pt(0f, 0f), Pt(80f, 60f), Pt(68f, 76f), Pt(-12f, 16f))) // 100 long, 20 thick, 36.87° clockwise
+        assertEquals(36.87f, q.angle, 0.01f)
+        assertEquals(100f, q.length, 0.01f)
+        assertEquals(20f, q.thickness, 0.01f)
+        assertEquals(TextBox(-12f, 0f, 80f, 76f), q.bounds())
+        assertEquals(Quad.of(TextBox(1f, 2f, 3f, 4f)).bounds(), TextBox(1f, 2f, 3f, 4f))
+        assertEquals(0f, Quad.of(TextBox(1f, 2f, 3f, 4f)).angle)
+    }
+
+    @Test
+    fun the_engines_language_tag_counts_when_language_id_has_no_answer() {
+        val lines = listOf(OcrLine("Zahnarztpraxis", 0.9f, TextBox(0f, 0f, 1f, 1f), 0, lang = "de"), OcrLine("Weiter so", 0.9f, TextBox(0f, 0f, 1f, 1f), 0, lang = "und"))
+        assertEquals(listOf("de", "de"), TextLanguages.assign(lines) { null })
     }
 
     @Test

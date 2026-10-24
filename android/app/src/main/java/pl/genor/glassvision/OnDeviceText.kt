@@ -111,7 +111,7 @@ internal class MlKitReaders(context: Context) : AutoCloseable {
     /** All lines of [bitmap] (upright) in pixels; [OcrLine.block] = ML Kit's text block. */
     fun read(script: TextScript, bitmap: Bitmap): List<OcrLine> {
         val text = Tasks.await(client(script).process(InputImage.fromBitmap(bitmap, 0)), TIMEOUT_S, TimeUnit.SECONDS)
-        return lines(text)
+        return lines(text, script)
     }
 
     override fun close() {
@@ -126,12 +126,17 @@ internal class MlKitReaders(context: Context) : AutoCloseable {
         const val TIMEOUT_S = 30L
         const val RECHECK_MS = 30_000L
 
-        fun lines(text: Text): List<OcrLine> = text.textBlocks.flatMapIndexed { b, block ->
+        /** ML Kit's lines with their corner points (clockwise from the text's top-left) and language tag. */
+        fun lines(text: Text, script: TextScript): List<OcrLine> = text.textBlocks.flatMapIndexed { b, block ->
             block.lines.mapNotNull { line ->
                 val r = line.boundingBox ?: return@mapNotNull null
                 val t = line.text.trim()
                 if (t.isEmpty() || r.width() <= 0 || r.height() <= 0) return@mapNotNull null
-                OcrLine(t, line.confidence.coerceIn(0f, 1f), TextBox(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat()), b)
+                val quad = line.cornerPoints?.takeIf { it.size == 4 }?.let { p -> Quad(p.map { Pt(it.x.toFloat(), it.y.toFloat()) }) }
+                OcrLine(
+                    t, line.confidence.coerceIn(0f, 1f), TextBox(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat()), b,
+                    quad = quad, lang = line.recognizedLanguage, script = script.name.lowercase(),
+                )
             }
         }
     }
@@ -207,7 +212,7 @@ internal class TesseractCrops(private val models: ModelManager) : AutoCloseable 
                     if (text.isEmpty() || r.width() <= 0 || r.height() <= 0) continue
                     val conf = (iterator.confidence(PageIteratorLevel.RIL_TEXTLINE) / 100f).coerceIn(0f, 1f)
                     val box = TextBox(r.left * sx, r.top * sy, r.right * sx, r.bottom * sy)
-                    lines += OcrLine(text, conf, box, firstBlock + lines.size)
+                    lines += OcrLine(text, conf, box, firstBlock + lines.size, script = lang.code)
                 } while (iterator.next(PageIteratorLevel.RIL_TEXTLINE))
             } finally {
                 iterator.delete()
@@ -285,7 +290,8 @@ internal class TextEngine(private val mlKit: MlKitReaders, private val tesseract
             budget -= packs.size
             val readings = packs.mapNotNull { lang -> attempt(lang) { tesseract.read(lang, bitmap, line.box) }?.let { lang to it } }
             val best = TextLanguages.choose(Reading(line.text, line.conf), readings)
-            line.copy(text = best.text, conf = best.conf)
+            val pack = readings.firstOrNull { it.second === best }?.first
+            line.copy(text = best.text, conf = best.conf, script = pack?.code ?: line.script)
         }.toMutableList()
 
         // Scripts ML Kit Latin doesn't box at all: the pack looks for its own lines where ML Kit found none. Sparse
@@ -398,8 +404,9 @@ internal class Translations : AutoCloseable {
 }
 
 /**
- * The live text pipeline (slow lane). Option `live`: "Mark text areas" → every line a box labelled "text";
- * "Read live" → the line's text, or its translation (`translate_to`, original as detail) like before.
+ * The live text pipeline (slow lane). Option `live`: "Mark text areas" → one box per block ([TextBlocks]: a sign,
+ * a paragraph) labelled "text"; "Read live" → per line its text, or its translation (`translate_to`, original as
+ * detail) like before.
  */
 class TextPipeline internal constructor(
     private val engine: TextEngine,
@@ -410,8 +417,14 @@ class TextPipeline internal constructor(
     override fun run(frame: LocalFrame, timestampMs: Long, options: Map<String, OptionValue>): List<PixelDetection> {
         val f = frame as? BitmapFrame ?: throw IllegalArgumentException("on-device pipelines need a BitmapFrame")
         val readLive = (options[LocalCatalog.OPT_LIVE] as? OptionValue.Str)?.value == LocalCatalog.LIVE_READ
-        val lines = TextLayout.mergeBlocks(engine.read(f.bitmap, plan, live = true, boxesOnly = !readLive))
-        if (!readLive) return lines.mapNotNull { pixels(it, f, LocalCatalog.TEXT_LABEL, null) }
+        val grouping = TextBlocks.group(engine.read(f.bitmap, plan, live = true, boxesOnly = !readLive))
+        if (!readLive) {
+            return grouping.blocks.mapNotNull { b ->
+                val conf = b.lines.maxOf { grouping.lines[it].conf }
+                pixels(b.quad.bounds(), conf, f, LocalCatalog.TEXT_LABEL, null)
+            }
+        }
+        val lines = grouping.lines
         val target = LocalCatalog.translationTag((options[LocalCatalog.OPT_TRANSLATE_TO] as? OptionValue.Str)?.value ?: LocalCatalog.TRANSLATE_OFF)
         val sources = if (target == null) null else TextLanguages.assign(lines, translations::identify)
         return lines.mapIndexedNotNull { i, line ->
@@ -425,17 +438,17 @@ class TextPipeline internal constructor(
             } else {
                 null
             }
-            pixels(line, f, translation ?: line.text, line.text.takeIf { translation != null })
+            pixels(line.box, line.conf, f, translation ?: line.text, line.text.takeIf { translation != null })
         }
     }
 
-    private fun pixels(line: OcrLine, f: LocalFrame, label: String, detail: String?): PixelDetection? {
-        val l = line.box.left.coerceIn(0f, f.width.toFloat())
-        val t = line.box.top.coerceIn(0f, f.height.toFloat())
-        val r = line.box.right.coerceIn(0f, f.width.toFloat())
-        val b = line.box.bottom.coerceIn(0f, f.height.toFloat())
+    private fun pixels(box: TextBox, conf: Float, f: LocalFrame, label: String, detail: String?): PixelDetection? {
+        val l = box.left.coerceIn(0f, f.width.toFloat())
+        val t = box.top.coerceIn(0f, f.height.toFloat())
+        val r = box.right.coerceIn(0f, f.width.toFloat())
+        val b = box.bottom.coerceIn(0f, f.height.toFloat())
         if (r <= l || b <= t) return null
-        return PixelDetection(l, t, r, b, line.conf, label, detail)
+        return PixelDetection(l, t, r, b, conf, label, detail)
     }
 
     override fun close() {
@@ -446,9 +459,9 @@ class TextPipeline internal constructor(
 
 /**
  * The Read button on this phone ([TextReader]): ML Kit v2 on the full still (≤ 2560 px long side), Tesseract on
- * line crops per the text pipeline's OCR language ([options], read on each call), lines in reading order with
- * blocks, per-line language ID, ML Kit translation per target. One read at a time; [close] waits for a running
- * one to finish before releasing the models.
+ * line crops per the text pipeline's OCR language ([options], read on each call), lines grouped into blocks in
+ * reading order ([TextBlocks]), per-line language ID, ML Kit translation per block and target (prose as one text,
+ * lists line by line). One read at a time; [close] waits for a running one to finish before releasing the models.
  */
 class LocalTextReader(
     context: Context,
@@ -466,21 +479,20 @@ class LocalTextReader(
         val (w, h) = TextLayout.fitLongSide(still.width, still.height)
         val image = if (w == still.width && h == still.height) still else Bitmap.createScaledBitmap(still, w, h, true)
         try {
-            val ordered = TextLayout.readingOrder(engine.read(image, planFor(options(), models)))
-            val sources = TextLanguages.assign(ordered, translations::identify)
-            val lines = ordered.mapIndexed { i, l ->
-                ReadLine(l.text, l.conf, RectF(l.box.left / w, l.box.top / h, l.box.right / w, l.box.bottom / h), l.block, sources[i])
-            }
+            val grouping = TextBlocks.group(engine.read(image, planFor(options(), models)))
+            val sources = TextLanguages.assign(grouping.lines, translations::identify)
+            val read = LocalReading.of(grouping, sources, w.toFloat(), h.toFloat())
             val done = LinkedHashMap<String, List<String?>>()
             val errors = LinkedHashMap<String, String>()
             for (target in translateTo.distinct()) {
                 try {
-                    done[target] = translateAll(ordered.map { it.text }, sources, target)
+                    done[target] = translateBlockTexts(read.blocks, target)
                 } catch (e: Exception) {
                     errors[target] = LocalBackend.readable(e)
                 }
             }
-            TextReading(still.width, still.height, lines, done, errors, engine.lastEngine)
+            val blocks = read.blocks.mapIndexed { i, b -> b.copy(translations = done.mapValues { it.value[i] }) }
+            TextReading(still.width, still.height, read.lines, blocks, errors, engine.lastEngine, grouping.angle)
         } finally {
             if (image !== still) image.recycle()
         }
@@ -491,28 +503,61 @@ class LocalTextReader(
         translateAll(lines, lines.indices.map { from.getOrNull(it) ?: detected[it] }, to)
     }
 
+    override fun translateBlocks(blocks: List<ReadBlock>, to: String): List<String?> = session { translateBlockTexts(blocks, to) }
+
     override fun languages(): List<TranslationLanguage> = Translations.languages()
 
     /** Null where a line isn't translated; throws if every line that should have been failed (the target is out). */
     private fun translateAll(lines: List<String>, sources: List<String?>, target: String): List<String?> {
         if (TranslateLanguage.fromLanguageTag(target) == null) throw IllegalArgumentException("Unsupported language: $target")
-        var attempted = 0
-        var failure: Exception? = null
-        var failed = 0
-        val out = lines.mapIndexed { i, text ->
-            val source = sources[i]
-            if (!TextLanguages.translatable(text, source, target)) return@mapIndexed null
+        val tally = Tally()
+        val out = lines.mapIndexed { i, text -> tally.translate(text, sources[i], target) }
+        tally.check()
+        return out
+    }
+
+    /**
+     * Per block: prose joined (de-hyphenated) and translated as one text, a list line by line ([BlockKind]); source =
+     * the block's language, else identified on the block's text. Throws if every attempt failed.
+     */
+    private fun translateBlockTexts(blocks: List<ReadBlock>, target: String): List<String?> {
+        if (TranslateLanguage.fromLanguageTag(target) == null) throw IllegalArgumentException("Unsupported language: $target")
+        val tally = Tally()
+        val out = blocks.map { b ->
+            val lines = b.text.split('\n')
+            val source = b.lang ?: b.text.takeIf { TextLanguages.letters(it) >= TextLanguages.MIN_ID_LETTERS }?.let(translations::identify)
+            if (b.kind == BlockKind.PROSE) {
+                tally.translate(TextBlocks.joinProse(lines), source, target)
+            } else {
+                val each = lines.map { tally.translate(it, source, target) }
+                if (each.all { it == null }) null else lines.indices.joinToString("\n") { each[it] ?: lines[it] }
+            }
+        }
+        tally.check()
+        return out
+    }
+
+    /** Counts translation attempts so a target that failed for every text throws its error instead of looking unchanged. */
+    private inner class Tally {
+        private var attempted = 0
+        private var failed = 0
+        private var failure: Exception? = null
+
+        fun translate(text: String, source: String?, target: String): String? {
+            if (!TextLanguages.translatable(text, source, target)) return null
             attempted++
-            try {
-                translations.translate(text, source!!, target)
+            return try {
+                translations.translate(text, source!!, target)?.takeIf { it != text }
             } catch (e: Exception) {
                 failed++
                 failure = e
                 null
             }
         }
-        failure?.let { if (failed == attempted) throw it }
-        return out
+
+        fun check() {
+            failure?.let { if (failed == attempted) throw it }
+        }
     }
 
     private fun <T> session(block: () -> T): T {

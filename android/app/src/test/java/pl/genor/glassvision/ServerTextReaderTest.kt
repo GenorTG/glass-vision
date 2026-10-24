@@ -39,7 +39,10 @@ class ServerTextReaderTest {
         assertEquals(0.93f, r.lines[0].conf, 1e-6f)
         val box = r.lines[1].box
         assertEquals(listOf(0.12f, 0.40f, 0.55f, 0.47f), listOf(box.left, box.top, box.right, box.bottom))
-        assertEquals(mapOf("pl" to listOf("Wyjście", "Wyjście awaryjne 2")), r.translations)
+        // v3.2: one block from the lines' `block`, its translation from theirs.
+        assertEquals(listOf(listOf(0, 1)), r.blocks.map { it.lines })
+        assertEquals(listOf("Wyjście\nWyjście awaryjne 2"), r.translation("pl"))
+        assertEquals(0f, r.angle)
         assertTrue(r.errors.isEmpty())
     }
 
@@ -57,9 +60,9 @@ class ServerTextReaderTest {
         )
         assertNull(r.script)
         assertEquals(listOf(null, "de", null), r.lines.map { it.lang })
-        // Short arrays are padded with null, long ones cut to the lines.
-        assertEquals(listOf("Station", null, null), r.translations["en"])
-        assertEquals(listOf(null, null, "Peron 3"), r.translations["pl"])
+        // Short arrays are padded with null, long ones cut to the lines; a block keeps untranslated lines as read.
+        assertEquals(listOf("Station", null), r.translation("en"))
+        assertEquals(listOf(null, "12:45\nPeron 3"), r.translation("pl"))
         assertEquals(mapOf("xx" to "unknown language"), r.errors)
     }
 
@@ -73,21 +76,89 @@ class ServerTextReaderTest {
             )
         )
         assertEquals(listOf("A", "C"), r.lines.map { it.text })
-        assertEquals(listOf("a", "c"), r.translations["pl"])
+        assertEquals(listOf("a", "c"), r.translation("pl"))
     }
 
     @Test
     fun no_text_found() {
         val r = TextReadJson.reading(JSONObject("""{"w": 4000, "h": 3000, "script": "latin", "lines": [], "translations": {"pl": []}, "errors": {}}"""))
         assertTrue(r.lines.isEmpty())
-        assertEquals(emptyList<String?>(), r.translations["pl"])
+        assertTrue(r.blocks.isEmpty())
     }
 
     @Test
     fun missing_block_falls_back_to_one_block_per_line() {
         val r = TextReadJson.reading(JSONObject("""{"lines": [{"text": "A"}, {"text": "B", "block": null}]}"""))
         assertEquals(listOf(0, 1), r.lines.map { it.block })
+        assertEquals(listOf(0, 1), r.blocks.map { it.id })
         assertEquals(0, r.width)
+    }
+
+    /** The v3.3 example from docs/PROTOCOL.md "Read text v3.3", with its placeholders filled in. */
+    private val blocksExample = """
+        {"w": 4000, "h": 3000, "script": "latin", "angle": 90.0, "ms": {"ocr": 310.2, "translate": 120.5},
+         "lines": [{"text": "Ausgang", "conf": 0.93, "box": [0.12, 0.30, 0.41, 0.38],
+                    "quad": [[0.41, 0.30], [0.41, 0.38], [0.12, 0.38], [0.12, 0.30]],
+                    "block": 0, "lang": "de", "script": "latin", "suspect": false},
+                   {"text": "Notausgang 2", "conf": 0.88, "box": [0.12, 0.40, 0.55, 0.47],
+                    "quad": [[0.55, 0.40], [0.55, 0.47], [0.12, 0.47], [0.12, 0.40]],
+                    "block": 0, "lang": "de", "script": "latin", "suspect": false},
+                   {"text": "BbIXOI", "conf": 0.41, "box": [0.60, 0.70, 0.80, 0.75], "block": 1, "lang": null,
+                    "script": "latin", "suspect": true}],
+         "blocks": [{"id": 0, "lines": [0, 1], "box": [0.12, 0.30, 0.55, 0.47],
+                     "quad": [[0.55, 0.30], [0.55, 0.47], [0.12, 0.47], [0.12, 0.30]],
+                     "text": "Ausgang\nNotausgang 2", "kind": "list", "lang": "de", "suspect": false,
+                     "translations": {"pl": "Wyjście\nWyjście awaryjne 2", "en": "Exit\nEmergency exit 2"}},
+                    {"id": 1, "lines": [2], "box": [0.60, 0.70, 0.80, 0.75], "text": "BbIXOI", "kind": "prose",
+                     "lang": null, "suspect": true, "translations": {"pl": null, "en": null}}],
+         "translations": {},
+         "errors": {"ja": "model not installed"}}
+    """.trimIndent()
+
+    @Test
+    fun parses_the_v33_blocks_example() {
+        val r = TextReadJson.reading(JSONObject(blocksExample))
+        assertEquals(90f, r.angle)
+        assertEquals(listOf("latin", "latin", "latin"), r.lines.map { it.script })
+        assertEquals(listOf(false, false, true), r.lines.map { it.suspect })
+        assertEquals(Pt(0.41f, 0.30f), r.lines[0].quad!!.points[0])
+        assertNull(r.lines[2].quad)
+        assertEquals(2, r.blocks.size)
+        val (sign, garbled) = r.blocks
+        assertEquals(listOf(0, 1), sign.lines)
+        assertEquals(TextBox(0.12f, 0.30f, 0.55f, 0.47f), sign.box)
+        assertEquals(90f, sign.quad!!.angle) // rotated text: the quad runs downwards
+        assertEquals("Ausgang\nNotausgang 2", sign.text)
+        assertEquals(BlockKind.LIST, sign.kind)
+        assertEquals("de", sign.lang)
+        assertEquals(mapOf("pl" to "Wyjście\nWyjście awaryjne 2", "en" to "Exit\nEmergency exit 2"), sign.translations)
+        assertTrue(garbled.suspect)
+        assertEquals(BlockKind.PROSE, garbled.kind)
+        assertNull(garbled.lang)
+        assertEquals(listOf("Wyjście\nWyjście awaryjne 2", null), r.translation("pl"))
+        assertEquals(setOf("pl", "en"), r.translated)
+        assertEquals(mapOf("ja" to "model not installed"), r.errors)
+    }
+
+    @Test
+    fun v33_blocks_survive_skipped_lines_and_missing_fields() {
+        val r = TextReadJson.reading(
+            JSONObject(
+                """{"w": 1, "h": 1, "lines": [{"text": " "}, {"text": "A", "box": [0.1, 0.1, 0.2, 0.2], "block": 0},
+                    {"text": "B", "box": [0.1, 0.3, 0.4, 0.4], "block": 0}],
+                    "blocks": [{"lines": [0, 1, 2, 99, "x"], "quad": [[0, 0], [1, 0]]}, {"id": 5, "lines": [0]}, "junk"]}"""
+            )
+        )
+        // Line 0 was blank: block members are remapped past it, the block made only of it is dropped.
+        val b = r.blocks.single()
+        assertEquals(listOf(0, 1), b.lines)
+        assertEquals(0, b.id)
+        assertEquals("A\nB", b.text) // no `text`: the lines'
+        assertEquals(TextBox(0.1f, 0.1f, 0.4f, 0.4f), b.box) // no `box`: the lines' union
+        assertNull(b.quad) // a quad must have 4 points
+        assertEquals(BlockKind.LIST, b.kind) // no `kind`: guessed (one-word lines)
+        assertFalse(b.suspect)
+        assertTrue(r.translated.isEmpty())
     }
 
     @Test
@@ -189,6 +260,45 @@ class ServerTextReaderTest {
     }
 
     @Test
+    fun a_text_blocks_server_is_asked_for_blocks_and_translates_blocks() {
+        val server = FakeServer { req ->
+            if (req.url.encodedPath == "/text/translate") 200 to """{"to": "fr", "translations": ["Sortie", null]}""" else 200 to blocksExample
+        }
+        val reader = ServerTextReader(endpoint, { ReadOptions(model = "Better") }, OkHttpClient.Builder().addInterceptor(server).build(), setOf("text_read", "text_blocks"))
+        val reading = reader.readJpeg(byteArrayOf(1), listOf("pl"))
+        assertEquals("blocks", server.requests.last().url.queryParameter("format"))
+
+        assertEquals(listOf("Sortie", null), reader.translateBlocks(reading.blocks, "fr"))
+        val body = JSONObject(server.requests.last().bodyText())
+        assertFalse(body.has("lines"))
+        assertEquals("fr", body.getString("to"))
+        assertEquals("Better", body.getString("model"))
+        val blocks = body.getJSONArray("blocks")
+        assertEquals(2, blocks.length())
+        assertEquals("Ausgang\nNotausgang 2", blocks.getJSONObject(0).getString("text"))
+        assertEquals("de", blocks.getJSONObject(0).getString("lang"))
+        assertEquals("list", blocks.getJSONObject(0).getString("kind"))
+        assertTrue(blocks.getJSONObject(1).isNull("lang"))
+        assertEquals("prose", blocks.getJSONObject(1).getString("kind"))
+    }
+
+    @Test
+    fun an_older_server_gets_no_format_and_line_translation() {
+        val server = FakeServer { req ->
+            if (req.url.encodedPath == "/text/translate") 200 to """{"to": "fr", "translations": ["Sortie", null, null]}""" else 200 to protocolExample
+        }
+        val reader = reader(server)
+        val reading = reader.readJpeg(byteArrayOf(1), emptyList())
+        assertNull(server.requests.last().url.queryParameter("format"))
+        val extra = ReadBlock(1, emptyList(), text = "12:45", kind = BlockKind.LIST)
+        assertEquals(listOf("Sortie\nNotausgang 2", null), reader.translateBlocks(reading.blocks + extra, "fr"))
+        val body = JSONObject(server.requests.last().bodyText())
+        assertEquals(3, body.getJSONArray("lines").length())
+        assertEquals("de", body.getJSONArray("from").getString(1))
+        assertTrue(body.getJSONArray("from").isNull(2))
+    }
+
+    @Test
     fun languages_are_fetched_once() {
         val server = FakeServer { 200 to languagesJson }
         val r = reader(server)
@@ -241,6 +351,15 @@ class ServerTextReaderTest {
 
         val other = Protocol.parse("""{"type":"hello","protocol":3,"pipelines":[],"features":["something_else"]}""") as ServerMessage.Hello
         assertFalse(other.canReadText)
+
+        assertFalse(with.canReadBlocks)
+        val v33 = Protocol.parse("""{"type":"hello","protocol":3,"pipelines":[],"features":["text_read","text_blocks","text_careful"]}""")
+            as ServerMessage.Hello
+        assertTrue(v33.canReadBlocks)
+        assertTrue(v33.canReadCarefully)
+        // Blocks without Read text make no sense: ignored.
+        val odd = Protocol.parse("""{"type":"hello","protocol":3,"pipelines":[],"features":["text_blocks"]}""") as ServerMessage.Hello
+        assertFalse(odd.canReadBlocks)
     }
 
     @Test
