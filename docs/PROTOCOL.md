@@ -187,6 +187,45 @@ not JSON / bad field; 503 = OCR pipeline or translation model unavailable (`deta
 
 `GET /text/languages` → `{"languages": [{"code": "pl", "name": "Polish"}, …]}`: targets `translate_to` accepts.
 
+## Read text v3.3: blocks, orientation, quality (docs/OCR-RESEARCH.md)
+
+Additive to v3.2; a v3.2 client keeps getting exactly the v3.2 shape. `hello.features` gains `"text_blocks"`
+(this section) and later `"text_careful"` (careful re-read, below).
+
+`POST /text/read?…&format=blocks` (new clients send it) — everything in v3.2 plus:
+
+```json
+{"angle": 90.0,
+ "lines": [{"text": "Notausgang 2", "conf": 0.88, "box": [...], "quad": [[x, y], [x, y], [x, y], [x, y]],
+            "block": 0, "lang": "de", "script": "latin", "suspect": false}],
+ "blocks": [{"id": 0, "lines": [0, 1], "box": [0.12, 0.30, 0.55, 0.47], "quad": [[x, y], …],
+             "text": "Ausgang\nNotausgang 2", "kind": "prose", "lang": "de", "suspect": false,
+             "translations": {"pl": "Wyjście\nWyjście awaryjne 2"}}],
+ "translations": {}}
+```
+
+- `angle` = clockwise degrees the server rotated the still before reading (0/90/180/270, plus fine skew if it
+  deskewed). All `box`/`quad` values are normalized against the **still as uploaded** (after EXIF), so the client can
+  draw them on the photo it has. `quad` = the text's 4 corners clockwise from the reading-order top-left (rotated
+  or tilted text).
+- `lines` are real lines (pieces of one row merged), never word fragments. `script` = recognizer that read the line.
+- `blocks` in reading order; `lines` = indices into `lines`; `text` = the block's lines joined with `\n` (hyphenated
+  line ends kept as read); `kind` = `"prose"` (sentence/paragraph: translated as one text) or `"list"` (menu,
+  timetable, label list: translated line by line, `\n`-joined). `lang` = the block's source language or null.
+- With `format=blocks`, translations are **per block** (`blocks[].translations.<code>` = one string, null if not
+  translated) and the top-level per-line `translations` is `{}`; `errors` as in v3.2.
+- `suspect` (line and block) = the gibberish detector's verdict: true when the text is unlikely to be a real reading
+  (low recognizer confidence, mixed scripts, implausible character sequences for its language). The client offers
+  "Read carefully" on suspect blocks.
+
+`POST /text/translate` with `{"blocks": [{"text": "...", "lang": "de", "kind": "prose"}], "to": "fr"}` →
+`{"to": "fr", "translations": ["..."]}` (one entry per block). The v3.2 `lines` body keeps working.
+
+`POST /text/careful` (feature `"text_careful"`, optional, wave 2) — body = the same JPEG still, query
+`block_quads` or `region=x1,y1,x2,y2` (normalized) + `translate_to`: re-reads the region(s) with the heavy model
+(VLM) and answers with the `format=blocks` shape for those blocks only. 503 when the heavy model is not installed;
+may take seconds.
+
 ## Auth (optional, v3.1)
 
 If the server is started with `GV_TOKEN=<secret>`, every request must carry it: WebSocket `ws://host:port/ws?token=<secret>`,

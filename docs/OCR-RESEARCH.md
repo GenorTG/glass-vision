@@ -92,9 +92,11 @@ Licences checked: PaddleOCR models/code Apache-2.0, Qwen3-VL / Qwen3.5 Apache-2.
 **Excluded**: NLLB-200 and Tower+ (non-commercial), Hunyuan OCR/MT (licence excludes the EU), Surya/Chandra weights
 (revenue-capped), Nanonets-OCR2 (no licence).
 
-## 5. Open decisions for Genor
-1. **VLM second pass** (Qwen3-VL-4B via vLLM, ~8–10 GB VRAM while loaded on the shared 3090): on demand only, or not
-   at all? It is the only thing that reads stylised/handwritten signs, but it can hallucinate.
-2. **Translation upgrade**: try an LLM translator with whole-sign context (Gemma 4 E4B / Qwen3.5-4B, Apache-2.0) and
-   MADLAD-400-3B against M2M100 1.2B in P5, or keep M2M100?
-3. **In-place translated overlay** (Lens-style) vs the card sheet as the main result view.
+## 5. Decisions (Genor, 2026-10-24)
+1. **Heavy model**: a gibberish detector flags suspect lines/blocks (`suspect`); the VLM (Qwen3-VL-4B class) is an
+   optional fallback the user triggers ("Read carefully", `POST /text/careful`), never automatic.
+2. **Translation**: benchmark the best candidates (M2M100 418M/1.2B, MADLAD-400, small LLM translators with sign
+   context) and adopt the winner(s).
+3. **Both views**: in-place translated overlay on the still *and* the block cards, switchable.
+
+Protocol for all of this: `docs/PROTOCOL.md` "Read text v3.3".
