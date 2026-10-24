@@ -33,6 +33,8 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         fun onTakePhoto()
         /** The Read text button (high-resolution still → text sheet). */
         fun onReadText()
+        /** The torch button next to Read text. */
+        fun onToggleTorch() = Unit
         /** Pill/banner tapped while no server is configured, the token was rejected or the server is offline. */
         fun onConnectionSetup()
     }
@@ -55,6 +57,9 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         val canReadText: Boolean = false,
         /** A still is being taken/read: the button waits. */
         val readingText: Boolean = false,
+        /** The camera has a torch: offer it next to Read text. */
+        val canTorch: Boolean = false,
+        val torchOn: Boolean = false,
     )
 
     private val context = root.context
@@ -77,7 +82,10 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     private val bannerDetail: TextView = root.findViewById(R.id.banner_detail)
     private val pauseButton: ImageButton = root.findViewById(R.id.pause_button)
     private val flipButton: ImageButton = root.findViewById(R.id.flip_button)
+    private val readRow: View = root.findViewById(R.id.read_row)
     private val readButton: MaterialButton = root.findViewById(R.id.read_button)
+    private val torchButton: ImageButton = root.findViewById(R.id.torch_button)
+    private val torchOffTint = torchButton.imageTintList
 
     private val chipBg: ColorStateList? = ContextCompat.getColorStateList(context, R.color.mode_chip_bg)
     private val chipStroke: ColorStateList? = ContextCompat.getColorStateList(context, R.color.mode_chip_stroke)
@@ -119,6 +127,7 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
         pauseButton.setOnClickListener { callbacks.onPauseToggle() }
         flipButton.setOnClickListener { callbacks.onFlipCamera() }
         readButton.setOnClickListener { callbacks.onReadText() }
+        torchButton.setOnClickListener { callbacks.onToggleTorch() }
     }
 
     fun render(state: State) {
@@ -312,7 +321,15 @@ class MainScreen(private val root: View, private val callbacks: Callbacks) {
     }
 
     private fun renderControls(state: State) {
-        readButton.visibility = if (state.canReadText) View.VISIBLE else View.GONE
+        readRow.visibility = if (state.canReadText) View.VISIBLE else View.GONE
+        torchButton.visibility = if (state.canReadText && state.canTorch) View.VISIBLE else View.GONE
+        torchButton.setImageResource(if (state.torchOn) R.drawable.ic_torch_on else R.drawable.ic_torch_off)
+        torchButton.backgroundTintList =
+            if (state.torchOn) ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gv_primary)) else null
+        torchButton.imageTintList =
+            if (state.torchOn) ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gv_on_primary)) else torchOffTint
+        torchButton.contentDescription =
+            context.getString(if (state.torchOn) R.string.torch_turn_off else R.string.torch_turn_on)
         readButton.isEnabled = !state.readingText
         readButton.setText(if (state.readingText) R.string.read_text_busy else R.string.read_text)
         pauseButton.setImageResource(if (state.paused) R.drawable.ic_play else R.drawable.ic_pause)

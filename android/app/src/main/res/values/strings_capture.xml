@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Read text capture: hints while the still is taken, torch. -->
+<resources>
+    <string name="read_hold_still">Hold still…</string>
+    <string name="read_retake">Blurry — hold still, one more try…</string>
+    <string name="read_too_dark">Too dark to read well — turn on the torch and read again</string>
+    <string name="torch_turn_on">Turn on the torch</string>
+    <string name="torch_turn_off">Turn off the torch</string>
+</resources>

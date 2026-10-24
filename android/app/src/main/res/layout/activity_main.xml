@@ -17,6 +17,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Read text: the frame the user aimed at, frozen while the still is focused and taken, with a hint. -->
+    <ImageView
+        android:id="@+id/freeze_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/capture_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/glass_pill_bg"
+        android:paddingStart="18dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="10dp"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/gv_on_surface"
+        android:visibility="gone" />
+
     <!-- Photo button feedback: a brief white flash (MainActivity). -->
     <View
         android:id="@+id/capture_flash"

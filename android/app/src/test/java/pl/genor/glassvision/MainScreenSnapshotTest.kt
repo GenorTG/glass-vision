@@ -24,6 +24,13 @@ class MainScreenSnapshotTest {
         )
     }
 
+    /** Read text with the torch on next to it (the camera has a flash). */
+    @Test
+    fun read_text_with_torch_on() {
+        val state = SnapshotFixtures.liveState().copy(canReadText = true, canTorch = true, torchOn = true)
+        paparazzi.snapshot(SnapshotFixtures.mainScreen(context, state, SnapshotFixtures.detections))
+    }
+
     /** Recognition on the phone: "On device" pill, the phone's pipelines, a named pose, a held OCR line. */
     @Test
     fun live_on_this_phone() {

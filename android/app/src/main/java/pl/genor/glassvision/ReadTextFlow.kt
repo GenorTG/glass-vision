@@ -11,7 +11,8 @@ import android.util.Log
 import java.util.concurrent.Executor
 
 /**
- * The Read button: takes a still ([StillCapture]), opens a [ReadTextSheet] in its reading state, reads the still with
+ * The Read button: freezes the frame the user aimed at and takes a still ([StillCapture]: focus on the text, hold
+ * still, blur check), then opens a [ReadTextSheet] in its reading state, reads the still with
  * the backend's [TextReader] on [worker], shows the result; "Add language" translates the lines already read (no
  * second read). Target languages are remembered ([ReadTargets]). Only the open sheet's results are shown: a sheet
  * closed while reading drops them. Main thread only.
@@ -19,6 +20,10 @@ import java.util.concurrent.Executor
 class ReadTextFlow(
     private val context: Context,
     private val stills: StillCapture,
+    /** Freeze/hints on the camera screen while the still is taken. */
+    private val ui: CaptureUi,
+    /** The live text marks to focus on (largest first; [TextMarks]). */
+    private val marks: () -> List<NormRect>,
     private val reader: () -> TextReader?,
     private val targets: ReadTargets,
     private val worker: Executor,
@@ -32,18 +37,21 @@ class ReadTextFlow(
     val busy: Boolean get() = session?.let { it.capturing || it.reading } == true
 
     fun start() {
-        session?.let { if (it.sheet.sheet.isShowing) return }
+        session?.let { if (it.capturing || it.sheet.sheet.isShowing) return }
         val textReader = reader() ?: return
         val s = Session(textReader)
         session = s
         s.sheet.sheet.onDismiss { if (session === s) session = null; onBusyChanged() }
-        s.sheet.showReading()
-        s.sheet.sheet.show(expanded = true)
         s.capturing = true
         onBusyChanged()
-        stills.take { result ->
+        // The sheet opens after the shot: one sliding up at the tap made people react and move the phone.
+        ui.freeze()
+        stills.take(marks(), ui) { result ->
+            ui.unfreeze()
             s.capturing = false
             if (session !== s) return@take
+            s.sheet.showReading()
+            s.sheet.sheet.show(expanded = true)
             result.fold(
                 onSuccess = { still -> s.onStill(still) },
                 onFailure = {
@@ -80,9 +88,10 @@ class ReadTextFlow(
 
         fun onStill(s: Still) {
             still = s
-            async({ FrameEncoder.uprightBitmap(s.bitmap, 0, THUMBNAIL_LONG_SIDE) }) { r ->
+            async({ s.decode(THUMBNAIL_LONG_SIDE) }) { r ->
                 r.onSuccess { sheet.setStill(it, s.highRes) }
             }
+            if (s.quality?.dark == true && ui.torchWouldHelp) sheet.showMessage(context.getString(R.string.read_too_dark))
             read()
         }
 
@@ -94,7 +103,7 @@ class ReadTextFlow(
             async({
                 val offered = runCatching { textReader.languages() }.getOrDefault(emptyList())
                 val wanted = targets.forRead(offered)
-                Triple(offered, wanted, textReader.read(s.bitmap, wanted))
+                Triple(offered, wanted, textReader.readStill(s, wanted))
             }) { r ->
                 reading = false
                 onBusyChanged()

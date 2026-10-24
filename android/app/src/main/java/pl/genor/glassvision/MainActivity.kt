@@ -7,8 +7,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.view.PreviewView
@@ -31,12 +34,15 @@ class MainActivity :
     RecognitionBackend.Listener,
     MainScreen.Callbacks,
     CameraBinder.Listener,
-    CommandUi.CameraHost {
+    CommandUi.CameraHost,
+    CaptureUi {
 
     private lateinit var root: View
     private lateinit var preview: PreviewView
     private lateinit var overlay: DetectionOverlayView
     private lateinit var flash: View
+    private lateinit var freezeView: ImageView
+    private lateinit var captureHint: TextView
     private lateinit var screen: MainScreen
     private lateinit var camera: CameraBinder
 
@@ -55,7 +61,12 @@ class MainActivity :
     private lateinit var resultFiles: ResultFileSaver
     private lateinit var readExecutor: ExecutorService
     private lateinit var readText: ReadTextFlow
+    private lateinit var orientation: CaptureOrientation
     private val analysisStill = AnalysisStill()
+    /** Latest result and when it came (uptime): its text marks aim the Read still's focus. */
+    private var lastResult: ServerMessage.Detections? = null
+    private var lastResultAt = 0L
+    private var torchOn = false
     private val connectionTester = ConnectionTester()
     private var connectionSheet: ConnectionSheet? = null
 
@@ -107,6 +118,8 @@ class MainActivity :
         preview = findViewById(R.id.preview_view)
         overlay = findViewById(R.id.overlay_view)
         flash = findViewById(R.id.capture_flash)
+        freezeView = findViewById(R.id.freeze_view)
+        captureHint = findViewById(R.id.capture_hint)
         screen = MainScreen(findViewById(R.id.chrome_root), this)
 
         store = SettingsStore(this)
@@ -135,9 +148,10 @@ class MainActivity :
         )
         readExecutor = Executors.newSingleThreadExecutor { r -> Thread(r, "gv-read") }
         readText = ReadTextFlow(
-            this, StillCapture(camera, analysisStill, readExecutor), { backends.current?.textReader },
-            ReadTargets.of(this), readExecutor, onBusyChanged = ::render,
+            this, StillCapture(camera, analysisStill, readExecutor, HoldStill(this)), this, ::liveTextMarks,
+            { backends.current?.textReader }, ReadTargets.of(this), readExecutor, onBusyChanged = ::render,
         )
+        orientation = CaptureOrientation(this) { camera.captureRotation = it }
 
         applySettings(store.load())
         store.addListener(onSettingsChanged)
@@ -160,6 +174,7 @@ class MainActivity :
         backends.start()
         root.post(hudTicker)
         updateKeepScreenOn()
+        orientation.enable()
     }
 
     override fun onResume() {
@@ -168,6 +183,7 @@ class MainActivity :
     }
 
     override fun onStop() {
+        orientation.disable()
         root.removeCallbacks(hudTicker)
         backends.stop()
         overlay.clear()
@@ -248,12 +264,18 @@ class MainActivity :
         cameras = available
         // New scene: old boxes are in the other camera's coordinates (and mirroring).
         overlay.clear()
+        lastResult = null
         overlay.mirrored = facing.isMirrored
         commands.onCameraChanged(facing)
         render()
     }
 
     override fun onCameraError(message: String) = showMessage(message, true)
+
+    override fun onTorchChanged(on: Boolean) {
+        torchOn = on
+        render()
+    }
 
     // CommandUi.CameraHost
 
@@ -307,7 +329,41 @@ class MainActivity :
     override fun onReadText() {
         if (readText.busy) return
         readText.start()
-        playFlash()
+    }
+
+    override fun onToggleTorch() = camera.setTorch(!torchOn)
+
+    /** Text marks of a result young enough to still be on screen. */
+    private fun liveTextMarks(): List<NormRect> =
+        lastResult.takeIf { SystemClock.uptimeMillis() - lastResultAt <= MARKS_MAX_AGE_MS }.let { TextMarks.of(it) }
+
+    // CaptureUi (Read text): the frame the user aimed at stays on screen while the still is focused and taken.
+
+    override fun freeze() {
+        freezeView.setImageBitmap(preview.bitmap ?: return)
+        freezeView.visibility = View.VISIBLE
+    }
+
+    override fun unfreeze() {
+        captureHint.visibility = View.GONE
+        freezeView.visibility = View.GONE
+        (freezeView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.let { frozen ->
+            freezeView.setImageDrawable(null)
+            frozen.recycle()
+        }
+    }
+
+    override fun onHoldStill() = showHint(R.string.read_hold_still)
+
+    override fun onRetake() = showHint(R.string.read_retake)
+
+    override fun onShutter() = playFlash()
+
+    override val torchWouldHelp: Boolean get() = camera.hasFlash && !torchOn
+
+    private fun showHint(text: Int) {
+        captureHint.setText(text)
+        captureHint.visibility = View.VISIBLE
     }
 
     override fun onConnectionSetup() = openConnectionSheet(
@@ -395,7 +451,11 @@ class MainActivity :
         }
     }
 
-    override fun onDetections(result: ServerMessage.Detections, receivedAtMs: Long) = overlay.show(result)
+    override fun onDetections(result: ServerMessage.Detections, receivedAtMs: Long) {
+        lastResult = result
+        lastResultAt = SystemClock.uptimeMillis()
+        overlay.show(result)
+    }
 
     override fun onCommandResult(result: ServerMessage.CommandResult) {
         if (isFinishing) return
@@ -445,6 +505,8 @@ class MainActivity :
                     connection, catalog.specs, pipelineStore.load(), backends.current?.textReader != null,
                 ),
                 readingText = readText.busy,
+                canTorch = camera.hasFlash,
+                torchOn = torchOn,
             )
         )
     }
@@ -472,6 +534,8 @@ class MainActivity :
         const val HUD_INTERVAL_MS = 250L
         const val FLASH_ALPHA = 0.85f
         const val FLASH_MS = 220L
+        /** Older text marks no longer show what the camera sees. */
+        const val MARKS_MAX_AGE_MS = 1500L
         /** On-device models (app-specific storage, kept until deleted in Settings). */
         const val MODELS_DIR = "models"
         /** On-device pose captures before they are copied to the gallery (cache: the system may clear it). */

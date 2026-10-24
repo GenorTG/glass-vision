@@ -208,17 +208,36 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Read text: a high-resolution still, read once (MainScreen shows it while Text is on and readable). -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/read_button"
-            style="@style/Widget.GlassVision.ReadButton"
+        <!-- Read text: a high-resolution still, read once (MainScreen shows it while Text is on and readable), and
+             the torch for it when the camera has one. -->
+        <LinearLayout
+            android:id="@+id/read_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="14dp"
-            android:text="@string/read_text"
-            android:visibility="gone"
-            app:icon="@drawable/ic_read_text" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/read_button"
+                style="@style/Widget.GlassVision.ReadButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/read_text"
+                app:icon="@drawable/ic_read_text" />
+
+            <ImageButton
+                android:id="@+id/torch_button"
+                style="@style/Widget.GlassVision.RoundButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/torch_turn_on"
+                android:src="@drawable/ic_torch_off"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
