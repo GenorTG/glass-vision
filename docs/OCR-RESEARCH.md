@@ -74,19 +74,19 @@ gotchas (cuBLASLt flag, SM 7.5 check, fp16 CRAFT reimplementation) and the 10–
 - Response gains `blocks: [{box/quad, line_ids, text, lang, translations}]`, `angle`, per-line `script`; per-line
   `translations` stay for installed apps (AGENTS.md: never break installed apps).
 - Live marks and the result thumbnail outline **blocks**; the sheet shows one card per block (tap a block on the
-  frozen still ↔ its card), reflowed paragraphs, copy/share, data detectors (phone, URL, e-mail, address, date).
-- Later: in-place translated overlay on the still with a "Show original" toggle; "Scan document" via ML Kit Document
-  Scanner.
+  frozen still ↔ its card), reflowed paragraphs, copy/share, data detectors (phone, URL, e-mail, date).
+- The result sheet also has a switchable in-place translated overlay with a "Show original" toggle. "Scan document"
+  via ML Kit Document Scanner remains future work.
 
 ## 4. Step-2 plan (ordered; each phase verified on a real-photo set, not only rendered text)
 | phase | what | why first | effort |
 |---|---|---|---|
-| **P0** | Eval set + harness: the bench's real photos (Commons, attributed) + rendered rotations/tilt/scripts + phone-shot photos from Genor; metrics = key-phrase recall, boxes per line, rotation success, latency; server test + Android instrumented test | every later phase must prove it beats the baseline | S |
-| **P1** | Phone capture fixes (rotation listener, focus/metering, MAXIMIZE_QUALITY, freeze → capture, gyro + blur gate, JPEG pass-through with EXIF) | fixes the rotation complaint and most blur; no new deps | S–M |
-| **P2** | Blocks as the product: protocol `blocks` + `angle`, per-block translation, block cards + block outlines (live + thumbnail), phone row stitching/deskew/RTL | fixes the "many small objects" complaint end to end | M |
-| **P3** | Server engine swap to PP-OCRv6 ONNX + script recs + orientation classifiers + full-res crops; parity check vs the bench; retire EasyOCR | +30 points recall, 4/4 rotations, ~0.4 s instead of 10–33 s | M–L |
-| **P4** | Phone engine: quads/angle in `OcrLine`, orientation check, adaptive scale + full-res crops, PP-OCRv5 mobile (ORT) packs, Tesseract hygiene, CameraX 1.6 | parity of the on-device path | M–L |
-| **P5** | Extras: Document mode (ML Kit Document Scanner), data detectors, live stability states, in-place overlay, LLM/MADLAD translation eval, optional VLM "Read carefully" | polish and reach | M each |
+| **P0** | Eval set + harness: real Commons photos + rendered rotations/tilt/scripts; key-phrase recall, boxes/line, rotation, latency; server + Android tests. No Genor phone-shot images yet. | provides a repeatable baseline | **Done** — server eval is 82% key-phrase recall vs 42% baseline; 5/5 rotated/skewed signs; 1.00 vs 1.52 boxes/GT line. See `docs/research/ocr-eval/README.md`. |
+| **P1** | Phone capture rotation, focus/metering, MAXIMIZE_QUALITY, freeze → capture, gyro + blur gate, JPEG+EXIF pass-through | fixes capture defects | **Done** — verified in emulator and unit tests; sideways-camera orientation, AF, blur retake and torch still need a physical phone. |
+| **P2** | Blocks protocol/API, per-block translation, cards + live/result block outlines, row grouping/deskew/RTL, switchable overlay | fixes fragmentation end to end | **Done** — v3.3 client/server; cards and overlay verified in snapshots and emulator tests. |
+| **P3** | Server PP-OCR ONNX + script recognizers + orientation + full-res crops; retire EasyOCR | improve recall, rotation and latency | **Done** — combined server suite and parity/eval passed; see P0 metrics. |
+| **P4** | Phone OCR engine: adaptive/full-res crops, PP-OCR mobile packs (ORT), Tesseract long-tail cleanup | parity of the on-device path | **Pending** — phone continues to use ML Kit/Tesseract. |
+| **P5** | Document mode, live stability, heavy-model "Read carefully", translation model evaluation/integration | complete remaining UX and model choices | **Partial** — data detectors, translated overlay and translation benchmark are done. Document mode, careful-read server endpoint/model, translation human review and production integration remain. |
 
 Licences checked: PaddleOCR models/code Apache-2.0, Qwen3-VL / Qwen3.5 Apache-2.0, MADLAD-400 Apache-2.0, M2M100 MIT.
 **Excluded**: NLLB-200 and Tower+ (non-commercial), Hunyuan OCR/MT (licence excludes the EU), Surya/Chandra weights
@@ -99,4 +99,4 @@ Licences checked: PaddleOCR models/code Apache-2.0, Qwen3-VL / Qwen3.5 Apache-2.
    context) and adopt the winner(s).
 3. **Both views**: in-place translated overlay on the still *and* the block cards, switchable.
 
-Protocol for all of this: `docs/PROTOCOL.md` "Read text v3.3".
+Protocol: `docs/PROTOCOL.md` "Read text v3.3". Translation benchmark artifacts and results: `docs/research/translation-bench.md` and `docs/research/translation-bench/`. The benchmark is a model-selection signal, not a production switch: automatic metrics need human blind review and service integration before adopting a new translator.

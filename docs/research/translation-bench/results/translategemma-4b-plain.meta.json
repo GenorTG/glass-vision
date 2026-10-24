@@ -1,0 +1,17 @@
+{
+ "system": "translategemma-4b-plain",
+ "label": "TranslateGemma-4B Q8_0",
+ "gguf": "translategemma-4b-it-GGUF/translategemma-4b-it.Q8_0.gguf",
+ "disk_gb": 4.13,
+ "load_s": 7.4,
+ "vram_mib_process": 5180,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "plain",
+ "photo8_concurrent_ms": [
+  636.6,
+  654.0,
+  809.5
+ ],
+ "items": 259
+}

@@ -1,0 +1,17 @@
+{
+ "system": "index-9b-plain",
+ "label": "Index-Translate-9B Q4_K_M",
+ "gguf": "Index-Translate-9B-GGUF/Index-Translate-9B.Q4_K_M.gguf",
+ "disk_gb": 5.78,
+ "load_s": 10.6,
+ "vram_mib_process": 5682,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "plain",
+ "photo8_concurrent_ms": [
+  1248.3,
+  1129.6,
+  924.8
+ ],
+ "items": 259
+}

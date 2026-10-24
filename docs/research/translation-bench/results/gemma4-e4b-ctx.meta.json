@@ -1,0 +1,17 @@
+{
+ "system": "gemma4-e4b-ctx",
+ "label": "Gemma 4 E4B Q4_K_M",
+ "gguf": "gemma-4-E4B-it-GGUF/gemma-4-E4B-it-Q4_K_M.gguf",
+ "disk_gb": 4.98,
+ "load_s": 4.0,
+ "vram_mib_process": 3704,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa off --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "ctx",
+ "photo8_concurrent_ms": [
+  1865.5,
+  1774.5,
+  1843.0
+ ],
+ "items": 259
+}

@@ -1,0 +1,17 @@
+{
+ "system": "hymt2-7b-plain",
+ "label": "Hy-MT2-7B Q4_K_M",
+ "gguf": "Hy-MT2-7B-GGUF/Hy-MT2-7B-Q4_K_M.gguf",
+ "disk_gb": 4.62,
+ "load_s": 7.1,
+ "vram_mib_process": 5840,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "plain",
+ "photo8_concurrent_ms": [
+  928.5,
+  679.3,
+  605.5
+ ],
+ "items": 259
+}

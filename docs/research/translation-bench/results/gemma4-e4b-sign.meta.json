@@ -1,0 +1,17 @@
+{
+ "system": "gemma4-e4b-sign",
+ "label": "Gemma 4 E4B Q4_K_M",
+ "gguf": "gemma-4-E4B-it-GGUF/gemma-4-E4B-it-Q4_K_M.gguf",
+ "disk_gb": 4.98,
+ "load_s": 2.8,
+ "vram_mib_process": 3702,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa off --reasoning off",
+ "runtime": "llama.cpp 3ce7da2",
+ "variant": "sign",
+ "photo8_concurrent_ms": [
+  2390.5,
+  2236.8,
+  2044.0
+ ],
+ "items": 259
+}

@@ -1,0 +1,14 @@
+{
+ "system": "m2m100-418M-line",
+ "load_s": 22.0,
+ "vram_mib": 1356,
+ "vram_mib_process": 1356,
+ "torch_peak_mib": 1002,
+ "disk_gb": 1.94,
+ "covered": 259,
+ "items": 259,
+ "num_beams": 4,
+ "mode": "line",
+ "precision": "fp16",
+ "runtime": "transformers"
+}

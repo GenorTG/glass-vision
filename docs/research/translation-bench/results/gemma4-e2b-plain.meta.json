@@ -1,0 +1,17 @@
+{
+ "system": "gemma4-e2b-plain",
+ "label": "Gemma 4 E2B Q8_0",
+ "gguf": "gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q8_0.gguf",
+ "disk_gb": 5.05,
+ "load_s": 7.0,
+ "vram_mib_process": 2958,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "plain",
+ "photo8_concurrent_ms": [
+  932.1,
+  861.4,
+  897.0
+ ],
+ "items": 259
+}

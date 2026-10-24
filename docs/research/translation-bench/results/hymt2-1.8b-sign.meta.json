@@ -1,0 +1,17 @@
+{
+ "system": "hymt2-1.8b-sign",
+ "label": "Hy-MT2-1.8B Q8_0",
+ "gguf": "Hy-MT2-1.8B-GGUF/Hy-MT2-1.8B-Q8_0.gguf",
+ "disk_gb": 1.91,
+ "load_s": 1.2,
+ "vram_mib_process": 2680,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "sign",
+ "photo8_concurrent_ms": [
+  362.7,
+  383.8,
+  382.4
+ ],
+ "items": 259
+}

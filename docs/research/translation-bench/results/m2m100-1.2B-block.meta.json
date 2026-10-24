@@ -1,0 +1,14 @@
+{
+ "system": "m2m100-1.2B-block",
+ "load_s": 18.6,
+ "vram_mib": 2806,
+ "vram_mib_process": 2806,
+ "torch_peak_mib": 2470,
+ "disk_gb": 4.96,
+ "covered": 259,
+ "items": 259,
+ "num_beams": 4,
+ "mode": "block",
+ "precision": "fp16",
+ "runtime": "transformers"
+}

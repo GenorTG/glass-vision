@@ -1,0 +1,14 @@
+{
+ "system": "madlad400-3b-block",
+ "load_s": 27.7,
+ "vram_mib": 6358,
+ "vram_mib_process": 6358,
+ "torch_peak_mib": 5885,
+ "disk_gb": 11.78,
+ "covered": 259,
+ "items": 259,
+ "num_beams": 4,
+ "mode": "block",
+ "precision": "bf16",
+ "runtime": "transformers"
+}

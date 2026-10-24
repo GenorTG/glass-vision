@@ -1,0 +1,17 @@
+{
+ "system": "hymt2-1.8b-ctx",
+ "label": "Hy-MT2-1.8B Q8_0",
+ "gguf": "Hy-MT2-1.8B-GGUF/Hy-MT2-1.8B-Q8_0.gguf",
+ "disk_gb": 1.91,
+ "load_s": 1.5,
+ "vram_mib_process": 2678,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "ctx",
+ "photo8_concurrent_ms": [
+  577.8,
+  630.8,
+  747.0
+ ],
+ "items": 259
+}

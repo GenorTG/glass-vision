@@ -1,0 +1,17 @@
+{
+ "system": "qwen35-4b-plain",
+ "label": "Qwen3.5-4B Q8_0",
+ "gguf": "Qwen3.5-4B-GGUF/Qwen3.5-4B-Q8_0.gguf",
+ "disk_gb": 4.48,
+ "load_s": 4.3,
+ "vram_mib_process": 5108,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "plain",
+ "photo8_concurrent_ms": [
+  967.6,
+  936.1,
+  879.3
+ ],
+ "items": 259
+}

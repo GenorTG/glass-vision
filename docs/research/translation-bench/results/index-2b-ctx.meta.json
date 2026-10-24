@@ -1,0 +1,17 @@
+{
+ "system": "index-2b-ctx",
+ "label": "Index-Translate-2B Q8_0",
+ "gguf": "Index-Translate-2B-GGUF/Index-Translate-2B.Q8_0.gguf",
+ "disk_gb": 2.08,
+ "load_s": 1.2,
+ "vram_mib_process": 2444,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "ctx",
+ "photo8_concurrent_ms": [
+  400.4,
+  423.3,
+  425.5
+ ],
+ "items": 259
+}

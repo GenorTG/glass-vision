@@ -1,0 +1,259 @@
+{"id": "de-en-01", "hyp": "Exit", "ms": 68.8, "tokens": 2}
+{"id": "de-en-02", "hyp": "Entrance", "ms": 41.9, "tokens": 2}
+{"id": "de-en-03", "hyp": "Emergency exit", "ms": 50.3, "tokens": 3}
+{"id": "de-en-04", "hyp": "EXIT", "ms": 41.2, "tokens": 2}
+{"id": "de-en-05", "hyp": "Pull", "ms": 39.7, "tokens": 2}
+{"id": "de-en-06", "hyp": "Press", "ms": 44.6, "tokens": 2}
+{"id": "de-en-07", "hyp": "No smoking", "ms": 61.6, "tokens": 3}
+{"id": "de-en-08", "hyp": "ENTRY FORBIDDEN", "ms": 80.1, "tokens": 5}
+{"id": "de-en-09", "hyp": "Caution!\nSlip hazard when wet", "ms": 107.6, "tokens": 8}
+{"id": "de-en-10", "hyp": "Please do not touch", "ms": 66.9, "tokens": 5}
+{"id": "de-en-11", "hyp": "Menu\nWiener Style Schnitzel with Fries €14.90\nBratwurst with Sauerkraut €9.50\nApple Strudel with Cream €5.80", "ms": 333.2, "tokens": 40}
+{"id": "de-en-12", "hyp": "Opening hours\nMon-Fri 9-6 PM\nSat 10-2 PM\nClosed on Sundays and public holidays", "ms": 207.4, "tokens": 27}
+{"id": "de-en-13", "hyp": "The travel ticket must be validated before starting the journey. An increased fare of €60 will be charged for checks without a valid ticket.", "ms": 270.3, "tokens": 29}
+{"id": "de-en-14", "hyp": "EXIT", "ms": 41.7, "tokens": 2}
+{"id": "de-en-15", "hyp": "Track 3", "ms": 60.5, "tokens": 4}
+{"id": "de-en-16", "hyp": "Store cool and dry.\nBest before: see lid", "ms": 111.8, "tokens": 12}
+{"id": "de-en-17", "hyp": "Settings\nCancel\nSave", "ms": 85.3, "tokens": 6}
+{"id": "de-en-18", "hyp": "No drinking water", "ms": 57.7, "tokens": 4}
+{"id": "de-en-19", "hyp": "Exit 23 Cologne-East\n2 km", "ms": 105.1, "tokens": 11}
+{"id": "de-en-20", "hyp": "Gift", "ms": 41.3, "tokens": 2}
+{"id": "de-en-21", "hyp": "Free", "ms": 40.3, "tokens": 2}
+{"id": "de-en-22", "hyp": "Exit", "ms": 42.4, "tokens": 2}
+{"id": "de-pl-01", "hyp": "Wyjście", "ms": 78.1, "tokens": 4}
+{"id": "de-pl-02", "hyp": "Wyjście awaryjne", "ms": 85.8, "tokens": 7}
+{"id": "de-pl-03", "hyp": "Zakaz palenia", "ms": 63.4, "tokens": 5}
+{"id": "de-pl-04", "hyp": "Proszę zachować dystans", "ms": 85.3, "tokens": 8}
+{"id": "de-pl-05", "hyp": "Uwaga Poziom", "ms": 76.3, "tokens": 6}
+{"id": "de-pl-06", "hyp": "Apteka", "ms": 81.1, "tokens": 4}
+{"id": "de-pl-07", "hyp": "Kasa", "ms": 57.7, "tokens": 3}
+{"id": "de-pl-08", "hyp": "Parkowanie jest dozwolone tylko z ważnym biletem parkingowym. Samochody zaparkowane nielegalnie zostaną usunięte za opłatą.", "ms": 264.1, "tokens": 36}
+{"id": "de-pl-09", "hyp": "Śniadanie\nJajecznica z bekonem\nMuesli z jogurtem", "ms": 209.7, "tokens": 23}
+{"id": "de-pl-10", "hyp": "Wejście na plac budowy zabronione", "ms": 120.3, "tokens": 11}
+{"id": "de-es-01", "hyp": "Salida", "ms": 52.8, "tokens": 3}
+{"id": "pl-en-01", "hyp": "Exit", "ms": 39.2, "tokens": 2}
+{"id": "pl-en-02", "hyp": "Entrance", "ms": 61.9, "tokens": 2}
+{"id": "pl-en-03", "hyp": "EMERGENCY EXIT", "ms": 65.0, "tokens": 5}
+{"id": "pl-en-04", "hyp": "No smoking", "ms": 48.9, "tokens": 3}
+{"id": "pl-en-05", "hyp": "Attention!\nNewly painted", "ms": 68.0, "tokens": 6}
+{"id": "pl-en-06", "hyp": "To pull", "ms": 54.7, "tokens": 3}
+{"id": "pl-en-07", "hyp": "To push", "ms": 65.5, "tokens": 3}
+{"id": "pl-en-08", "hyp": "Cash register out of order", "ms": 67.8, "tokens": 6}
+{"id": "pl-en-09", "hyp": "Soups\nŻurek in bread 18 PLN\nBroth with pasta 14 PLN\nRuskie pierogi 24 PLN", "ms": 241.1, "tokens": 31}
+{"id": "pl-en-10", "hyp": "Opening hours\nMon-Fri. 8:00–20:00\nSat. 9:00–15:00\nSun. closed", "ms": 282.8, "tokens": 37}
+{"id": "pl-en-11", "hyp": "The ticket must be validated immediately upon entering the vehicle. Failure to have a valid ticket will incur an additional charge.", "ms": 186.0, "tokens": 24}
+{"id": "pl-en-12", "hyp": "Exit", "ms": 47.8, "tokens": 2}
+{"id": "pl-en-13", "hyp": "NO SMOKING", "ms": 84.8, "tokens": 5}
+{"id": "pl-en-14", "hyp": "Settings\nCancel\nSave changes", "ms": 73.7, "tokens": 7}
+{"id": "pl-en-15", "hyp": "Keep out of reach of children.", "ms": 89.7, "tokens": 8}
+{"id": "pl-en-16", "hyp": "Private land", "ms": 52.0, "tokens": 3}
+{"id": "pl-en-17", "hyp": "Restroom", "ms": 59.7, "tokens": 3}
+{"id": "pl-en-18", "hyp": "Room 12", "ms": 59.1, "tokens": 5}
+{"id": "pl-en-19", "hyp": "Warning! Bad dog", "ms": 115.7, "tokens": 5}
+{"id": "pl-en-20", "hyp": "Dear Customers, the shop will be closed on November 11th. We invite you from November 12th.", "ms": 281.2, "tokens": 26}
+{"id": "pl-de-01", "hyp": "Ausgang", "ms": 101.5, "tokens": 3}
+{"id": "pl-de-02", "hyp": "Eingang verboten", "ms": 89.3, "tokens": 6}
+{"id": "pl-de-03", "hyp": "Achtung! Falscher Hund", "ms": 110.6, "tokens": 9}
+{"id": "pl-es-01", "hyp": "SALIDA DE EVACUACIÓN", "ms": 83.8, "tokens": 8}
+{"id": "pl-es-02", "hyp": "Horario de apertura\nlun.–vie. 10–18", "ms": 163.0, "tokens": 16}
+{"id": "fr-en-01", "hyp": "Exit", "ms": 58.5, "tokens": 2}
+{"id": "fr-en-02", "hyp": "EXIT", "ms": 50.1, "tokens": 2}
+{"id": "fr-en-03", "hyp": "Push", "ms": 40.6, "tokens": 2}
+{"id": "fr-en-04", "hyp": "Pull", "ms": 48.0, "tokens": 2}
+{"id": "fr-en-05", "hyp": "No smoking", "ms": 69.2, "tokens": 3}
+{"id": "fr-en-06", "hyp": "Watch your step", "ms": 77.4, "tokens": 4}
+{"id": "fr-en-07", "hyp": "Closed on Mondays", "ms": 58.0, "tokens": 4}
+{"id": "fr-en-08", "hyp": "Appetizers\nGratinated onion soup 8 €\nBurgundy snails (6 pieces) 12 €\nMain Courses\nDuck confit, Sarladaise potatoes 22 €", "ms": 317.8, "tokens": 41}
+{"id": "fr-en-09", "hyp": "It is forbidden to throw objects out the window. Any abuse will be punished.", "ms": 145.4, "tokens": 17}
+{"id": "fr-en-10", "hyp": "SORTIE", "ms": 51.1, "tokens": 3}
+{"id": "fr-en-11", "hyp": "Settings\nCancel\nSave", "ms": 68.1, "tokens": 6}
+{"id": "fr-en-12", "hyp": "Mean dog", "ms": 50.6, "tokens": 3}
+{"id": "fr-en-13", "hyp": "Restrooms", "ms": 48.7, "tokens": 3}
+{"id": "fr-en-14", "hyp": "Free", "ms": 56.4, "tokens": 2}
+{"id": "fr-en-15", "hyp": "Opening hours\nMonday to Friday: 9 am – 7 pm\nSaturday: 9 am – 12 pm", "ms": 186.8, "tokens": 26}
+{"id": "fr-pl-01", "hyp": "Wyjście", "ms": 57.7, "tokens": 4}
+{"id": "fr-pl-02", "hyp": "Zakaz palenia", "ms": 60.8, "tokens": 5}
+{"id": "fr-pl-03", "hyp": "Zamknięte w niedzielę", "ms": 102.1, "tokens": 8}
+{"id": "fr-pl-04", "hyp": "Zakaz dla publiczności", "ms": 79.1, "tokens": 7}
+{"id": "fr-pl-05", "hyp": "Uwaga, odpadanie kamieni", "ms": 79.0, "tokens": 8}
+{"id": "fr-de-01", "hyp": "NOTFALLAUSGANG", "ms": 78.2, "tokens": 6}
+{"id": "es-en-01", "hyp": "Exit", "ms": 39.9, "tokens": 2}
+{"id": "es-en-02", "hyp": "Push", "ms": 41.2, "tokens": 2}
+{"id": "es-en-03", "hyp": "Throw", "ms": 44.9, "tokens": 2}
+{"id": "es-en-04", "hyp": "No smoking", "ms": 62.0, "tokens": 3}
+{"id": "es-en-05", "hyp": "Emergency exit", "ms": 60.6, "tokens": 3}
+{"id": "es-en-06", "hyp": "CAUTION: WET FLOOR", "ms": 95.2, "tokens": 7}
+{"id": "es-en-07", "hyp": "For rent", "ms": 51.4, "tokens": 3}
+{"id": "es-en-08", "hyp": "Restrooms", "ms": 52.5, "tokens": 3}
+{"id": "es-en-09", "hyp": "Tapas\nPatatas bravas €4.50\nHam croquettes €6.00\nGalician-style octopus €14.00", "ms": 277.2, "tokens": 34}
+{"id": "es-en-10", "hyp": "No entry for any person not on the site.", "ms": 97.5, "tokens": 11}
+{"id": "es-en-11", "hyp": "Exit", "ms": 43.5, "tokens": 2}
+{"id": "es-en-12", "hyp": "Box", "ms": 39.6, "tokens": 2}
+{"id": "es-en-13", "hyp": "Hours\nMonday to Friday: 10:00 - 2:00 PM and 5:00 PM - 8:30 PM\nSaturdays: 10:00 - 2:00 PM", "ms": 381.3, "tokens": 52}
+{"id": "es-pl-01", "hyp": "Wyjście", "ms": 81.7, "tokens": 4}
+{"id": "es-pl-02", "hyp": "Zakaz palenia", "ms": 70.4, "tokens": 5}
+{"id": "es-pl-03", "hyp": "Zamknięte na urlopach", "ms": 83.8, "tokens": 8}
+{"id": "es-pl-04", "hyp": "NIEBEZPIECZNE: WYSOKI NAPIĘTIE", "ms": 136.6, "tokens": 17}
+{"id": "it-en-01", "hyp": "Exit", "ms": 46.2, "tokens": 2}
+{"id": "it-en-02", "hyp": "Entrance", "ms": 64.9, "tokens": 2}
+{"id": "it-en-03", "hyp": "No smoking", "ms": 54.1, "tokens": 3}
+{"id": "it-en-04", "hyp": "EXIT", "ms": 40.5, "tokens": 2}
+{"id": "it-en-05", "hyp": "Push", "ms": 40.8, "tokens": 2}
+{"id": "it-en-06", "hyp": "Closed for vacation", "ms": 56.7, "tokens": 4}
+{"id": "it-en-07", "hyp": "First courses\nSpaghetti alla carbonara 12 €\nPorcini mushroom risotto 15 €\nMain courses\nMilanese cutlet 18 €", "ms": 332.1, "tokens": 34}
+{"id": "it-en-08", "hyp": "Please validate the ticket before boarding.", "ms": 84.8, "tokens": 8}
+{"id": "it-en-09", "hyp": "NO SMOKING", "ms": 77.7, "tokens": 5}
+{"id": "it-en-10", "hyp": "Hot", "ms": 61.6, "tokens": 2}
+{"id": "it-pl-01", "hyp": "Wyjście", "ms": 92.7, "tokens": 4}
+{"id": "it-pl-02", "hyp": "Wstęp zabroniony", "ms": 129.1, "tokens": 7}
+{"id": "it-pl-03", "hyp": "Prace w toku", "ms": 87.9, "tokens": 6}
+{"id": "ru-en-01", "hyp": "Exit", "ms": 41.0, "tokens": 2}
+{"id": "ru-en-02", "hyp": "Entrance", "ms": 43.6, "tokens": 2}
+{"id": "ru-en-03", "hyp": "ENTRY PROHIBITED", "ms": 98.1, "tokens": 5}
+{"id": "ru-en-04", "hyp": "No smoking", "ms": 57.0, "tokens": 3}
+{"id": "ru-en-05", "hyp": "Caution, doors are closing", "ms": 66.8, "tokens": 6}
+{"id": "ru-en-06", "hyp": "Emergency exit", "ms": 72.7, "tokens": 3}
+{"id": "ru-en-07", "hyp": "Ticket office", "ms": 60.9, "tokens": 3}
+{"id": "ru-en-08", "hyp": "Menu\nBorscht with sour cream 350 ₽\nHomemade dumplings 420 ₽\nPancakes with caviar 690 ₽", "ms": 292.6, "tokens": 33}
+{"id": "ru-en-09", "hyp": "Working hours\nMon-Fri 9:00-21:00\nSat-Sun 10:00-18:00\nNo breaks", "ms": 428.7, "tokens": 37}
+{"id": "ru-en-10", "hyp": "Dear passengers! If you find suspicious items, inform the train driver.", "ms": 164.9, "tokens": 15}
+{"id": "ru-en-11", "hyp": "EXIT", "ms": 45.3, "tokens": 2}
+{"id": "ru-en-12", "hyp": "Exit to the city", "ms": 74.3, "tokens": 5}
+{"id": "ru-en-13", "hyp": "Store at a temperature not exceeding 25 °C.\nKeep out of reach of children.", "ms": 195.0, "tokens": 21}
+{"id": "ru-pl-01", "hyp": "Wyjście", "ms": 64.7, "tokens": 4}
+{"id": "ru-pl-02", "hyp": "Nie palić", "ms": 85.2, "tokens": 4}
+{"id": "ru-pl-03", "hyp": "Wejście zamknięte", "ms": 102.1, "tokens": 6}
+{"id": "ru-pl-04", "hyp": "Uwaga, zła psią", "ms": 139.5, "tokens": 8}
+{"id": "ru-pl-05", "hyp": "Apteka", "ms": 93.1, "tokens": 4}
+{"id": "ru-pl-06", "hyp": "Przerwa od 13:00 do 14:00", "ms": 222.8, "tokens": 18}
+{"id": "ru-de-01", "hyp": "Ausgang", "ms": 50.5, "tokens": 3}
+{"id": "uk-en-01", "hyp": "Exit", "ms": 68.4, "tokens": 2}
+{"id": "uk-en-02", "hyp": "Entrance", "ms": 55.8, "tokens": 2}
+{"id": "uk-en-03", "hyp": "SMOKING PROHIBITED", "ms": 105.2, "tokens": 7}
+{"id": "uk-en-04", "hyp": "Caution!\nSlippery floor", "ms": 89.7, "tokens": 8}
+{"id": "uk-en-05", "hyp": "Closed", "ms": 54.4, "tokens": 2}
+{"id": "uk-en-06", "hyp": "Ticket office", "ms": 53.9, "tokens": 3}
+{"id": "uk-en-07", "hyp": "Emergency exit", "ms": 65.6, "tokens": 3}
+{"id": "uk-en-08", "hyp": "Dear passengers! Do not leave your belongings unattended.", "ms": 141.6, "tokens": 11}
+{"id": "uk-en-09", "hyp": "Menu\nPotato Varenyky 120 UAH\nUkrainian Borscht 95 UAH\nDеруns with sour cream 110 UAH", "ms": 262.6, "tokens": 36}
+{"id": "uk-pl-01", "hyp": "Wyjście", "ms": 57.4, "tokens": 4}
+{"id": "uk-pl-02", "hyp": "Zamknięte", "ms": 77.3, "tokens": 4}
+{"id": "uk-pl-03", "hyp": "Dostęp osób trzecich zabroniony", "ms": 112.1, "tokens": 9}
+{"id": "uk-pl-04", "hyp": "Uważaj, stopień", "ms": 87.8, "tokens": 7}
+{"id": "uk-pl-05", "hyp": "Zamknięte", "ms": 61.7, "tokens": 4}
+{"id": "ja-en-01", "hyp": "Exit", "ms": 42.0, "tokens": 2}
+{"id": "ja-en-02", "hyp": "Entrance", "ms": 55.8, "tokens": 2}
+{"id": "ja-en-03", "hyp": "Emergency exit", "ms": 57.1, "tokens": 3}
+{"id": "ja-en-04", "hyp": "No Smoking", "ms": 57.1, "tokens": 3}
+{"id": "ja-en-05", "hyp": "Press", "ms": 46.5, "tokens": 2}
+{"id": "ja-en-06", "hyp": "Pull", "ms": 77.8, "tokens": 2}
+{"id": "ja-en-07", "hyp": "No entry", "ms": 68.6, "tokens": 3}
+{"id": "ja-en-08", "hyp": "Open", "ms": 49.2, "tokens": 2}
+{"id": "ja-en-09", "hyp": "Please watch your step.", "ms": 88.1, "tokens": 6}
+{"id": "ja-en-10", "hyp": "Restroom", "ms": 57.5, "tokens": 3}
+{"id": "ja-en-11", "hyp": "Menu\nRamen 850 yen\nGyoza (6 pieces) 400 yen\nDraft Beer 550 yen", "ms": 246.5, "tokens": 31}
+{"id": "ja-en-12", "hyp": "Business Hours\n11:00 - 22:00\nClosed on Wednesdays", "ms": 175.3, "tokens": 20}
+{"id": "ja-en-13", "hyp": "Please stop boarding at the last minute as it is dangerous.", "ms": 128.6, "tokens": 13}
+{"id": "ja-en-14", "hyp": "Exit", "ms": 40.0, "tokens": 2}
+{"id": "ja-en-15", "hyp": "Settings\nCancel\nSave", "ms": 66.0, "tokens": 6}
+{"id": "ja-en-16", "hyp": "Store in the refrigerator after opening and eat soon.", "ms": 126.9, "tokens": 11}
+{"id": "ja-pl-01", "hyp": "Wyjście", "ms": 55.1, "tokens": 4}
+{"id": "ja-pl-02", "hyp": "Zakaz palenia", "ms": 68.3, "tokens": 5}
+{"id": "ja-pl-03", "hyp": "Wyjście awaryjne", "ms": 74.6, "tokens": 7}
+{"id": "ja-pl-04", "hyp": "Przygotowanie", "ms": 54.8, "tokens": 4}
+{"id": "ja-de-01", "hyp": "Notausgang", "ms": 72.8, "tokens": 4}
+{"id": "zh-en-01", "hyp": "Exit", "ms": 50.0, "tokens": 2}
+{"id": "zh-en-02", "hyp": "Entrance", "ms": 47.4, "tokens": 2}
+{"id": "zh-en-03", "hyp": "No smoking", "ms": 55.6, "tokens": 3}
+{"id": "zh-en-04", "hyp": "Slide carefully", "ms": 55.6, "tokens": 3}
+{"id": "zh-en-05", "hyp": "Emergency exit", "ms": 58.1, "tokens": 3}
+{"id": "zh-en-06", "hyp": "Push", "ms": 43.8, "tokens": 2}
+{"id": "zh-en-07", "hyp": "Pull", "ms": 42.4, "tokens": 2}
+{"id": "zh-en-08", "hyp": "Do not touch", "ms": 75.0, "tokens": 4}
+{"id": "zh-en-09", "hyp": "Restroom", "ms": 51.1, "tokens": 3}
+{"id": "zh-en-10", "hyp": "Menu\nKung Pao Chicken ￥38\nMapo Tofu ￥28\nYangzhou Fried Rice ￥25", "ms": 217.8, "tokens": 29}
+{"id": "zh-en-11", "hyp": "Business Hours\nMonday to Friday 9:00-21:00\nWeekends 10:00-22:00", "ms": 261.5, "tokens": 33}
+{"id": "zh-en-12", "hyp": "For the safety of you and others, please refrain from eating and drinking in the carriage.", "ms": 152.6, "tokens": 19}
+{"id": "zh-en-13", "hyp": "No smoking", "ms": 55.5, "tokens": 3}
+{"id": "zh-en-14", "hyp": "No parking", "ms": 74.7, "tokens": 3}
+{"id": "zh-en-15", "hyp": "Please keep in a cool, dry place, away from direct sunlight.", "ms": 136.0, "tokens": 15}
+{"id": "zh-pl-01", "hyp": "Wyjście", "ms": 63.8, "tokens": 4}
+{"id": "zh-pl-02", "hyp": "Zakaz palenia", "ms": 75.1, "tokens": 5}
+{"id": "zh-pl-03", "hyp": "Uważaj na stopnie", "ms": 92.4, "tokens": 7}
+{"id": "zh-pl-04", "hyp": "Zamknięte", "ms": 56.6, "tokens": 4}
+{"id": "ko-en-01", "hyp": "Exit", "ms": 48.0, "tokens": 2}
+{"id": "ko-en-02", "hyp": "Entrance", "ms": 70.2, "tokens": 2}
+{"id": "ko-en-03", "hyp": "Emergency exit", "ms": 52.9, "tokens": 3}
+{"id": "ko-en-04", "hyp": "No Smoking", "ms": 49.8, "tokens": 3}
+{"id": "ko-en-05", "hyp": "Pull", "ms": 40.3, "tokens": 2}
+{"id": "ko-en-06", "hyp": "Miss you", "ms": 52.9, "tokens": 3}
+{"id": "ko-en-07", "hyp": "Restroom", "ms": 68.8, "tokens": 3}
+{"id": "ko-en-08", "hyp": "No entry", "ms": 63.1, "tokens": 3}
+{"id": "ko-en-09", "hyp": "Menu\nKimchi Jjigae 8,000 won\nBibimbap 9,000 won\nBulgogi Set Meal 13,000 won", "ms": 341.6, "tokens": 41}
+{"id": "ko-en-10", "hyp": "Please step back from the safety line.", "ms": 90.9, "tokens": 9}
+{"id": "ko-pl-01", "hyp": "Wyjście", "ms": 68.0, "tokens": 4}
+{"id": "ko-pl-02", "hyp": "Zakaz palenia", "ms": 63.9, "tokens": 5}
+{"id": "ko-pl-03", "hyp": "Toaleta", "ms": 85.3, "tokens": 4}
+{"id": "ar-en-01", "hyp": "Exit", "ms": 64.0, "tokens": 2}
+{"id": "ar-en-02", "hyp": "Entrance", "ms": 56.0, "tokens": 2}
+{"id": "ar-en-03", "hyp": "No smoking", "ms": 67.0, "tokens": 3}
+{"id": "ar-en-04", "hyp": "Emergency exit", "ms": 48.7, "tokens": 3}
+{"id": "ar-en-05", "hyp": "Danger", "ms": 52.4, "tokens": 2}
+{"id": "ar-en-06", "hyp": "Closed", "ms": 41.3, "tokens": 2}
+{"id": "ar-en-07", "hyp": "Please remove your shoes", "ms": 94.6, "tokens": 5}
+{"id": "ar-en-08", "hyp": "Menu\nHummus 15 AED\nFalafel 10 AED\nChicken Shawarma 25 AED", "ms": 204.0, "tokens": 24}
+{"id": "ar-en-09", "hyp": "Parking is strictly prohibited in this place.", "ms": 120.0, "tokens": 9}
+{"id": "ar-pl-01", "hyp": "Wyjście", "ms": 84.3, "tokens": 4}
+{"id": "ar-pl-02", "hyp": "Zakaz palenia", "ms": 77.5, "tokens": 5}
+{"id": "ar-pl-03", "hyp": "Zamknięte", "ms": 60.6, "tokens": 4}
+{"id": "tr-en-01", "hyp": "Exit", "ms": 57.7, "tokens": 2}
+{"id": "tr-en-02", "hyp": "Entrance", "ms": 84.6, "tokens": 2}
+{"id": "tr-en-03", "hyp": "No smoking", "ms": 89.4, "tokens": 3}
+{"id": "tr-en-04", "hyp": "EMERGENCY EXIT", "ms": 81.0, "tokens": 5}
+{"id": "tr-en-05", "hyp": "Your", "ms": 81.9, "tokens": 2}
+{"id": "tr-en-06", "hyp": "Your picture", "ms": 95.7, "tokens": 3}
+{"id": "tr-en-07", "hyp": "Caution!\nWet floor", "ms": 69.1, "tokens": 6}
+{"id": "tr-en-08", "hyp": "Menu\nLentil soup 60 TL\nAdana kebab 220 TL\nKünefe 120 TL", "ms": 273.0, "tokens": 29}
+{"id": "tr-en-09", "hyp": "Please have your ticket ready for inspection.", "ms": 89.9, "tokens": 9}
+{"id": "tr-pl-01", "hyp": "Wyjście", "ms": 60.0, "tokens": 4}
+{"id": "tr-pl-02", "hyp": "Nie wolno palić", "ms": 70.4, "tokens": 6}
+{"id": "tr-pl-03", "hyp": "Zamknięte", "ms": 87.2, "tokens": 4}
+{"id": "nl-en-01", "hyp": "Exit", "ms": 47.5, "tokens": 2}
+{"id": "nl-en-02", "hyp": "Entrance", "ms": 49.8, "tokens": 2}
+{"id": "nl-en-03", "hyp": "Emergency exit", "ms": 51.9, "tokens": 3}
+{"id": "nl-en-04", "hyp": "No smoking", "ms": 49.6, "tokens": 3}
+{"id": "nl-en-05", "hyp": "Push", "ms": 41.2, "tokens": 2}
+{"id": "nl-en-06", "hyp": "Pull", "ms": 42.5, "tokens": 2}
+{"id": "nl-en-07", "hyp": "Attention: slippery floor", "ms": 86.5, "tokens": 5}
+{"id": "nl-en-08", "hyp": "Lunch Menu\nHam-cheese tosti € 5.50\nToasted sandwich with bacon € 9.75\nSoup of the day € 6.25", "ms": 278.2, "tokens": 38}
+{"id": "nl-en-09", "hyp": "Cycling against the facade is forbidden. Bicycles will be removed.", "ms": 167.2, "tokens": 14}
+{"id": "nl-en-10", "hyp": "Gift", "ms": 74.4, "tokens": 2}
+{"id": "nl-pl-01", "hyp": "Wyjście", "ms": 65.4, "tokens": 4}
+{"id": "nl-pl-02", "hyp": "Dostęp zabroniony", "ms": 67.9, "tokens": 6}
+{"id": "nl-pl-03", "hyp": "Zamknięte", "ms": 60.8, "tokens": 4}
+{"id": "cs-en-01", "hyp": "Sunrise", "ms": 53.9, "tokens": 2}
+{"id": "cs-en-02", "hyp": "Entrance", "ms": 61.9, "tokens": 2}
+{"id": "cs-en-03", "hyp": "Emergency exit", "ms": 65.3, "tokens": 3}
+{"id": "cs-en-04", "hyp": "Smoking prohibited", "ms": 50.3, "tokens": 3}
+{"id": "cs-en-05", "hyp": "Pull", "ms": 40.4, "tokens": 2}
+{"id": "cs-en-06", "hyp": "Push", "ms": 54.9, "tokens": 2}
+{"id": "cs-en-07", "hyp": "CAUTION! DANGER OF ELECTRIC SHOCK", "ms": 105.0, "tokens": 10}
+{"id": "cs-en-08", "hyp": "Menu\nSvíčková with cream and dumplings 245 CZK\nBeef goulash, dumpling 199 CZK\nFried cheese, fries 189 CZK", "ms": 312.2, "tokens": 41}
+{"id": "cs-en-09", "hyp": "The ticket must be marked immediately upon boarding the vehicle.", "ms": 142.7, "tokens": 12}
+{"id": "cs-pl-01", "hyp": "Wschód", "ms": 56.3, "tokens": 4}
+{"id": "cs-pl-02", "hyp": "Uwaga", "ms": 53.5, "tokens": 3}
+{"id": "cs-pl-03", "hyp": "Zamknięte", "ms": 57.6, "tokens": 4}
+{"id": "cs-pl-04", "hyp": "Wejście zabronione", "ms": 73.8, "tokens": 7}
+{"id": "en-pl-01", "hyp": "Wyjście", "ms": 56.3, "tokens": 4}
+{"id": "en-pl-02", "hyp": "Wyjście", "ms": 57.8, "tokens": 4}
+{"id": "en-pl-03", "hyp": "Uważaj na przepaść", "ms": 98.8, "tokens": 8}
+{"id": "en-pl-04", "hyp": "Tylko dla personelu", "ms": 78.3, "tokens": 7}
+{"id": "en-pl-05", "hyp": "Farba mokra", "ms": 68.9, "tokens": 5}
+{"id": "en-pl-06", "hyp": "BRAK SERWISU", "ms": 68.4, "tokens": 6}
+{"id": "en-pl-07", "hyp": "Idź w lewo", "ms": 67.6, "tokens": 6}
+{"id": "en-pl-08", "hyp": "Śniadanie\nPełny angielski obiad £9.50\nOwsianka z miodem £4.20", "ms": 267.1, "tokens": 32}
+{"id": "en-pl-09", "hyp": "Proszę nie zostawiać bagaży bez nadzoru. Nie nadzorowane przedmioty mogą zostać usunięte i zniszczone.", "ms": 263.1, "tokens": 34}
+{"id": "en-de-01", "hyp": "Notausgang", "ms": 54.2, "tokens": 4}
+{"id": "en-de-02", "hyp": "Bitte füttern Sie die Tiere nicht", "ms": 100.8, "tokens": 9}
+{"id": "en-es-01", "hyp": "Salida", "ms": 71.5, "tokens": 3}
+{"id": "en-es-02", "hyp": "No fumar", "ms": 48.6, "tokens": 3}

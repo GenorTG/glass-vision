@@ -1,0 +1,259 @@
+{"id": "de-en-01", "hyp": "Exit", "ms": 367.8}
+{"id": "de-en-02", "hyp": "Entrance", "ms": 301.8}
+{"id": "de-en-03", "hyp": "Emergency Exit", "ms": 161.4}
+{"id": "de-en-04", "hyp": "Emergency Exit", "ms": 165.4}
+{"id": "de-en-05", "hyp": "pulled", "ms": 181.6}
+{"id": "de-en-06", "hyp": "Pressed", "ms": 189.5}
+{"id": "de-en-07", "hyp": "Smoking prohibited", "ms": 402.0}
+{"id": "de-en-08", "hyp": "Banned entry", "ms": 267.6}
+{"id": "de-en-09", "hyp": "Risk of slipping in the wet", "ms": 657.3}
+{"id": "de-en-10", "hyp": "Please do not touch", "ms": 217.4}
+{"id": "de-en-11", "hyp": "Food card\nSchnitzel Viennese Art with Pommes 14,90 €\nBratwurst with Sauerkraut 9.50 €\nApple strawberries with cream 5,80 €", "ms": 839.6}
+{"id": "de-en-12", "hyp": "Opening hours\nMo–Fr 9–18 hours\n10 to 14 hours\nSundays and holidays closed", "ms": 304.3}
+{"id": "de-en-13", "hyp": "The driving license must be devalued before departure.In the case of checks without a valid ticket, an increased transport fee of €60 will be charged.", "ms": 1266.1}
+{"id": "de-en-14", "hyp": "exhausted", "ms": 336.2}
+{"id": "de-en-15", "hyp": "Railroad 3", "ms": 422.3}
+{"id": "de-en-16", "hyp": "Cool and dry storage. at least durable until: see cover", "ms": 2141.3}
+{"id": "de-en-17", "hyp": "attitudes\nCancelled\nstored", "ms": 298.1}
+{"id": "de-en-18", "hyp": "No drinking water", "ms": 211.3}
+{"id": "de-en-19", "hyp": "Exit 23 Cologne-Ost 2 km", "ms": 313.5}
+{"id": "de-en-20", "hyp": "Poisoned", "ms": 150.4}
+{"id": "de-en-21", "hyp": "Free", "ms": 199.5}
+{"id": "de-en-22", "hyp": "Exit / Exit", "ms": 393.5}
+{"id": "de-pl-01", "hyp": "Wyjście", "ms": 297.9}
+{"id": "de-pl-02", "hyp": "Wyjście awaryjne", "ms": 602.4}
+{"id": "de-pl-03", "hyp": "palenie zabronione", "ms": 483.3}
+{"id": "de-pl-04", "hyp": "Proszę trzymać dystans", "ms": 403.8}
+{"id": "de-pl-05", "hyp": "Uważaj na etapy", "ms": 242.1}
+{"id": "de-pl-06", "hyp": "apteka", "ms": 277.0}
+{"id": "de-pl-07", "hyp": "Kasy", "ms": 139.6}
+{"id": "de-pl-08", "hyp": "Parking jest dozwolony tylko z ważną licencją parkingową. pojazdy nielegalnie zatrzymane są wyciągane za opłatą.", "ms": 1509.7}
+{"id": "de-pl-09", "hyp": "Śniadanie\nRzeźba ze speckem\nCiasto z jogurtem", "ms": 519.1}
+{"id": "de-pl-10", "hyp": "Wejście do budynku zabronione", "ms": 514.7}
+{"id": "de-es-01", "hyp": "Salida", "ms": 287.7}
+{"id": "pl-en-01", "hyp": "Exit", "ms": 294.2}
+{"id": "pl-en-02", "hyp": "Entrance", "ms": 194.8}
+{"id": "pl-en-03", "hyp": "Evacuation Exit", "ms": 380.0}
+{"id": "pl-en-04", "hyp": "Prohibition of smoking", "ms": 589.3}
+{"id": "pl-en-05", "hyp": "Fresh Painted", "ms": 481.0}
+{"id": "pl-en-06", "hyp": "Continued", "ms": 250.6}
+{"id": "pl-en-07", "hyp": "Pushing", "ms": 348.9}
+{"id": "pl-en-08", "hyp": "INACTIVE CASE", "ms": 256.2}
+{"id": "pl-en-09", "hyp": "SOPE\nEighteen Pieces of Bread\nTaste of pasta 14\nRUSSIA 24 PLUS", "ms": 785.2}
+{"id": "pl-en-10", "hyp": "Opening Hours\npon.–pt. 8:00–20:00\nsob. 9:00–15:00\nINACTIVE INACTIVE", "ms": 648.3}
+{"id": "pl-en-11", "hyp": "The ticket must be cancelled immediately after entering the vehicle. No valid ticket is subject to an additional fee.", "ms": 1285.7}
+{"id": "pl-en-12", "hyp": "Wyjśc1e", "ms": 0.0}
+{"id": "pl-en-13", "hyp": "Banned Fuel", "ms": 257.1}
+{"id": "pl-en-14", "hyp": "setup\ncancelled\nRecord Changes", "ms": 491.4}
+{"id": "pl-en-15", "hyp": "Store in a place inaccessible to children.", "ms": 758.8}
+{"id": "pl-en-16", "hyp": "Private Land", "ms": 548.0}
+{"id": "pl-en-17", "hyp": "Toilet", "ms": 239.7}
+{"id": "pl-en-18", "hyp": "Room 12", "ms": 407.1}
+{"id": "pl-en-19", "hyp": "Attention, bad dog", "ms": 519.9}
+{"id": "pl-en-20", "hyp": "Dear customers, on November 11th the store will be closed.", "ms": 1435.9}
+{"id": "pl-de-01", "hyp": "Ausfahrt", "ms": 262.1}
+{"id": "pl-de-02", "hyp": "Eintrittsverbot", "ms": 295.7}
+{"id": "pl-de-03", "hyp": "Achtung: Der böse Hund", "ms": 543.1}
+{"id": "pl-es-01", "hyp": "salida de evacuación", "ms": 260.4}
+{"id": "pl-es-02", "hyp": "Horas de apertura\np.–p. 10–18", "ms": 416.5}
+{"id": "fr-en-01", "hyp": "Exit", "ms": 268.6}
+{"id": "fr-en-02", "hyp": "Exit of rescue", "ms": 300.8}
+{"id": "fr-en-03", "hyp": "pushed", "ms": 142.7}
+{"id": "fr-en-04", "hyp": "Shoot", "ms": 198.8}
+{"id": "fr-en-05", "hyp": "Defense of Smoking", "ms": 373.2}
+{"id": "fr-en-06", "hyp": "Beware of walking", "ms": 168.4}
+{"id": "fr-en-07", "hyp": "Closed on Monday", "ms": 294.2}
+{"id": "fr-en-08", "hyp": "entries\nSoup with gratinated onions 8 €\nSweaters from Burgundy (6 pieces) 12 €\nPlaces\nCucumbers and apples from 22 €", "ms": 763.8}
+{"id": "fr-en-09", "hyp": "It is forbidden to throw objects out of the window. Any abuse will be punished.", "ms": 1044.2}
+{"id": "fr-en-10", "hyp": "S0RTIE", "ms": 0.0}
+{"id": "fr-en-11", "hyp": "Parameters of\ncancelled\nRegistered", "ms": 279.2}
+{"id": "fr-en-12", "hyp": "The evil dog", "ms": 313.4}
+{"id": "fr-en-13", "hyp": "Toilets", "ms": 336.4}
+{"id": "fr-en-14", "hyp": "Free", "ms": 201.8}
+{"id": "fr-en-15", "hyp": "Hours of opening\nMonday to Friday: 9h – 19h\nSaturday: 9 – 12 h", "ms": 435.0}
+{"id": "fr-pl-01", "hyp": "Wyjście", "ms": 283.1}
+{"id": "fr-pl-02", "hyp": "Obrona przed paleniem", "ms": 247.0}
+{"id": "fr-pl-03", "hyp": "Zamknięte w niedzielę", "ms": 306.9}
+{"id": "fr-pl-04", "hyp": "Zakazane dla publiczności", "ms": 407.1}
+{"id": "fr-pl-05", "hyp": "Uwaga, spadają kamienie", "ms": 412.8}
+{"id": "fr-de-01", "hyp": "Ausfahrt Rettung", "ms": 454.7}
+{"id": "es-en-01", "hyp": "Exit", "ms": 158.6}
+{"id": "es-en-02", "hyp": "Pushed", "ms": 251.8}
+{"id": "es-en-03", "hyp": "Shoot", "ms": 253.7}
+{"id": "es-en-04", "hyp": "Prohibited smoking", "ms": 294.6}
+{"id": "es-en-05", "hyp": "Emergency exit", "ms": 233.1}
+{"id": "es-en-06", "hyp": "Beware of wet soil", "ms": 246.7}
+{"id": "es-en-07", "hyp": "is rented", "ms": 175.7}
+{"id": "es-en-08", "hyp": "armed", "ms": 227.9}
+{"id": "es-en-09", "hyp": "Tapas\nPotatoes from €4.50\nToughened Laminated Safety 6,00 €\nPulp to the Galician 14,00 €", "ms": 637.1}
+{"id": "es-en-10", "hyp": "It is forbidden for any person to enter the building.", "ms": 500.4}
+{"id": "es-en-11", "hyp": "Sal1da", "ms": 0.0}
+{"id": "es-en-12", "hyp": "The box", "ms": 143.5}
+{"id": "es-en-13", "hyp": "Horary\nLunes a viernes: 10:00 - 14:00 y 17:00 - 20:30\nSábados: 10:00 - 14:00", "ms": 165.5}
+{"id": "es-pl-01", "hyp": "Wyjście", "ms": 162.1}
+{"id": "es-pl-02", "hyp": "Zakaz palenia", "ms": 219.2}
+{"id": "es-pl-03", "hyp": "Zamknięte na wakacje", "ms": 251.9}
+{"id": "es-pl-04", "hyp": "Zagrożenie: wysokie napięcie", "ms": 393.8}
+{"id": "it-en-01", "hyp": "Exit", "ms": 161.5}
+{"id": "it-en-02", "hyp": "Entrance to", "ms": 226.1}
+{"id": "it-en-03", "hyp": "Prohibited smoking", "ms": 228.0}
+{"id": "it-en-04", "hyp": "Security Exit", "ms": 148.2}
+{"id": "it-en-05", "hyp": "Pushed", "ms": 202.4}
+{"id": "it-en-06", "hyp": "Closed for holidays", "ms": 318.4}
+{"id": "it-en-07", "hyp": "The first plates\nSpaghetti at the carbonara 12 €\nFurniture for pigs 15 €\nSecondary\nBottle to Milanese 18 €", "ms": 523.9}
+{"id": "it-en-08", "hyp": "Please validate your ticket before boarding.", "ms": 398.7}
+{"id": "it-en-09", "hyp": "Smoking to smoke", "ms": 298.4}
+{"id": "it-en-10", "hyp": "warmth", "ms": 247.0}
+{"id": "it-pl-01", "hyp": "Wyjście", "ms": 238.2}
+{"id": "it-pl-02", "hyp": "Zakaz wstępu", "ms": 232.2}
+{"id": "it-pl-03", "hyp": "Prace w toku", "ms": 191.6}
+{"id": "ru-en-01", "hyp": "The exit", "ms": 121.3}
+{"id": "ru-en-02", "hyp": "entering", "ms": 98.0}
+{"id": "ru-en-03", "hyp": "Entrance prohibited", "ms": 212.9}
+{"id": "ru-en-04", "hyp": "not smoking", "ms": 156.6}
+{"id": "ru-en-05", "hyp": "Be careful, the doors are closed.", "ms": 506.0}
+{"id": "ru-en-06", "hyp": "Reserve exit", "ms": 224.3}
+{"id": "ru-en-07", "hyp": "The box", "ms": 297.6}
+{"id": "ru-en-08", "hyp": "The menu\nBorscht with cream 350 ₽\nHome  420 ₽\nSweatshirts 690 ₽", "ms": 561.3}
+{"id": "ru-en-09", "hyp": "Regime of work\nПн–Пт 9:00–21:00\nСб–Вс 10:00–18:00\nwithout interruption", "ms": 350.0}
+{"id": "ru-en-10", "hyp": "If suspicious objects are found, let the train driver know.", "ms": 635.7}
+{"id": "ru-en-11", "hyp": "Byxoid", "ms": 126.5}
+{"id": "ru-en-12", "hyp": "Exit to City", "ms": 222.1}
+{"id": "ru-en-13", "hyp": "Store at a temperature not higher than 25 ° C. Keep away from children.", "ms": 510.2}
+{"id": "ru-pl-01", "hyp": "Wyjście", "ms": 172.9}
+{"id": "ru-pl-02", "hyp": "Nie palić", "ms": 190.8}
+{"id": "ru-pl-03", "hyp": "Wejście zabronione", "ms": 237.6}
+{"id": "ru-pl-04", "hyp": "Uważaj, zły pies", "ms": 256.0}
+{"id": "ru-pl-05", "hyp": "apteka", "ms": 133.8}
+{"id": "ru-pl-06", "hyp": "Przerwa od 13:00 do 14:00", "ms": 244.9}
+{"id": "ru-de-01", "hyp": "Ausgang", "ms": 153.7}
+{"id": "uk-en-01", "hyp": "Exit", "ms": 201.6}
+{"id": "uk-en-02", "hyp": "Entrance", "ms": 181.1}
+{"id": "uk-en-03", "hyp": "smoking prohibited", "ms": 291.2}
+{"id": "uk-en-04", "hyp": "Careful flooring", "ms": 298.1}
+{"id": "uk-en-05", "hyp": "Closed", "ms": 151.8}
+{"id": "uk-en-06", "hyp": "Kassa", "ms": 123.9}
+{"id": "uk-en-07", "hyp": "Emergency Exit", "ms": 227.8}
+{"id": "uk-en-08", "hyp": "Dear passengers, do not leave your items unattended.", "ms": 473.8}
+{"id": "uk-en-09", "hyp": "MENU\nPotato 120 grams\nUkrainian 95 UAH\nDresden 110 grams", "ms": 335.2}
+{"id": "uk-pl-01", "hyp": "Wyjście", "ms": 201.4}
+{"id": "uk-pl-02", "hyp": "zamknięte", "ms": 334.9}
+{"id": "uk-pl-03", "hyp": "Wejście zagraniczne zabronione", "ms": 528.9}
+{"id": "uk-pl-04", "hyp": "Uważaj, ścieżka", "ms": 649.1}
+{"id": "uk-pl-05", "hyp": "otwarty", "ms": 272.4}
+{"id": "ja-en-01", "hyp": "The Exit", "ms": 238.1}
+{"id": "ja-en-02", "hyp": "The entrance", "ms": 207.8}
+{"id": "ja-en-03", "hyp": "The Emergency", "ms": 235.8}
+{"id": "ja-en-04", "hyp": "Stop smoking", "ms": 245.1}
+{"id": "ja-en-05", "hyp": "Press to", "ms": 214.4}
+{"id": "ja-en-06", "hyp": "pulled", "ms": 214.5}
+{"id": "ja-en-07", "hyp": "Banned entry", "ms": 526.8}
+{"id": "ja-en-08", "hyp": "in business.", "ms": 233.8}
+{"id": "ja-en-09", "hyp": "Pay attention to your feet.", "ms": 593.7}
+{"id": "ja-en-10", "hyp": "The toilet.", "ms": 454.3}
+{"id": "ja-en-11", "hyp": "The menu\nIt is 850 yen.\n餃子（6個） 400円\nBeer is 550 yen.", "ms": 688.6}
+{"id": "ja-en-12", "hyp": "business hours\n11:00〜22:00\nHoliday on Wednesday.", "ms": 188.7}
+{"id": "ja-en-13", "hyp": "Driving is dangerous, so please stop.", "ms": 459.9}
+{"id": "ja-en-14", "hyp": "by", "ms": 169.1}
+{"id": "ja-en-15", "hyp": "set up\ncancelled\npreserved", "ms": 241.8}
+{"id": "ja-en-16", "hyp": "After opening, keep it in the refrigerator and eat it early.", "ms": 450.0}
+{"id": "ja-pl-01", "hyp": "Wyjście", "ms": 196.0}
+{"id": "ja-pl-02", "hyp": "Rzucić palenie", "ms": 217.2}
+{"id": "ja-pl-03", "hyp": "Wyjątkowe usta", "ms": 241.0}
+{"id": "ja-pl-04", "hyp": "Przygotuj się", "ms": 224.9}
+{"id": "ja-de-01", "hyp": "Ausnahmezustand", "ms": 222.7}
+{"id": "zh-en-01", "hyp": "Exported", "ms": 156.1}
+{"id": "zh-en-02", "hyp": "The entrance", "ms": 191.0}
+{"id": "zh-en-03", "hyp": "Prohibited smoking", "ms": 289.2}
+{"id": "zh-en-04", "hyp": "Carefully Slide", "ms": 376.6}
+{"id": "zh-en-05", "hyp": "Safe exports", "ms": 332.1}
+{"id": "zh-en-06", "hyp": "推", "ms": 0.0}
+{"id": "zh-en-07", "hyp": "拉", "ms": 0.0}
+{"id": "zh-en-08", "hyp": "Please do not touch.", "ms": 249.9}
+{"id": "zh-en-09", "hyp": "The bathroom", "ms": 317.2}
+{"id": "zh-en-10", "hyp": "The menu\nChicken for 38 yen\nTofu tofu 28 yen\nJade for 25 yen.", "ms": 300.0}
+{"id": "zh-en-11", "hyp": "business time\n周一至周五 9:00-21:00\n周末 10:00-22:00", "ms": 111.4}
+{"id": "zh-en-12", "hyp": "For your safety and the safety of others, do not eat in the car.", "ms": 677.5}
+{"id": "zh-en-13", "hyp": "Prohibited marriage", "ms": 298.3}
+{"id": "zh-en-14", "hyp": "Prohibited Parking", "ms": 236.1}
+{"id": "zh-en-15", "hyp": "Please place it in a cool and dry place to avoid direct sunlight.", "ms": 534.7}
+{"id": "zh-pl-01", "hyp": "eksportu", "ms": 183.0}
+{"id": "zh-pl-02", "hyp": "Zakaz palenia", "ms": 291.8}
+{"id": "zh-pl-03", "hyp": "Uważaj na schody", "ms": 331.6}
+{"id": "zh-pl-04", "hyp": "zawieszenie działalności", "ms": 309.2}
+{"id": "ko-en-01", "hyp": "Exit is", "ms": 160.9}
+{"id": "ko-en-02", "hyp": "entered", "ms": 164.3}
+{"id": "ko-en-03", "hyp": "Extraordinary", "ms": 260.7}
+{"id": "ko-en-04", "hyp": "Prohibited", "ms": 181.6}
+{"id": "ko-en-05", "hyp": "pulled out.", "ms": 248.1}
+{"id": "ko-en-06", "hyp": "Sorry to", "ms": 135.5}
+{"id": "ko-en-07", "hyp": "The toilet", "ms": 180.7}
+{"id": "ko-en-08", "hyp": "Banned entrance", "ms": 234.1}
+{"id": "ko-en-09", "hyp": "The menu\nKimi Räikkönen 8,000\n비빔밥 9,000원\nOrdinary 13,000", "ms": 346.3}
+{"id": "ko-en-10", "hyp": "Please go out of safety.", "ms": 235.0}
+{"id": "ko-pl-01", "hyp": "Wyjście", "ms": 153.3}
+{"id": "ko-pl-02", "hyp": "Zakaz", "ms": 140.2}
+{"id": "ko-pl-03", "hyp": "Łazienka", "ms": 154.6}
+{"id": "ar-en-01", "hyp": "The exit", "ms": 135.3}
+{"id": "ar-en-02", "hyp": "The entrance", "ms": 139.3}
+{"id": "ar-en-03", "hyp": "Prohibited smoking", "ms": 367.7}
+{"id": "ar-en-04", "hyp": "Emergency Director", "ms": 287.5}
+{"id": "ar-en-05", "hyp": "Risk is", "ms": 268.8}
+{"id": "ar-en-06", "hyp": "closed", "ms": 205.3}
+{"id": "ar-en-07", "hyp": "Please take off the shoes.", "ms": 333.8}
+{"id": "ar-en-08", "hyp": "List of food\n15 of the Dharma.\n10 of them.\n25 chickens of chicken.", "ms": 443.3}
+{"id": "ar-en-09", "hyp": "It is forbidden to sit in this place.", "ms": 348.6}
+{"id": "ar-pl-01", "hyp": "Wyjście", "ms": 221.1}
+{"id": "ar-pl-02", "hyp": "Zakaz palenia", "ms": 437.3}
+{"id": "ar-pl-03", "hyp": "zamknięty", "ms": 175.4}
+{"id": "tr-en-01", "hyp": "The Exit", "ms": 217.1}
+{"id": "tr-en-02", "hyp": "The entrance", "ms": 205.4}
+{"id": "tr-en-03", "hyp": "not smoking", "ms": 220.0}
+{"id": "tr-en-04", "hyp": "Tagged as  T  T", "ms": 441.4}
+{"id": "tr-en-05", "hyp": "You are", "ms": 340.8}
+{"id": "tr-en-06", "hyp": "Cheek to", "ms": 289.6}
+{"id": "tr-en-07", "hyp": "Beware of wet soil.", "ms": 400.2}
+{"id": "tr-en-08", "hyp": "The menu\nSoup of 60 ml\nAdana Kebab 220 TL\nRated 120 TL", "ms": 410.9}
+{"id": "tr-en-09", "hyp": "Please keep your ticket ready for check.", "ms": 370.9}
+{"id": "tr-pl-01", "hyp": "Wyjście", "ms": 229.0}
+{"id": "tr-pl-02", "hyp": "Nie palić", "ms": 358.9}
+{"id": "tr-pl-03", "hyp": "zamknięty", "ms": 223.5}
+{"id": "nl-en-01", "hyp": "The exit", "ms": 291.4}
+{"id": "nl-en-02", "hyp": "Entrance", "ms": 176.1}
+{"id": "nl-en-03", "hyp": "Emergency Exit", "ms": 215.8}
+{"id": "nl-en-04", "hyp": "Prohibited to smoke", "ms": 255.1}
+{"id": "nl-en-05", "hyp": "Pushed", "ms": 163.0}
+{"id": "nl-en-06", "hyp": "pulled", "ms": 176.3}
+{"id": "nl-en-07", "hyp": "Beware of smooth flooring", "ms": 235.7}
+{"id": "nl-en-08", "hyp": "Lunch card\nTosti ham cheese €5.50\nSweepstakes for €9.75\nSoup of the day €6.25", "ms": 397.1}
+{"id": "nl-en-09", "hyp": "Bicycle placement against the facade is prohibited. Bicycles are removed.", "ms": 850.9}
+{"id": "nl-en-10", "hyp": "Gifted", "ms": 254.3}
+{"id": "nl-pl-01", "hyp": "Wyjście", "ms": 215.9}
+{"id": "nl-pl-02", "hyp": "Zakaz dostępu", "ms": 381.4}
+{"id": "nl-pl-03", "hyp": "zamknięty", "ms": 219.2}
+{"id": "cs-en-01", "hyp": "Eastern", "ms": 323.0}
+{"id": "cs-en-02", "hyp": "Entrance", "ms": 182.6}
+{"id": "cs-en-03", "hyp": "Emergency East", "ms": 352.1}
+{"id": "cs-en-04", "hyp": "smoking prohibited", "ms": 340.8}
+{"id": "cs-en-05", "hyp": "pulling", "ms": 179.4}
+{"id": "cs-en-06", "hyp": "Pressing", "ms": 175.7}
+{"id": "cs-en-07", "hyp": "Risk of electric shock", "ms": 577.7}
+{"id": "cs-en-08", "hyp": "Food Ticket\nCandle on cream with knob 245 CZK\nMeat and beef 199\nCheese and chips 189", "ms": 1000.2}
+{"id": "cs-en-09", "hyp": "The ticket must be marked immediately after boarding the car.", "ms": 695.2}
+{"id": "cs-pl-01", "hyp": "Wschód", "ms": 324.3}
+{"id": "cs-pl-02", "hyp": "Uwaga", "ms": 434.7}
+{"id": "cs-pl-03", "hyp": "Zamknięte", "ms": 207.1}
+{"id": "cs-pl-04", "hyp": "Wejście zabronione", "ms": 373.2}
+{"id": "en-pl-01", "hyp": "Wyjście", "ms": 204.6}
+{"id": "en-pl-02", "hyp": "Ścieżka wyjścia", "ms": 230.6}
+{"id": "en-pl-03", "hyp": "Pamiętaj o przepaści", "ms": 318.5}
+{"id": "en-pl-04", "hyp": "Tylko personel", "ms": 264.3}
+{"id": "en-pl-05", "hyp": "Mokre farby", "ms": 364.7}
+{"id": "en-pl-06", "hyp": "Poza porządkiem", "ms": 403.4}
+{"id": "en-pl-07", "hyp": "Pozostań Lewica", "ms": 301.1}
+{"id": "en-pl-08", "hyp": "Śniadanie\nŚniadanie w całości po angielsku £9.50\nZioła z miodem 4,20 zł", "ms": 572.8}
+{"id": "en-pl-09", "hyp": "Nie zostawiaj walizek bez opieki.Nieopieczętowane przedmioty mogą zostać usunięte i zniszczone.", "ms": 1483.9}
+{"id": "en-de-01", "hyp": "Notfall Ausfahrt", "ms": 494.6}
+{"id": "en-de-02", "hyp": "Füttere die Tiere bitte nicht", "ms": 629.4}
+{"id": "en-es-01", "hyp": "Salida", "ms": 229.9}
+{"id": "en-es-02", "hyp": "No fumar", "ms": 153.4}

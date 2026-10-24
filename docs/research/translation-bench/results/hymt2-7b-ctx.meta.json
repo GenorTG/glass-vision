@@ -1,0 +1,17 @@
+{
+ "system": "hymt2-7b-ctx",
+ "label": "Hy-MT2-7B Q4_K_M",
+ "gguf": "Hy-MT2-7B-GGUF/Hy-MT2-7B-Q4_K_M.gguf",
+ "disk_gb": 4.62,
+ "load_s": 3.8,
+ "vram_mib_process": 5842,
+ "server_args": "-ngl 999 -c 8192 -np 4 -fa on --reasoning off",
+ "runtime": "llama.cpp a25c986",
+ "variant": "ctx",
+ "photo8_concurrent_ms": [
+  640.0,
+  677.0,
+  666.6
+ ],
+ "items": 259
+}

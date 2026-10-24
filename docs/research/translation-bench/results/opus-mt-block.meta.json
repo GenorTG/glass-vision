@@ -1,0 +1,14 @@
+{
+ "system": "opus-mt-block",
+ "load_s": 44.2,
+ "vram_mib": 4510,
+ "vram_mib_process": 4510,
+ "torch_peak_mib": 4153,
+ "disk_gb": 9.0,
+ "covered": 232,
+ "items": 259,
+ "num_beams": 4,
+ "mode": "block",
+ "precision": "fp16",
+ "runtime": "transformers"
+}

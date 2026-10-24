@@ -1,0 +1,259 @@
+{"id": "de-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a railway station). Other text on the same photo: Gleis 1–4 | U-Bahn.\n\n[Source Text]\nExit", "ms": 182.9, "tokens": 44}
+{"id": "de-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.7, "tokens": 19}
+{"id": "de-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nExit", "ms": 169.6, "tokens": 41}
+{"id": "de-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.8, "tokens": 19}
+{"id": "de-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 96.9, "tokens": 21}
+{"id": "de-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nPress", "ms": 181.5, "tokens": 43}
+{"id": "de-en-07", "hyp": "Smoking is prohibited", "ms": 27.9, "tokens": 4}
+{"id": "de-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nENTRY PROHIBED", "ms": 204.6, "tokens": 50}
+{"id": "de-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nAttention!\nRisk of slipping in wet conditions", "ms": 217.3, "tokens": 53}
+{"id": "de-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nDo not touch", "ms": 193.2, "tokens": 47}
+{"id": "de-en-11", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\n[Source Text]\nMenu\nWiener Schnitzel with Fries 14.90 €\nBratwurst with Sauerkraut 9.50 €\nApple Strudel with Cream 5.80 €", "ms": 267.5, "tokens": 65}
+{"id": "de-en-12", "hyp": "[Background Information]\nText read by OCR from a phone photo (shop door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nOpening Hours\nMon–Fri 9–18 Uhr\nSat 10–14 Uhr\nClosed on Suns and Holidays", "ms": 275.1, "tokens": 67}
+{"id": "de-en-13", "hyp": "[Background Information]\nText read by OCR from a phone photo (noticed in a tram).\n\n[Source Text]\nThe ride ticket must be validated before departure. For inspections without a valid ticket, a surcharge of 60 € will be charged.", "ms": 215.3, "tokens": 52}
+{"id": "de-en-14", "hyp": "[Ambient Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 88.3, "tokens": 20}
+{"id": "de-en-15", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a railway station).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nTrack 3", "ms": 180.8, "tokens": 44}
+{"id": "de-en-16", "hyp": "[Background Information]\nText read by OCR from a phone photo (food packaging).\n\nPlease translate the following text into English, considering the provided background information.\n\n[Source Text]\nStore cool and dry.\nMinimum shelf life: see lid.", "ms": 201.4, "tokens": 49}
+{"id": "de-en-17", "hyp": "[Background Information]\nText read by OCR from a phone photo (phone screen).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSettings\nCancel\nSave", "ms": 177.5, "tokens": 43}
+{"id": "de-en-18", "hyp": "[Background Information]\nText read by OCR from a phone photo (label above a tap).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNo Drinking Water", "ms": 180.7, "tokens": 43}
+{"id": "de-en-19", "hyp": "Exit 23 Cologne East\n2 km", "ms": 49.6, "tokens": 9}
+{"id": "de-en-20", "hyp": "[Background Information]\nText read by OCR from a phone photo (label on a bottle).\n\nGift", "ms": 98.5, "tokens": 22}
+{"id": "de-en-21", "hyp": "[Background Information]\nText read by OCR from a phone photo (indicator on a toilet door lock).", "ms": 98.8, "tokens": 22}
+{"id": "de-en-22", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\n[Source Text]\nExit / Exit", "ms": 115.7, "tokens": 27}
+{"id": "de-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zapisany na dworcu kolejowym).", "ms": 167.4, "tokens": 40}
+{"id": "de-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 147.2, "tokens": 35}
+{"id": "de-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.7, "tokens": 42}
+{"id": "de-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.4, "tokens": 42}
+{"id": "de-pl-05", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.6, "tokens": 42}
+{"id": "de-pl-06", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 173.9, "tokens": 42}
+{"id": "de-pl-07", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zapisz się w supermarketie).", "ms": 152.4, "tokens": 36}
+{"id": "de-pl-08", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (zapisany na parkingu).  \n\nProszę przetłumaczyć następujący tekst, uwzględniając podane informacje tła.  \n[Tekst źródłowy]  \nParkowanie jest dozwolone tylko przy posiadaniu ważnego biletu parkowania. Pojazdy postawione bez zezwolenia będą wywiezione za opłatą.", "ms": 539.1, "tokens": 135}
+{"id": "de-pl-09", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (menú śniadaniowego hotelu).", "ms": 159.2, "tokens": 38}
+{"id": "de-pl-10", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (obwód budowy).", "ms": 143.4, "tokens": 34}
+{"id": "de-es-01", "hyp": "[Información de Contexto]\nTexto leído por OCR desde una foto de teléfono (registro en una estación de tren).", "ms": 138.8, "tokens": 33}
+{"id": "pl-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.8, "tokens": 19}
+{"id": "pl-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 87.8, "tokens": 19}
+{"id": "pl-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEgress Exit", "ms": 178.2, "tokens": 43}
+{"id": "pl-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNo Smoking", "ms": 188.4, "tokens": 46}
+{"id": "pl-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nAttention!\nJust freshly painted", "ms": 204.3, "tokens": 50}
+{"id": "pl-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.8, "tokens": 21}
+{"id": "pl-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 93.9, "tokens": 21}
+{"id": "pl-en-08", "hyp": "The store is closed.", "ms": 38.1, "tokens": 6}
+{"id": "pl-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSoup\nZurek in bread 18 zł\nRice soup with pasta 14 zł\nRussian dumplings 24 zł", "ms": 282.2, "tokens": 68}
+{"id": "pl-en-10", "hyp": "[Background Information]\nOpening hours\nMon.–Thu. 8:00–20:00\nSat. 9:00–15:00\nSun. closed", "ms": 153.4, "tokens": 36}
+{"id": "pl-en-11", "hyp": "[Background Information]\nThe ticket must be cancelled immediately after entering the vehicle. Failure to have a valid ticket will result in a additional charge.", "ms": 126.1, "tokens": 29}
+{"id": "pl-en-12", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 89.9, "tokens": 19}
+{"id": "pl-en-13", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).", "ms": 100.9, "tokens": 23}
+{"id": "pl-en-14", "hyp": "[Background Information]\nText read by OCR from a phone photo (phone screen).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSettings\nCancel\nSave changes", "ms": 181.8, "tokens": 44}
+{"id": "pl-en-15", "hyp": "[Background Information]\nText read by OCR from a phone photo (medicine box).", "ms": 78.0, "tokens": 17}
+{"id": "pl-en-16", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nPrivate Property", "ms": 193.8, "tokens": 46}
+{"id": "pl-en-17", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nToilet", "ms": 193.0, "tokens": 46}
+{"id": "pl-en-18", "hyp": "[Background Information]\nText read by OCR from a phone photo (hotel corridor door).\n\nRoom 12", "ms": 102.5, "tokens": 23}
+{"id": "pl-en-19", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nAttention! Bad dog", "ms": 199.7, "tokens": 48}
+{"id": "pl-en-20", "hyp": "[Background Information]\nText read by OCR from a phone photo (notice on a shop door).\n\nDear Customers, on November 11th, the store will be closed. We welcome you back from November 12th.", "ms": 191.5, "tokens": 46}
+{"id": "pl-de-01", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wurde (Schrift über einer Tür).", "ms": 127.1, "tokens": 30}
+{"id": "pl-de-02", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wird (eine Schilderung, Etikette, Menü oder Anzeige).\n\nBitte übersetzen Sie den folgenden Text unter Berücksichtigung der bereitgestellten Hintergrundinformationen.\n\n[Quellentext]\nZutritt verboten", "ms": 335.1, "tokens": 84}
+{"id": "pl-de-03", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wird (eine Schilderung, Etikette, Menü oder Anzeige).\n\nBitte übersetzen Sie den folgenden Text unter Berücksichtigung der bereitgestellten Hintergrundinformationen.\n\n[Quellentext]\nAchtung! Der böse Hund", "ms": 349.1, "tokens": 87}
+{"id": "pl-es-01", "hyp": "[Información de Contexto]  \nTexto leído por OCR desde una foto de teléfono (una señal, etiqueta, menú o aviso).", "ms": 162.9, "tokens": 39}
+{"id": "pl-es-02", "hyp": "[Historia de la información]  \nTexto leído por OCR desde una foto de teléfono (puerta de la tienda).  \n\n[Texto de origen]  \nHorarios de apertura  \nLun.–Vi. 10–18", "ms": 243.0, "tokens": 59}
+{"id": "fr-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a railway station). Other text on the same photo: Métro | Quais 1 à 6.\n\n[Source Text]\nExit", "ms": 186.7, "tokens": 45}
+{"id": "fr-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEMERGENCY ROUND-IN", "ms": 192.8, "tokens": 47}
+{"id": "fr-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nPush", "ms": 177.8, "tokens": 43}
+{"id": "fr-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.3, "tokens": 21}
+{"id": "fr-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nAnti-Smoking", "ms": 197.4, "tokens": 48}
+{"id": "fr-en-06", "hyp": "Attention to the walk", "ms": 31.6, "tokens": 5}
+{"id": "fr-en-07", "hyp": "Closed on Monday", "ms": 27.6, "tokens": 4}
+{"id": "fr-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\n[Source Text]\nEntrees\nGratinated Onion Soup 8 €\nBourgogne Snails (6 pieces) 12 €\nDishes\nPoultry Confit, Sarsaparilla Apples 22 €", "ms": 282.2, "tokens": 69}
+{"id": "fr-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (noticed on a train).\n\n[Source Text]\nIt is prohibited to throw objects out of the window. Any abuse will be punished.", "ms": 177.7, "tokens": 42}
+{"id": "fr-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 86.8, "tokens": 19}
+{"id": "fr-en-11", "hyp": "[Background Information]\nText read by OCR from a phone photo (phone screen).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSettings\nCancel\nSave", "ms": 178.0, "tokens": 43}
+{"id": "fr-en-12", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign on a garden gate).", "ms": 89.4, "tokens": 20}
+{"id": "fr-en-13", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nToilets", "ms": 198.5, "tokens": 47}
+{"id": "fr-en-14", "hyp": "[Background Information]\nText read by OCR from a phone photo (indicator on a toilet door lock).", "ms": 98.6, "tokens": 22}
+{"id": "fr-en-15", "hyp": "[Background Information]\nText read by OCR from a phone photo (pharmacy door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nOpening Hours\nMonday to Friday: 9h – 19h\nSaturday: 9h – 12h", "ms": 260.5, "tokens": 63}
+{"id": "fr-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 148.7, "tokens": 35}
+{"id": "fr-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 180.7, "tokens": 42}
+{"id": "fr-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 180.7, "tokens": 42}
+{"id": "fr-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 188.4, "tokens": 42}
+{"id": "fr-pl-05", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 190.5, "tokens": 42}
+{"id": "fr-de-01", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wurde (Schrift über einer Tür).\n\n[Quellentext]\nSORTIE DE SECOURS", "ms": 179.9, "tokens": 43}
+{"id": "es-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 91.4, "tokens": 19}
+{"id": "es-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 100.1, "tokens": 21}
+{"id": "es-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 99.5, "tokens": 21}
+{"id": "es-en-04", "hyp": "Prohibido fumar", "ms": 40.3, "tokens": 6}
+{"id": "es-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nEmergency Exit", "ms": 103.9, "tokens": 22}
+{"id": "es-en-06", "hyp": "CAUTION: WET SOIL", "ms": 48.3, "tokens": 8}
+{"id": "es-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a shop window).\n\nTo be rented", "ms": 110.8, "tokens": 24}
+{"id": "es-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\n[Source Text]\nAseos", "ms": 134.3, "tokens": 31}
+{"id": "es-en-09", "hyp": "[Background Information]\nTapas\nPatatas bravas 4.50 €\nCroquetas de jamón 6.00 €\nPulpo a la gallega 14.00 €", "ms": 179.6, "tokens": 43}
+{"id": "es-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (construction site fence).", "ms": 82.9, "tokens": 18}
+{"id": "es-en-11", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 86.5, "tokens": 19}
+{"id": "es-en-12", "hyp": "[Background Information]\nText read by OCR from a phone photo (signing in a supermarket).", "ms": 90.5, "tokens": 20}
+{"id": "es-en-13", "hyp": "[Background Information]\nText read by OCR from a phone photo (shop door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSchedule\nMonday to Friday: 10:00 - 14:00 and 17:00 - 20:30\nSaturdays: 10:00 - 14:00", "ms": 316.3, "tokens": 77}
+{"id": "es-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (nazwa nad drzwiami).", "ms": 155.2, "tokens": 36}
+{"id": "es-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 179.4, "tokens": 42}
+{"id": "es-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 176.5, "tokens": 42}
+{"id": "es-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 176.7, "tokens": 42}
+{"id": "it-en-01", "hyp": "Exit", "ms": 18.2, "tokens": 2}
+{"id": "it-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 86.2, "tokens": 19}
+{"id": "it-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNo Smoking", "ms": 194.7, "tokens": 46}
+{"id": "it-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 90.0, "tokens": 19}
+{"id": "it-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 97.3, "tokens": 21}
+{"id": "it-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nClosed for vacation", "ms": 204.5, "tokens": 47}
+{"id": "it-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEntrées\nSpaghetti alla carbonara 12 €\nRisotto ai funghi porcini 15 €\nMain Dishes\nCotoletta alla milanese 18 €", "ms": 342.2, "tokens": 80}
+{"id": "it-en-08", "hyp": "Please verify the ticket before boarding.", "ms": 44.4, "tokens": 8}
+{"id": "it-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).", "ms": 104.9, "tokens": 23}
+{"id": "it-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (label on a tap).", "ms": 91.8, "tokens": 19}
+{"id": "it-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 161.3, "tokens": 35}
+{"id": "it-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 184.1, "tokens": 42}
+{"id": "it-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 185.5, "tokens": 42}
+{"id": "ru-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.4, "tokens": 19}
+{"id": "ru-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 86.1, "tokens": 19}
+{"id": "ru-en-03", "hyp": "ENTER PROHIBED", "ms": 36.3, "tokens": 6}
+{"id": "ru-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNo Smoking", "ms": 194.4, "tokens": 46}
+{"id": "ru-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a metro train door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nBe careful, doors are closing", "ms": 204.9, "tokens": 49}
+{"id": "ru-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEmergency Exit", "ms": 175.9, "tokens": 42}
+{"id": "ru-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (signing at a railway station). Other text on the same photo: Пригородные поезда.\n\n[Source Text]\nCashier", "ms": 178.5, "tokens": 43}
+{"id": "ru-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\n[Source Text]\nMenu\nBorscht with sour cream 350 ₽\nHomemade dumplings 420 ₽\nBlintzes with caviar 690 ₽", "ms": 245.6, "tokens": 59}
+{"id": "ru-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (shop door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nOperating Hours\nMon–Thu 9:00–21:00\nSat–Sun 10:00–18:00\nNo Break", "ms": 276.3, "tokens": 68}
+{"id": "ru-en-10", "hyp": "Dear passengers! If you notice any suspicious items, please inform the train driver.", "ms": 79.3, "tokens": 17}
+{"id": "ru-en-11", "hyp": "[BACKGROUND INFORMATION]\nText read by OCR from a phone photo (sign above a door).", "ms": 93.8, "tokens": 21}
+{"id": "ru-en-12", "hyp": "Exit to the city", "ms": 30.8, "tokens": 5}
+{"id": "ru-en-13", "hyp": "Store at a temperature not exceeding 25 °C. Keep out of reach of children.", "ms": 85.7, "tokens": 19}
+{"id": "ru-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (napis nad drzwiami).", "ms": 142.6, "tokens": 34}
+{"id": "ru-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.6, "tokens": 42}
+{"id": "ru-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.5, "tokens": 42}
+{"id": "ru-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.9, "tokens": 42}
+{"id": "ru-pl-05", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.3, "tokens": 42}
+{"id": "ru-pl-06", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (drzwi sklepu).", "ms": 147.2, "tokens": 35}
+{"id": "ru-de-01", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wurde (Schrift über einer Tür).", "ms": 127.0, "tokens": 30}
+{"id": "uk-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.4, "tokens": 19}
+{"id": "uk-en-02", "hyp": "Entrance", "ms": 24.6, "tokens": 3}
+{"id": "uk-en-03", "hyp": "PALITING IS PROHIBED", "ms": 51.4, "tokens": 10}
+{"id": "uk-en-04", "hyp": "Caution! Slippery floor", "ms": 48.2, "tokens": 9}
+{"id": "uk-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign on a shop door).", "ms": 89.1, "tokens": 20}
+{"id": "uk-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a railway station).", "ms": 88.9, "tokens": 20}
+{"id": "uk-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEmergency Exit", "ms": 174.6, "tokens": 42}
+{"id": "uk-en-08", "hyp": "Dear passengers! Do not leave your belongings unattended.", "ms": 59.6, "tokens": 12}
+{"id": "uk-en-09", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nMenu\nPotato Vareniki 120 GNF\nUkrainian Borscht 95 GNF\nDerevny with Sour Cream 110 GNF", "ms": 301.5, "tokens": 74}
+{"id": "uk-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 146.1, "tokens": 35}
+{"id": "uk-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (napis na drzwiach sklepu).", "ms": 158.2, "tokens": 38}
+{"id": "uk-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 176.2, "tokens": 42}
+{"id": "uk-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 175.4, "tokens": 42}
+{"id": "uk-pl-05", "hyp": "Otwarto", "ms": 26.9, "tokens": 4}
+{"id": "ja-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign in a railway station). Other text on the same photo: Central Exit | Line 1.", "ms": 144.3, "tokens": 34}
+{"id": "ja-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.4, "tokens": 19}
+{"id": "ja-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.0, "tokens": 19}
+{"id": "ja-en-04", "hyp": "No Smoking", "ms": 23.2, "tokens": 3}
+{"id": "ja-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.7, "tokens": 21}
+{"id": "ja-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.6, "tokens": 21}
+{"id": "ja-en-07", "hyp": "No Entry", "ms": 24.1, "tokens": 3}
+{"id": "ja-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign hanging on a restaurant door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nOpen for Business", "ms": 187.6, "tokens": 45}
+{"id": "ja-en-09", "hyp": "Please be careful around your feet", "ms": 39.0, "tokens": 7}
+{"id": "ja-en-10", "hyp": "Toilet", "ms": 23.4, "tokens": 3}
+{"id": "ja-en-11", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\n[Source Text]\nMenu\nRamen 850 yen\nDumplings (6 pieces) 400 yen\nRaw beer 550 yen", "ms": 194.9, "tokens": 47}
+{"id": "ja-en-12", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nOpening Hours\n11:00〜22:00\nClosed on Wednesdays", "ms": 222.6, "tokens": 54}
+{"id": "ja-en-13", "hyp": "Jumping onto the vehicle is dangerous, so please refrain from doing so.", "ms": 74.5, "tokens": 16}
+{"id": "ja-en-14", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 86.9, "tokens": 19}
+{"id": "ja-en-15", "hyp": "[Background Information]\nText read by OCR from a phone photo (phone screen).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSettings\nCancel\nSave", "ms": 177.5, "tokens": 43}
+{"id": "ja-en-16", "hyp": "After opening, store in the refrigerator and consume promptly.", "ms": 58.8, "tokens": 12}
+{"id": "ja-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zapisany na dworcu kolejowym).", "ms": 166.8, "tokens": 40}
+{"id": "ja-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.9, "tokens": 42}
+{"id": "ja-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 147.1, "tokens": 35}
+{"id": "ja-pl-04", "hyp": "[Informacje tła]\nTekst odczytany przez OCR z zdjęcia telefonem (szyld wiszący nad drzwiami restauracji).", "ms": 170.0, "tokens": 41}
+{"id": "ja-de-01", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wurde (Schrift über einer Tür).", "ms": 129.4, "tokens": 30}
+{"id": "zh-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.1, "tokens": 19}
+{"id": "zh-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.1, "tokens": 19}
+{"id": "zh-en-03", "hyp": "No Smoking", "ms": 23.2, "tokens": 3}
+{"id": "zh-en-04", "hyp": "Carefully slide", "ms": 27.6, "tokens": 4}
+{"id": "zh-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSafety Exit", "ms": 177.5, "tokens": 42}
+{"id": "zh-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.1, "tokens": 21}
+{"id": "zh-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 93.5, "tokens": 21}
+{"id": "zh-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nDo not touch", "ms": 194.7, "tokens": 47}
+{"id": "zh-en-09", "hyp": "Bathroom", "ms": 28.5, "tokens": 4}
+{"id": "zh-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nMenu\nKung Pao Chicken ￥38\nMapo Tofu ￥28\nYangzhou Fried Rice ￥25", "ms": 264.1, "tokens": 65}
+{"id": "zh-en-11", "hyp": "[Background Information]\nOpening Hours\nMonday to Friday 9:00-21:00\nWeekends 10:00-22:00", "ms": 128.6, "tokens": 30}
+{"id": "zh-en-12", "hyp": "For your and others' safety, please do not eat or drink in the carriage.", "ms": 82.7, "tokens": 18}
+{"id": "zh-en-13", "hyp": "Prohibition of Smoking", "ms": 30.9, "tokens": 5}
+{"id": "zh-en-14", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNo Parking", "ms": 193.2, "tokens": 47}
+{"id": "zh-en-15", "hyp": "[Background Information]\nText read by OCR from a phone photo (food packaging).\n\nPlease place in a cool and dry place, avoiding direct sunlight.", "ms": 131.6, "tokens": 31}
+{"id": "zh-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 147.5, "tokens": 35}
+{"id": "zh-pl-02", "hyp": "Zabrania palenia", "ms": 38.4, "tokens": 7}
+{"id": "zh-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 175.4, "tokens": 42}
+{"id": "zh-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.9, "tokens": 42}
+{"id": "ko-en-01", "hyp": "Exit", "ms": 17.9, "tokens": 2}
+{"id": "ko-en-02", "hyp": "Entrance", "ms": 23.4, "tokens": 3}
+{"id": "ko-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEmergency Exit", "ms": 177.4, "tokens": 42}
+{"id": "ko-en-04", "hyp": "Quitting Smoking", "ms": 27.0, "tokens": 4}
+{"id": "ko-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nPull it.", "ms": 187.7, "tokens": 45}
+{"id": "ko-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nYes", "ms": 178.4, "tokens": 43}
+{"id": "ko-en-07", "hyp": "Bathroom", "ms": 26.8, "tokens": 4}
+{"id": "ko-en-08", "hyp": "No Entry", "ms": 23.2, "tokens": 3}
+{"id": "ko-en-09", "hyp": "Menu\nKimchi Jjigae 8,000 won\nBibimbap 9,000 won\nBulgogi Set 13,000 won", "ms": 144.4, "tokens": 34}
+{"id": "ko-en-10", "hyp": "Please step back from the safety line.", "ms": 46.7, "tokens": 9}
+{"id": "ko-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zapisany na dworcu kolejowym).", "ms": 165.6, "tokens": 40}
+{"id": "ko-pl-02", "hyp": "Przestanie palić", "ms": 38.1, "tokens": 7}
+{"id": "ko-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 175.8, "tokens": 42}
+{"id": "ar-en-01", "hyp": "Director", "ms": 17.5, "tokens": 2}
+{"id": "ar-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.4, "tokens": 19}
+{"id": "ar-en-03", "hyp": "It is prohibited to smoke.", "ms": 39.5, "tokens": 7}
+{"id": "ar-en-04", "hyp": "Emergency Exit", "ms": 22.7, "tokens": 3}
+{"id": "ar-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nDanger", "ms": 191.2, "tokens": 46}
+{"id": "ar-en-06", "hyp": "Closed", "ms": 17.6, "tokens": 2}
+{"id": "ar-en-07", "hyp": "Please take off your shoes.", "ms": 40.8, "tokens": 7}
+{"id": "ar-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nMenu\nChickpeas 15 dirhams\nFalafel 10 dirhams\nChicken Shawarma 25 dirhams", "ms": 284.2, "tokens": 70}
+{"id": "ar-en-09", "hyp": "It is strictly prohibited to stand in this area.", "ms": 54.5, "tokens": 11}
+{"id": "ar-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 147.5, "tokens": 35}
+{"id": "ar-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.7, "tokens": 42}
+{"id": "ar-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (napis na drzwiach sklepu).", "ms": 162.5, "tokens": 39}
+{"id": "tr-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.7, "tokens": 19}
+{"id": "tr-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.9, "tokens": 19}
+{"id": "tr-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSmoking is prohibited", "ms": 195.8, "tokens": 47}
+{"id": "tr-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.1, "tokens": 19}
+{"id": "tr-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.4, "tokens": 21}
+{"id": "tr-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.8, "tokens": 21}
+{"id": "tr-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nAttention!\nWet Floor", "ms": 205.1, "tokens": 50}
+{"id": "tr-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\n[Source Text]\nMenu\nLentil soup 60 TL\nAdana kebab 220 TL\nKünefe 120 TL", "ms": 194.9, "tokens": 47}
+{"id": "tr-en-09", "hyp": "Please keep your ticket ready for inspection.", "ms": 47.7, "tokens": 9}
+{"id": "tr-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (napis nad drzwiami).", "ms": 142.6, "tokens": 34}
+{"id": "tr-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.2, "tokens": 42}
+{"id": "tr-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (napis na drzwiach sklepu).", "ms": 161.9, "tokens": 39}
+{"id": "nl-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.1, "tokens": 19}
+{"id": "nl-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.2, "tokens": 19}
+{"id": "nl-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 84.4, "tokens": 19}
+{"id": "nl-en-04", "hyp": "Prohibited Smoking", "ms": 32.3, "tokens": 5}
+{"id": "nl-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nDuwen", "ms": 181.7, "tokens": 44}
+{"id": "nl-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nTrekken", "ms": 188.3, "tokens": 45}
+{"id": "nl-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nNote: smooth floor", "ms": 200.6, "tokens": 48}
+{"id": "nl-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (café menu).\n\n[Source Text]\nLunchkaart\nTosti ham-kaas € 5,50\nUitsmijter met spek € 9,75\nSoep van de dag € 6,25", "ms": 266.8, "tokens": 65}
+{"id": "nl-en-09", "hyp": "It is forbidden to place bicycles against the facade. Bicycles will be removed.", "ms": 82.1, "tokens": 18}
+{"id": "nl-en-10", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign on a collection box).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nGift", "ms": 177.6, "tokens": 43}
+{"id": "nl-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (napis nad drzwiami).", "ms": 147.0, "tokens": 35}
+{"id": "nl-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.3, "tokens": 42}
+{"id": "nl-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (napis na drzwiach sklepu).", "ms": 162.1, "tokens": 39}
+{"id": "cs-en-01", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.9, "tokens": 19}
+{"id": "cs-en-02", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).", "ms": 85.4, "tokens": 19}
+{"id": "cs-en-03", "hyp": "[Background Information]\nText read by OCR from a phone photo (sign above a door).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nEmergency Exit", "ms": 175.8, "tokens": 42}
+{"id": "cs-en-04", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nSmoking is prohibited", "ms": 193.8, "tokens": 47}
+{"id": "cs-en-05", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 92.5, "tokens": 21}
+{"id": "cs-en-06", "hyp": "[Background Information]\nText read by OCR from a phone photo (sticker on a glass door).", "ms": 93.4, "tokens": 21}
+{"id": "cs-en-07", "hyp": "[Background Information]\nText read by OCR from a phone photo (a sign, label, menu or notice).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nWARNING! DANGER OF ELECTRIC CURRENT", "ms": 226.8, "tokens": 55}
+{"id": "cs-en-08", "hyp": "[Background Information]\nText read by OCR from a phone photo (restaurant menu).\n\nPlease translate the following text into English, taking the provided background information into consideration.\n\n[Source Text]\nMenu\nVeal stew with dumplings 245 Kč\nBeef goulash, dumplings 199 Kč\nFried cheese, waffles 189 Kč", "ms": 306.0, "tokens": 75}
+{"id": "cs-en-09", "hyp": "[Background Information]\nThe ticket must be marked immediately after boarding the train.", "ms": 74.9, "tokens": 16}
+{"id": "cs-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (napis nad drzwiami).", "ms": 142.3, "tokens": 34}
+{"id": "cs-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.8, "tokens": 42}
+{"id": "cs-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (napis na drzwiach sklepu).", "ms": 162.4, "tokens": 39}
+{"id": "cs-pl-04", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 174.7, "tokens": 42}
+{"id": "en-pl-01", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (nazwa nad drzwiami).", "ms": 146.9, "tokens": 35}
+{"id": "en-pl-02", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zrobionego na stacji metra w Londynie).", "ms": 173.9, "tokens": 42}
+{"id": "en-pl-03", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (pisemne podpisy na platformie dworcowej).", "ms": 169.7, "tokens": 41}
+{"id": "en-pl-04", "hyp": "[Tło informacyjne]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 173.8, "tokens": 42}
+{"id": "en-pl-05", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonem (znak, etykieta, menu lub ogłoszenie).", "ms": 173.6, "tokens": 42}
+{"id": "en-pl-06", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (pisemne podpisy na automatach do wypożyczania).", "ms": 192.8, "tokens": 47}
+{"id": "en-pl-07", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia telefonu (znak, etykieta, menu lub ogłoszenie).", "ms": 175.8, "tokens": 42}
+{"id": "en-pl-08", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (menu kawiarni).  \n\n[Tekst źródłowy]  \nŚniadanie  \nPełne angielskie śniadanie – 9,50 funtów  \nKompot z miodem – 4,20 funtów", "ms": 360.2, "tokens": 90}
+{"id": "en-pl-09", "hyp": "[Informacje tła]  \nTekst odczytany przez OCR z zdjęcia na telefonie (zauważenie na lotnisku).", "ms": 166.3, "tokens": 40}
+{"id": "en-de-01", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wurde (Schrift über einer Tür).\n\n[Quellentext]\nNotausgang", "ms": 161.7, "tokens": 39}
+{"id": "en-de-02", "hyp": "[Hintergrundinformationen]\nText, der durch OCR aus einem Handyfoto gelesen wird (eine Schilderung, Etikette, Menü oder Anzeige).\n\nBitte füttern Sie die Tiere nicht.", "ms": 219.1, "tokens": 53}
+{"id": "en-es-01", "hyp": "[Información de Contexto]  \nTexto leído por OCR de una foto de teléfono (escudo sobre una puerta).", "ms": 135.3, "tokens": 32}
+{"id": "en-es-02", "hyp": "[Información de Contexto]\nTexto leído por OCR de una foto de teléfono (una señal, etiqueta, menú o aviso).", "ms": 158.0, "tokens": 38}
