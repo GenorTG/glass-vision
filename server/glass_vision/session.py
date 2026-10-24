@@ -70,7 +70,7 @@ class PipelineManager:
 
     def features(self) -> list[str]:
         """`hello.features`: optional server capabilities beyond the pipelines (docs/PROTOCOL.md)."""
-        return ["text_read"] if "text" in self.handles else []
+        return ["text_read", "text_blocks"] if "text" in self.handles else []
 
     def describe(self) -> list[dict[str, Any]]:
         out = []

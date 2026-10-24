@@ -38,3 +38,18 @@ Re-run and compare: `cd server && ./run tools/ocr_eval.py --compare ../docs/rese
 | HK_paper_menus | 5/14 keys · 18368 ms |
 | Piwna_Street | 0/1 keys · 734 ms |
 | Laptop_code | 6/14 keys · 9934 ms |
+
+## PP-OCRv6 + script recognizers (2026-10-24, same host and set)
+
+Re-run with `server/tools/ocr_eval.py --compare ../docs/research/ocr-eval/easyocr_baseline.json` after downloading the
+Commons originals listed above. The EasyOCR baseline used 12 script models; the new stack uses the PP-OCR ONNX assets
+listed in `docs/MODELS.md`.
+
+| run | photo key recall | rendered lines exact | boxes / GT line | all lines exact + in order | rotated/skewed ok | median ms photos (max) | median ms rendered |
+|---|---|---|---|---|---|---|---|
+| EasyOCR baseline | 28/67 (42%) | 15/42 | 1.52 | 1/12 | 0/5 | 901 (66829) | 620 |
+| PP-OCRv6 + script fallback | **55/67 (82%)** | **42/42** | **1.00** | **12/12** | **5/5** | **212 (1126)** | **111** |
+
+Every rendered rotation, perspective, tilt and script fixture is exact and in order. Key-phrase recall on the real
+photos rises by 27 points. The largest latency is still the dense Del Taco menu (1126 ms), down from 66.8 s; the
+median real-photo latency is 212 ms. This is a deliberately small, mixed real/rendered set, not a general OCR claim.

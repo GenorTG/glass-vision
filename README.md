@@ -22,7 +22,7 @@ Each recognizer is a pipeline you switch on in the app; several can run at once.
 | Objects | 80 everyday classes: people, vehicles, animals, food, electronics… | YOLO11s |
 | Find by text | anything you type: "red mug, keys, glasses" | YOLOE-11s + MobileCLIP |
 | Faces | detects faces and names people you taught it ("Learn face") | InsightFace buffalo_l |
-| Text (OCR) | signs, labels, screens in 80+ languages; auto-detects among installed script models, or pin a script; optional translation into 40+ languages | EasyOCR + M2M100 |
+| Text (OCR) | sign lines grouped into blocks; PP-OCRv6 + script fallbacks, orientation and optional M2M100 translation | PP-OCRv6/PP-OCRv5 ONNX + M2M100 |
 | Hand gestures | 21-point hand skeleton + 7 gestures (👍 👎 ✋ ✊ ☝️ ✌️ 🤟) | MediaPipe |
 | Body pose | 17-point skeleton of every person | YOLO11s-pose |
 
@@ -151,7 +151,7 @@ project's license. Summary (details, links and checksums: [docs/MODELS.md](docs/
 - YOLO11 / YOLOE weights (objects, pose, find-by-text): **AGPL-3.0** (Ultralytics).
 - MobileCLIP text encoder (find-by-text): Apple ML Research license — **non-commercial research only**.
 - InsightFace buffalo_l (faces): **non-commercial research only**.
-- EasyOCR (text), MediaPipe (gestures, hands): Apache-2.0. M2M100 (text translation): MIT.
+- PaddleOCR models (text), MediaPipe (gestures, hands): Apache-2.0. M2M100 (text translation): MIT.
 
 ## How it works
 

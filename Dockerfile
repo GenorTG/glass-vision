@@ -41,7 +41,7 @@ RUN /opt/venv/bin/pip install --no-deps -r requirements-nodeps.txt \
       [ ! -e "$lib" ] || ln -sf "$lib" "/opt/venv/ort-libs/$(basename "$lib")"; done \
  && for lib in /opt/venv/lib/python3*/site-packages/nvidia/cudnn/lib/libcudnn*.so.[0-9]*; do \
       [ ! -e "$lib" ] || { base="$(basename "$lib")"; ln -sf "$lib" "/opt/venv/ort-libs/${base%%.so.*}.so"; }; done \
- && /opt/venv/bin/python -c "import clip, easyocr, insightface, lingua, mediapipe, onnxruntime, sentencepiece, torch, transformers, ultralytics; from torchvision.ops import nms; nms(torch.zeros((1, 4)), torch.zeros(1), 0.5)"
+ && /opt/venv/bin/python -c "import clip, insightface, lingua, mediapipe, onnx, onnxruntime, sentencepiece, torch, transformers, ultralytics; from torchvision.ops import nms; nms(torch.zeros((1, 4)), torch.zeros(1), 0.5)"
 
 COPY VERSION /app/VERSION
 COPY scripts/download_models.py scripts/fetch_release_apk.py /app/scripts/

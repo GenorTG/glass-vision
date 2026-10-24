@@ -3,8 +3,6 @@
 
     python3 scripts/download_models.py                 # all pipelines (OCR: Latin script only)
     python3 scripts/download_models.py --only faces,text
-    python3 scripts/download_models.py --only text --ocr-scripts cyrillic,japanese   # + OCR models for more scripts
-    python3 scripts/download_models.py --ocr-scripts all                            # + every OCR script (~1.5 GB)
     python3 scripts/download_models.py --only text --translation-models 1.2B        # + the larger translator (4.6 GB)
     python3 scripts/download_models.py --check         # verify only (exit 1 if anything is missing/corrupt)
     python3 scripts/download_models.py --list          # URLs + licenses, no download
@@ -13,8 +11,8 @@ Standard library only (runs before/without the server venv, e.g. in the Docker e
 `--models-dir`, else GV_MODELS_DIR (environment or server/config.env), else server/models.
 
 - Resume-safe: downloads go to `<file>.part` (resumed with an HTTP Range request), are verified, then renamed.
-- Verified: every file has a pinned sha256. The hashes were recorded on 2026-10-22/23 from files downloaded from these
-  same official URLs; EasyOCR additionally publishes md5 sums of its weights (easyocr/config.py), checked too.
+- Verified: every file has a pinned sha256. The hashes were recorded on 2026-10-22/24 from files downloaded from these
+  same official URLs; Hugging Face's own LFS sha256 agreed for every weight file.
   Hugging Face files are fetched at a pinned git revision (`resolve/<commit>/<file>`), never a moving branch.
   A hash mismatch means upstream changed the file (or the download is corrupt): the file is NOT installed.
 - Layout matches each pipeline's load code (server/glass_vision/pipelines/*.py). Licenses: docs/MODELS.md.
@@ -38,7 +36,6 @@ from pathlib import Path
 SERVER = Path(__file__).resolve().parents[1] / "server"
 ULTRALYTICS = "https://github.com/ultralytics/assets/releases/download/v8.4.0"
 MEDIAPIPE = "https://storage.googleapis.com/mediapipe-models"
-EASYOCR = "https://github.com/JaidedAI/EasyOCR/releases/download"
 HF = "https://huggingface.co"
 CHUNK = 1 << 20
 
@@ -62,7 +59,7 @@ class Asset:
     size: int
     dest: str | None = None  # relative to the models dir; None = zip that is extracted (see members)
     members: tuple[Member, ...] = field(default_factory=tuple)
-    option: str | None = None  # opt-in extra (e.g. "ocr:cyrillic"); None = part of its pipelines' default set
+    option: str | None = None  # opt-in extra (e.g. "translation:1.2B"); None = part of its pipelines' default set
 
     @property
     def outputs(self) -> list[tuple[str, str, str | None]]:
@@ -100,46 +97,71 @@ ASSETS: list[Asset] = [
     Asset(("gestures",), f"{MEDIAPIPE}/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task",
           "Apache-2.0", "97952348cf6a6a4915c2ea1496b4b37ebabc50cbbf80571435643c455f2b0482", 8373440,
           "mediapipe/gesture_recognizer.task"),
-    Asset(("text",), f"{EASYOCR}/pre-v1.1.6/craft_mlt_25k.zip", "Apache-2.0",
-          "", 77251756, members=(Member("craft_mlt_25k.pth", "easyocr/craft_mlt_25k.pth",
-                                        "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
-                                        "2f8227d2def4037cdb3b34389dcf9ec1"),)),
 ]  # fmt: skip
 
-# EasyOCR recognition models, one per script group of the text pipeline (`SCRIPT_GROUPS` in pipelines/text.py; the
-# keys are the --ocr-scripts names). Latin is the default; the others are opt-in. url, zip size, file, sha256, md5.
-OCR_SCRIPTS: dict[str, tuple[str, int, str, str, str]] = {
-    "latin": (f"{EASYOCR}/v1.3/latin_g2.zip", 14284936, "latin_g2.pth",
-              "aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55", "469869130aad1a34e8f9086f4262bc59"),
-    "cyrillic": (f"{EASYOCR}/v1.6.1/cyrillic_g2.zip", 14140353, "cyrillic_g2.pth",
-                 "48d0f3b58f28aa64651ab1032cc2d498c4de25135829668e87c14e7a07529f29", "19f85f43d9128a89ac21b8d6a06973fe"),
-    "zh_sim": (f"{EASYOCR}/v1.3/zh_sim_g2.zip", 20288076, "zh_sim_g2.pth",
-               "cb678fdef09d651e7763ca551ad790dc89f0b2e3d2a640484330e338fb574c7a", "b601ce7143293387d3ec4f41a66edc07"),
-    "zh_tra": (f"{EASYOCR}/pre-v1.1.6/chinese.zip", 209821039, "chinese.pth",
-               "19ecc60f4e079eb2cd7f25f3513fc996cf80819fc1f1d0aee24c58402cc4776d", "dfba8e364cd98ed4fed7ad54d71e3965"),
-    "japanese": (f"{EASYOCR}/v1.3/japanese_g2.zip", 16065475, "japanese_g2.pth",
-                 "afbb32b0485297de5a7c1f59aeecac12c69f32b15cedd3c3d8c2e8529de85af3", "bad5146990ccb1272cb0908440fbe15e"),
-    "korean": (f"{EASYOCR}/v1.3/korean_g2.zip", 14910151, "korean_g2.pth",
-               "ecdead53c909748aad74bc2f2beeab3e3ad751134db6335e97ea19f879ca407e", "befecf7b1ca2fffb5af814a51443682d"),
-    "arabic": (f"{EASYOCR}/pre-v1.1.6/arabic.zip", 199916962, "arabic.pth",
-               "2a9afd42c374deb98aed0b53c9b77d75e1d00d4e0501f3b0276c54190c89b1a8", "993074555550e4e06a6077d55ff0449a"),
-    "devanagari": (f"{EASYOCR}/pre-v1.1.6/devanagari.zip", 199886824, "devanagari.pth",
-                   "1a8d0abb2032c0ec9d06639bc078b7686c10cf3b8193fe42a6382bc6846ae4a3",
-                   "db6b1f074fae3070f561675db908ac08"),
-    "bengali": (f"{EASYOCR}/v1.1.8/bengali.zip", 199852959, "bengali.pth",
-                "28d10d7dab96bf38c1d190d09a65a732130f5f34b28dcbd7e51aba3366146896", "cea9e897e2c0576b62cbb1554997ce1c"),
-    "thai": (f"{EASYOCR}/pre-v1.1.6/thai.zip", 199881630, "thai.pth",
-             "3ebbb9321b9c7c694e169cd23cc37f3c0bd2a160f5b539602bbef80e663e0a17", "40a06b563a2b3d7897e2d19df20dc709"),
-    "telugu": (f"{EASYOCR}/v1.2/telugu.zip", 14108882, "telugu.pth",
-               "a73ba1c65f8b3e7b18df3104c1f137970510ce51e3e1d9341506292730fa3c43", "f7576012a3abe593950c47bfa1bd8ddc"),
-    "kannada": (f"{EASYOCR}/v1.2/kannada.zip", 14105056, "kannada.pth",
-                "3cc308972bccb2c483741e90e87f2941c1b40d84cf548115f48372d288deb0f0", "c240c97e4adb8773b53b3b3dec728627"),
+# Text pipeline OCR (glass_vision/pipelines/ppocr.py): PaddlePaddle's official ONNX exports of PP-OCR, at a pinned
+# commit of each `PaddlePaddle/<model>_onnx` repo, into `ppocr/<model>/`. All of them are small and installed by
+# default: auto mode reads each line with PP-OCRv6 (zh/ja/en + 46 Latin languages) and retries doubtful lines with
+# the PP-OCRv5 script recognizers. model → (commit, [(file, size, sha256)]).
+PPOCR_MODELS: dict[str, tuple[str, tuple[tuple[str, int, str], ...]]] = {
+    "PP-OCRv6_medium_det": ("61323801669c338b7891481ec7bac61ce31b576a", (
+        ("inference.onnx", 62032837, "eb13b44b25bb36f89528b68720af8a61d9cf381176107f465db1757b65d086e1"),
+        ("inference.yml", 886, "7298d5ead546584af2504d03355f881ac7a7bc0eb1e282d3e159277c1d0af871"),
+    )),
+    "PP-OCRv6_medium_rec": ("50c7eacafc52fa7bcf4194e8cd08e46f8558504b", (
+        ("inference.onnx", 76554979, "9c09abf0957f7968c7586464b7397b84ad2387a0497a351af40e9acc71b673ba"),
+        ("inference.yml", 150580, "991b700facf5b50a7de193468207d5f4255b538dde0d312ae3b7c7a9b6873129"),
+    )),
+    "PP-LCNet_x1_0_textline_ori": ("7fdcf3cf7061163eda7183b224aa334bd33068f7", (
+        ("inference.onnx", 6777816, "38aa97cd4be591e0ad304e659f07ba30d946f27a63315433f6659c69c8778345"),
+        ("inference.yml", 735, "8d5120d0e1a30a9df7ed46aa9119da3796ed066777089d1c1d705f132d5e90f9"),
+    )),
+    "PP-LCNet_x1_0_doc_ori": ("7330ab7039123e46af2dc03154b9969aa412c61d", (
+        ("inference.onnx", 6788069, "af9a0a4f317ff0709ce752067807f819cb15d883f8ecad89f28df1c6ee2d9c92"),
+        ("inference.yml", 766, "9e195eb729a8173588cd0e8a852c8b373aa606e79e77b4ac7d8346f5426caf26"),
+    )),
+    "cyrillic_PP-OCRv5_mobile_rec": ("2cef88145434beb8afa9dd82d77d799eb1ad7b29", (
+        ("inference.onnx", 8048799, "5371ee1ddaa7983cc62d0818d99e982b6804638c85e4f960d59a574094e172e5"),
+        ("inference.yml", 6991, "5c76cc91fa98410178a09f498db10050d0ec1634a660053d3005ab7be581f501"),
+    )),
+    "eslav_PP-OCRv5_mobile_rec": ("9a32171fc5718746875e1a261818884517975013", (
+        ("inference.onnx", 7887627, "b3018ef2b09a0250b6e0c8e871c927098363e5fd4df890cc68e8358eb0aaf1bd"),
+        ("inference.yml", 4538, "025039bac23eb4a308efcefa4d58eab3af440767815c6ba6938468bf6353ee5a"),
+    )),
+    "arabic_PP-OCRv5_mobile_rec": ("14aaedcd75825982689ecf5cd64ab33ee083215a", (
+        ("inference.onnx", 7998947, "799113ebf267fbe742deb99eb36e8d42c9ddc5291ceacf92add41b4d52a59110"),
+        ("inference.yml", 6165, "21368419e6c016c31db55d316d59e11c128e1913e6e6fe10287084710043d3a6"),
+    )),
+    "devanagari_PP-OCRv5_mobile_rec": ("251aec19e36739540d35e2cc943f6aa7503b98e5", (
+        ("inference.onnx", 7912311, "cb789212ce96c69d3e74728ae4309d179281d68cb3945d0616b67cafab41c986"),
+        ("inference.yml", 5027, "9bd172dd26440c8ce94d1cde5d5baea6aefdc7cf3c5c8492e0beedef656d4e54"),
+    )),
+    "korean_PP-OCRv5_mobile_rec": ("5c6f574b8e2230adf4287b33e736d71b9fabd28e", (
+        ("inference.onnx", 13418787, "92f0b7785e64fc9090106a241cf4c1eb97472824558272751b88a2a4476d3a08"),
+        ("inference.yml", 96039, "f757fa1c40e99edcf27e9cce879b93eb2a51fa46f5ef39095689b8c37dd75998"),
+    )),
+    "th_PP-OCRv5_mobile_rec": ("1d4adbbafb1034a2fd6618498575b81ea7b69f69", (
+        ("inference.onnx", 7891015, "27618be66018f8598ac0a526a593f9f1cebf794e7eded93428e8fb016e537f5f"),
+        ("inference.yml", 4667, "f6ba7fefc38ca1ff398ddafa75d67d16e0b3757c4e6c833adffee98a981766c9"),
+    )),
+    "el_PP-OCRv5_mobile_rec": ("8152b89d2ee0e1d4c92decab75fe75e5e3d836b6", (
+        ("inference.onnx", 7808735, "2acf17fcaea2bc81b878e311e6263b8885f48bb03796f75f9f30ed3242bbaa6d"),
+        ("inference.yml", 3317, "17d85b2fe2d2f24cd4ab07bcbc33e0c126859b956ced36e281dc65e2d0c1f0bf"),
+    )),
+    "te_PP-OCRv5_mobile_rec": ("f1197c83430241c58c64b0952b3a80366d04eeba", (
+        ("inference.onnx", 7898759, "8238bfc46d4cffe720ed6706e3842802467343497428693ff2bfb4e6b3caa36b"),
+        ("inference.yml", 4795, "acebbe53f1831bf28ddfed75aedf58225d7aa5d09100c1d5a9140a2a53b137ce"),
+    )),
+    "ta_PP-OCRv5_mobile_rec": ("0db89798af0d5218fad9ea7ace0557526e9077f1", (
+        ("inference.onnx", 7885691, "c6d2b682d2a0ea4cb1fccdba295976f93fd439964d16cdc666cadef531accbee"),
+        ("inference.yml", 4579, "88a28f5a1bb30cabe38a0985cb5e6619fa4f0c7c78e57a08274674228c5219a6"),
+    )),
 }  # fmt: skip
-DEFAULT_OCR_SCRIPTS = ("latin",)
 ASSETS += [
-    Asset(("text",), url, "Apache-2.0", "", size, members=(Member(name, f"easyocr/{name}", sha, md5),),
-          option=None if key in DEFAULT_OCR_SCRIPTS else f"ocr:{key}")
-    for key, (url, size, name, sha, md5) in OCR_SCRIPTS.items()
+    Asset(("text",), f"{HF}/PaddlePaddle/{model}_onnx/resolve/{commit}/{name}", "Apache-2.0", sha, size,
+          f"ppocr/{model}/{name}")
+    for model, (commit, files) in PPOCR_MODELS.items()
+    for name, size, sha in files
 ]  # fmt: skip
 
 # Translation for the text pipeline (glass_vision/translate.py `MODELS`): M2M100 at a pinned commit of its original
@@ -310,7 +332,7 @@ def main() -> int:
         "--ocr-scripts",
         action="append",
         default=[],
-        help=f"text pipeline: OCR models for more scripts, comma-separated or 'all' (default: latin): {list(OCR_SCRIPTS)}",
+        help="obsolete (EasyOCR): every OCR script model is now part of the text pipeline's default set; ignored",
     )
     parser.add_argument(
         "--translation-models",
@@ -331,17 +353,16 @@ def main() -> int:
     wanted = {p.strip() for item in args.only for p in item.split(",") if p.strip()} or set(PIPELINES)
     if unknown := wanted - set(PIPELINES):
         parser.error(f"unknown pipeline(s) {sorted(unknown)}; known: {PIPELINES}")
-    scripts = {k.strip() for item in args.ocr_scripts for k in item.split(",") if k.strip()}
-    if "all" in scripts:
-        scripts = set(OCR_SCRIPTS)
-    if unknown := scripts - set(OCR_SCRIPTS):
-        parser.error(f"unknown OCR script(s) {sorted(unknown)}; known: {list(OCR_SCRIPTS)}")
+    if args.ocr_scripts:
+        print(
+            "note: --ocr-scripts is obsolete; the text pipeline's OCR models for every script are installed by default"
+        )
     translation = {k.strip() for item in args.translation_models for k in item.split(",") if k.strip()}
     if "all" in translation:
         translation = set(TRANSLATION_MODELS)
     if unknown := translation - set(TRANSLATION_MODELS):
         parser.error(f"unknown translation model(s) {sorted(unknown)}; known: {list(TRANSLATION_MODELS)}")
-    options = {f"ocr:{k}" for k in scripts} | {f"translation:{k}" for k in translation}
+    options = {f"translation:{k}" for k in translation}
     assets = [a for a in ASSETS if wanted & set(a.pipelines) and (a.option is None or a.option in options)]
 
     if args.list:

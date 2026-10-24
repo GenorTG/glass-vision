@@ -2,7 +2,7 @@
 GET /text/languages, hello `features`, and the text pipeline's `live` option over the WebSocket.
 
 Validation, auth and 503 run without models (the text pipeline is registered but never loaded); everything that reads
-or translates uses the real EasyOCR + M2M100 models on the GPU."""
+or translates uses the real PP-OCR + M2M100 models on the GPU."""
 
 import time
 from collections.abc import Iterator
@@ -18,7 +18,7 @@ from ultralytics.utils import ASSETS
 from glass_vision import app as app_module
 from glass_vision.app import create_app
 from glass_vision.config import Settings
-from glass_vision.pipelines.base import Annotation, RunContext
+from glass_vision.pipelines.base import RunContext
 from glass_vision.pipelines.text import (
     AUTO_SCRIPTS,
     DEFAULT_GROUP,
@@ -26,7 +26,6 @@ from glass_vision.pipelines.text import (
     MARK_LABEL,
     SCRIPT_GROUPS,
     TextPipeline,
-    _auto_score,
     group_for_text,
 )
 from glass_vision.protocol import pack_frame
@@ -100,6 +99,7 @@ def test_languages_list(unloaded: TestClient) -> None:
         ({"translate_to": "pl,xx"}, None),
         ({"translate_from": "german"}, None),
         ({"model": "huge"}, None),
+        ({"format": "not-a-format"}, None),
     ],
 )
 def test_read_rejects_bad_input(unloaded: TestClient, query: dict, body: bytes | None) -> None:
@@ -135,6 +135,25 @@ def test_translate_nothing(unloaded: TestClient) -> None:
     assert r.json() == {"to": "fr", "translations": []}
 
 
+def test_translate_blocks_nothing(unloaded: TestClient) -> None:
+    r = unloaded.post("/text/translate", json={"blocks": [], "to": "fr"})
+    assert r.json() == {"to": "fr", "translations": []}
+
+
+@pytest.mark.parametrize(
+    "blocks",
+    [
+        "not a list",
+        [{}],
+        [{"text": "Ausgang", "kind": "paragraph"}],
+        [{"text": "Ausgang", "kind": "prose", "lang": "deutsch"}],
+    ],
+)
+def test_translate_rejects_bad_blocks(unloaded: TestClient, blocks) -> None:
+    r = unloaded.post("/text/translate", json={"blocks": blocks, "to": "fr"})
+    assert r.status_code == 400, r.text
+
+
 def test_text_routes_need_the_token(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(app_module, "available_pipelines", lambda: {"text": TextPipeline})
     with make_client(tmp_path, TOKEN) as client:
@@ -151,14 +170,14 @@ def test_text_routes_need_the_token(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 class BrokenText(TextPipeline):
     def load(self, device: str) -> None:
-        raise RuntimeError("EasyOCR weights missing")
+        raise RuntimeError("OCR models missing")
 
 
 def test_503_when_ocr_cannot_load(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(app_module, "available_pipelines", lambda: {"text": BrokenText})
     with make_client(tmp_path, None) as client:
         r = client.post("/text/read", content=jpeg(np.full((64, 64, 3), 255, np.uint8)))
-        assert r.status_code == 503 and "EasyOCR weights missing" in r.json()["detail"]
+        assert r.status_code == 503 and "OCR models missing" in r.json()["detail"]
         assert client.post("/text/translate", json={"lines": ["Ausgang"], "to": "fr"}).status_code == 503
 
 
@@ -173,7 +192,7 @@ def test_without_a_text_pipeline(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 def test_hello_announces_text_read_and_the_live_option(unloaded: TestClient) -> None:
     with unloaded.websocket_connect("/ws") as ws:
         hello = ws.receive_json()
-    assert hello["features"] == ["text_read"]
+    assert hello["features"] == ["text_read", "text_blocks"]
     text = next(p for p in hello["pipelines"] if p["id"] == "text")
     live = next(o for o in text["options"] if o["key"] == "live")
     assert live == {
@@ -191,18 +210,9 @@ def test_group_for_text() -> None:
     assert group_for_text(["出口"]) is GROUP["zh_sim"]
     assert group_for_text(["非常口", "でぐち"]) is GROUP["japanese"]
     assert group_for_text(["출구"]) is GROUP["korean"]
+    assert group_for_text(["Έξοδος"]) is GROUP["greek"]
+    assert group_for_text(["வெளியேறு"]) is GROUP["tamil"]
     assert group_for_text([]) is DEFAULT_GROUP
-
-
-def test_auto_score_needs_the_groups_own_script() -> None:
-    """bus.jpg regression: non-Latin recognizers read the English too, plus a hallucinated letter of their script."""
-    english = [Annotation((0, 0, 1, 1), 0.95, "CerO"), Annotation((0, 0, 1, 1), 0.9, "emisiones")]
-    hallucinated = [*english, Annotation((0, 0, 1, 1), 0.99, "Ш")]
-    assert _auto_score(english, DEFAULT_GROUP) > 0
-    assert _auto_score(english, GROUP["korean"]) == 0
-    assert _auto_score(hallucinated, GROUP["cyrillic"]) == 0  # 1 of 14 letters
-    assert _auto_score([Annotation((0, 0, 1, 1), 0.9, "Выход запрещён"), *english], GROUP["cyrillic"]) > 0  # 13 of 26
-    assert _auto_score([Annotation((0, 0, 1, 1), 0.9, "非常口")], GROUP["japanese"]) > 0
 
 
 # --- real models ---------------------------------------------------------------------------------------------------
@@ -244,6 +254,28 @@ def test_read_a_sign_in_order_with_blocks_languages_and_two_translations(client:
     assert len(en) == len(pl) == 4 and en[3] is None and pl[3] is None  # numbers stay as read
     assert "exit" in en[0].lower() and "smok" in en[1].lower()
     assert all(isinstance(t, str) and t for t in pl[:3])
+
+
+@pytest.mark.gpu
+@needs_translation
+def test_read_blocks_format_has_geometry_suspect_and_block_translations(client: TestClient) -> None:
+    r = client.post("/text/read", params={"format": "blocks", "translate_to": "en"}, content=jpeg(render_sign()))
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert out["translations"] == {}
+    assert isinstance(out["angle"], (int, float))
+    assert [block["text"] for block in out["blocks"]] == [
+        "NOTAUSGANG",
+        "Rauchen verboten\nBitte nicht berühren",
+        "Tel. 0800 123",
+    ]
+    assert out["blocks"][1]["kind"] == "list"
+    assert out["blocks"][1]["lang"] == "de"
+    assert "exit" in out["blocks"][0]["translations"]["en"].lower()
+    for line in out["lines"]:
+        assert len(line["quad"]) == 4 and line["script"] == "latin" and "suspect" in line
+    for block in out["blocks"]:
+        assert len(block["quad"]) == 4 and block["lines"] and "en" in block["translations"]
 
 
 @pytest.mark.gpu

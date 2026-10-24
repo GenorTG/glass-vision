@@ -233,7 +233,7 @@ fi
 say "Checking the install"
 "$SERVER/run" - <<'EOF'
 import onnxruntime, torch, torchvision
-import clip, easyocr, insightface, lingua, mediapipe, sentencepiece, transformers, ultralytics  # noqa: F401  (all import cleanly)
+import clip, insightface, lingua, mediapipe, onnx, sentencepiece, transformers, ultralytics  # noqa: F401  (all import cleanly)
 from torchvision.ops import nms
 
 nms(torch.zeros((1, 4)), torch.zeros(1), 0.5)  # the op a mismatched torchvision lacks
