@@ -11,4 +11,7 @@ server/.venv.old-*/
 
 # Host-specific notes (never published)
 *.local.md
-server/tests/data/
+server/tests/data/*
+!server/tests/data/ocr/
+server/tests/data/ocr/*
+!server/tests/data/ocr/README.md
