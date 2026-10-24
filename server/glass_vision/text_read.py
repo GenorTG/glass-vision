@@ -88,7 +88,10 @@ def create_router(manager: Callable[[], PipelineManager]) -> APIRouter:
         translate_to: str | None = None,
         translate_from: str | None = None,
         model: str | None = None,
+        format: str | None = None,
     ) -> dict[str, Any]:
+        if format not in (None, "lines", "blocks"):
+            raise HTTPException(400, "format must be 'lines' or 'blocks'")
         option = text_option("languages")
         try:
             group = option.default if languages is None else option.coerce(languages)
@@ -102,7 +105,9 @@ def create_router(manager: Callable[[], PipelineManager]) -> APIRouter:
         source = None if translate_from is None else _language_code(translate_from, "translate_from")
         model_name = _model(model)
         image = _decode_jpeg(await request.body())
-        return await on_text_pipeline(lambda p: p.read_still(image, group, targets, source, model_name))
+        return await on_text_pipeline(
+            lambda p: p.read_still(image, group, targets, source, model_name, format_blocks=format == "blocks")
+        )
 
     @router.post("/translate")
     async def translate(request: Request) -> dict[str, Any]:
@@ -112,13 +117,29 @@ def create_router(manager: Callable[[], PipelineManager]) -> APIRouter:
             raise HTTPException(400, "body must be JSON") from exc
         if not isinstance(body, dict):
             raise HTTPException(400, "body must be a JSON object")
+        blocks = body.get("blocks")
         lines = body.get("lines")
-        if (
+        if blocks is not None:
+            if not isinstance(blocks, list) or len(blocks) > MAX_LINES:
+                raise HTTPException(400, f"blocks must be a list of at most {MAX_LINES} objects")
+            for block in blocks:
+                if (
+                    not isinstance(block, dict)
+                    or not isinstance(block.get("text"), str)
+                    or len(block["text"]) > MAX_LINE_CHARS * 10
+                    or block.get("kind") not in ("prose", "list")
+                    or (block.get("lang") is not None and not isinstance(block.get("lang"), str))
+                ):
+                    raise HTTPException(400, "each block needs text, kind ('prose' or 'list'), and optional lang")
+                if block.get("lang") is not None:
+                    block["lang"] = _language_code(block["lang"], "block lang")
+            lines = None
+        elif (
             not isinstance(lines, list)
             or len(lines) > MAX_LINES
             or not all(isinstance(line, str) and len(line) <= MAX_LINE_CHARS for line in lines)
         ):
-            raise HTTPException(400, f"lines must be a list of at most {MAX_LINES} strings")
+            raise HTTPException(400, f"lines must be a list of at most {MAX_LINES} strings, or provide blocks")
         sources = body.get("from")
         if sources is not None:
             if not isinstance(sources, list) or len(sources) != len(lines):
@@ -132,10 +153,15 @@ def create_router(manager: Callable[[], PipelineManager]) -> APIRouter:
         target = _language_code(to, "to")
         model_name = _model(body.get("model"))
         text_option("languages")  # 503 without an OCR pipeline: the translator lives in it
-        if not lines:
+        if blocks is not None and not blocks:
+            return {"to": target, "translations": []}
+        if blocks is None and not lines:
             return {"to": target, "translations": []}
         try:
-            translations = await on_text_pipeline(lambda p: p.translate_lines(lines, target, sources, model_name))
+            if blocks is not None:
+                translations = await on_text_pipeline(lambda p: p.translate_blocks(blocks, target, model_name))
+            else:
+                translations = await on_text_pipeline(lambda p: p.translate_lines(lines, target, sources, model_name))
         except HTTPException:
             raise
         except Exception as exc:  # translation model missing or failing: nothing to return

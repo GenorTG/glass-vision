@@ -111,7 +111,7 @@ class SourceLanguages:
     """The source languages detection may pick for one OCR script group (M2M100 codes, main language first)."""
 
     candidates: tuple[str, ...]
-    # Non-Latin EasyOCR groups read English as their only Latin-script language: an ASCII-only line is English.
+    # Non-Latin script groups read English as their only Latin-script language: an ASCII-only line is English.
     ascii_is_english: bool = False
 
 

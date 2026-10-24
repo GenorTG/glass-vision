@@ -8,7 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from glass_vision.pipelines.text import AUTO_SCRIPTS, SCRIPT_GROUPS, TextPipeline
+from glass_vision.pipelines.text import (
+    AUTO_SCRIPTS,
+    DETECTOR,
+    DOC_ORI,
+    RECOGNIZERS,
+    SCRIPT_GROUPS,
+    TEXTLINE_ORI,
+    TextPipeline,
+)
 from glass_vision.translate import (
     DEFAULT_MODEL,
     LANGUAGES,
@@ -84,7 +92,7 @@ def test_detection_is_restricted_to_the_script_group(detectors):
 
     cyrillic = detectors.setdefault(CYRILLIC, SourceDetector(CYRILLIC))
     assert cyrillic.languages == set(CYRILLIC.candidates)
-    assert cyrillic.guess("Ausgang") == ("en", 1.0, True)  # ASCII in a non-Latin group: EasyOCR's only Latin language
+    assert cyrillic.guess("Ausgang") == ("en", 1.0, True)  # ASCII in a non-Latin group: English (script models + EN)
     assert cyrillic.guess("Посторонним вход воспрещён")[0] == "ru"
     assert cyrillic.guess("Вихід")[0] in CYRILLIC.candidates
 
@@ -214,10 +222,10 @@ def test_languages_are_m2m100_codes():
 
 def test_download_script_matches_the_pipeline():
     dm = download_models()
-    assert {g.key for g in SCRIPT_GROUPS} == set(dm.OCR_SCRIPTS)
-    for group in SCRIPT_GROUPS:
-        assert dm.OCR_SCRIPTS[group.key][2] == group.model_file, group.key
-    assert dm.DEFAULT_OCR_SCRIPTS == (SCRIPT_GROUPS[0].key,)
+    installed = {a.dest.split("/")[1] for a in dm.ASSETS if a.dest and a.dest.startswith("ppocr/")}
+    assert {RECOGNIZERS[key].model for g in SCRIPT_GROUPS for key in g.recognizers} <= installed
+    assert {r.model for r in RECOGNIZERS.values()} | {DETECTOR, TEXTLINE_ORI, DOC_ORI} == installed
+    assert all(a.option is None for a in dm.ASSETS if a.dest and a.dest.startswith("ppocr/"))  # all by default
     assert {spec.download for spec in MODELS.values()} == set(dm.TRANSLATION_MODELS)
     for spec in MODELS.values():
         assert dm.TRANSLATION_MODELS[spec.download][2] == f"translation/{spec.dir}"
@@ -232,6 +240,9 @@ def test_options_and_legacy_language_values():
     assert specs["live"].default == "Read live" and specs["live"].choices == ["Mark text areas", "Read live"]
     assert specs["languages"].coerce("en") == latin  # saved by older app versions
     assert specs["languages"].coerce("en+pl") == latin
+    assert specs["languages"].coerce("Bengali — BN, AS + EN") == AUTO_SCRIPTS  # EasyOCR-only scripts (≤ v0.6)
+    assert specs["languages"].coerce("Kannada + EN") == AUTO_SCRIPTS
+    assert specs["languages"].coerce("Latin — EN, PL, DE, FR, ES, IT, PT, NL, CS, SV, TR… (41 languages)") == latin
     with pytest.raises(ValueError):
         specs["languages"].coerce("klingon")
     assert "aliases" not in specs["languages"].to_json()

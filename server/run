@@ -1,20 +1,14 @@
 #!/bin/sh
 # Run the server venv's Python with the environment every entry point needs:
 #   ./run -m glass_vision          (the server)       ./run -m pytest -q tests
-# - CUDA_DEVICE_ORDER + CUDA_VISIBLE_DEVICES (default 0 = nvidia-smi index 0): one GPU per process. torch disables
-#   cuDNN process-wide while any visible GPU is below SM 7.5, which crashes EasyOCR's recognizer. Pick another GPU
-#   with e.g. `CUDA_VISIBLE_DEVICES=1 ./run -m glass_vision`.
+# - CUDA_DEVICE_ORDER + CUDA_VISIBLE_DEVICES (default 0 = nvidia-smi index 0): one GPU per process. Keep older GPUs
+#   hidden; all inference pipelines should use one modern CUDA device.
 # - LD_LIBRARY_PATH: onnxruntime-gpu dlopens unversioned libcudnn*.so; .venv/ort-libs holds symlinks to the
 #   cuDNN 9 the torch wheel ships (created by scripts/install.sh; see AGENTS.md).
 # - YOLO_AUTOINSTALL=false: ultralytics otherwise pip-installs missing deps at runtime and once replaced torch.
-# - DISABLE_ADDMM_CUDA_LT=1: with torch 2.12+cu130 (driver 580) the cuBLASLt bias-fused addmm path intermittently hit
-#   "CUDA error: an illegal memory access" in nn.Linear of EasyOCR's 1st-generation recognizers (arabic, devanagari,
-#   bengali, thai, chinese.pth) when auto-detect tries every script; the error poisons the whole CUDA context (every
-#   pipeline fails until restart). Hit in 10 of 15 runs of one OCR benchmark (old and new code), 0 of 8 with this set.
 here="$(cd "$(dirname "$0")" && pwd)"
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 export LD_LIBRARY_PATH="$here/.venv/ort-libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export YOLO_AUTOINSTALL=false
-export DISABLE_ADDMM_CUDA_LT="${DISABLE_ADDMM_CUDA_LT:-1}"
 exec "$here/.venv/bin/python" "$@"
