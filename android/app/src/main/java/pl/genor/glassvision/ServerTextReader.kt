@@ -38,13 +38,13 @@ class ServerTextReader(
     private val endpoint: ServerEndpoint,
     private val options: () -> ReadOptions = { ReadOptions() },
     private val client: OkHttpClient = defaultClient,
-) : TextReader {
+) : TextReader, JpegTextReader {
     @Volatile private var languagesCache: List<TranslationLanguage>? = null
 
     override fun read(still: Bitmap, translateTo: List<String>): TextReading = readJpeg(encode(still), translateTo)
 
-    /** [read] for an already encoded upright JPEG. */
-    fun readJpeg(jpeg: ByteArray, translateTo: List<String>): TextReading {
+    /** [read] for a JPEG as is: upright, or with an EXIF orientation (the server applies it; [Still.uploadJpeg]). */
+    override fun readJpeg(jpeg: ByteArray, translateTo: List<String>): TextReading {
         val opts = options()
         val url = url("/text/read").newBuilder().apply {
             opts.languages?.takeIf { it.isNotBlank() }?.let { addQueryParameter("languages", it) }
