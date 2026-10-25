@@ -27,7 +27,7 @@ Status for the next contributor. Host-specific notes: `HANDOFF.local.md` / `AGEN
 3. On-device OCR improvements: PP-OCR mobile packs, full-resolution region reads and Tesseract long-tail cleanup.
 4. Add ML Kit document-scanning mode and live-result stability.
 5. Test capture/overlay behavior on a physical phone; obtain phone-shot examples for the evaluation set.
-6. The verified work is committed locally on `main`; **not pushed or deployed**. Ask Genor before any push/deploy.
+6. First public release `v0.6.0.16` published 2026-10-25 (<https://github.com/GenorTG/glass-vision/releases/tag/v0.6.0.16>): release-key signed, ClamAV clean, **VirusTotal skipped** — `VT_API_KEY` secret not set yet; the next tag after Genor adds it gets both scans. Server not redeployed; ask Genor before deploys.
 
 ## Repo conventions
 
