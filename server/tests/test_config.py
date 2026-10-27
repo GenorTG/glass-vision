@@ -45,6 +45,15 @@ def test_env_beats_file_and_empty_means_unset(tmp_path: Path) -> None:
     assert (s.host, s.port, s.token, s.idle_unload_s) == ("10.0.0.2", 9002, None, 30.0)
 
 
+def test_idle_restart_flag(tmp_path: Path) -> None:
+    missing = tmp_path / "missing.env"
+    assert load_settings({}, env_file=missing).idle_restart is True
+    assert load_settings({"GV_IDLE_RESTART": "off"}, env_file=missing).idle_restart is False
+    assert load_settings({"GV_IDLE_RESTART": "1"}, env_file=missing).idle_restart is True
+    with pytest.raises(ValueError, match="GV_IDLE_RESTART"):
+        load_settings({"GV_IDLE_RESTART": "sometimes"}, env_file=missing)
+
+
 def test_env_file_override_via_gv_env_file(tmp_path: Path) -> None:
     env_file = tmp_path / "other.env"
     env_file.write_text("GV_TOKEN=t0k3n\n")

@@ -14,6 +14,7 @@ optional `export ` prefix, optional single/double quotes) — the same file `scr
 | GV_DATA_DIR | server/data | persistent user data (face gallery, captures, distributed APK) |
 | GV_APK_PATH | see `default_apk_path` | APK served at `/app.apk` for in-app updates |
 | GV_IDLE_UNLOAD_S | 600 | unload a pipeline nobody used for this many seconds |
+| GV_IDLE_RESTART | true | once every pipeline is unloaded and nobody is connected, restart the process in place to return the GPU/heap memory an unload can't (`glass_vision/refresh.py`) |
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ class Settings:
     data_dir: Path = SERVER_ROOT / "data"
     apk_path: Path = SERVER_ROOT / "data" / "app" / APK_NAME
     idle_unload_s: float = 600.0
+    idle_restart: bool = True
 
 
 def parse_env_file(text: str) -> dict[str, str]:
@@ -98,6 +100,17 @@ def load_settings(environ: Mapping[str, str] | None = None, env_file: Path | Non
         except ValueError:
             raise ValueError(f"{key} must be a number, got {raw!r}") from None
 
+    def flag(key: str, default: bool) -> bool:
+        raw = get(key)
+        if raw is None:
+            return default
+        value = raw.lower()
+        if value in ("1", "true", "yes", "on"):
+            return True
+        if value in ("0", "false", "no", "off"):
+            return False
+        raise ValueError(f"{key} must be true or false, got {raw!r}")
+
     defaults = Settings()
     models_dir = Path(get("GV_MODELS_DIR") or defaults.models_dir).expanduser()
     data_dir = Path(get("GV_DATA_DIR") or defaults.data_dir).expanduser()
@@ -117,6 +130,7 @@ def load_settings(environ: Mapping[str, str] | None = None, env_file: Path | Non
         data_dir=data_dir,
         apk_path=Path(apk).expanduser() if apk else default_apk_path(data_dir),
         idle_unload_s=number("GV_IDLE_UNLOAD_S", defaults.idle_unload_s),
+        idle_restart=flag("GV_IDLE_RESTART", defaults.idle_restart),
     )
 
 

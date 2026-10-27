@@ -40,6 +40,7 @@ from typing import Any
 import cv2
 import numpy as np
 
+from .. import memory
 from ..translate import DEFAULT_MODEL, LANGUAGES, MODELS, SourceLanguages, Translator, is_translatable, normalize
 from . import ppocr
 from .base import MODELS_DIR, Annotation, OptionSpec, Pipeline, PipelineInfo, RunContext
@@ -302,10 +303,7 @@ class TextPipeline(Pipeline):
         if self._translator is not None:
             self._translator.unload()
             self._translator = None
-        import torch
-
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        memory.release()
 
     def _recognizer(self, key: str) -> ppocr.TextRecognizer | None:
         """Loaded on first use; None if its model is not installed."""

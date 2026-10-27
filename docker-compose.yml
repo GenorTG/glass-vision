@@ -12,6 +12,7 @@ x-server: &server
     GV_TOKEN: ${GV_TOKEN:-}
     GV_DEVICE: ${GV_DEVICE:-auto}
     GV_IDLE_UNLOAD_S: ${GV_IDLE_UNLOAD_S:-600}
+    GV_IDLE_RESTART: ${GV_IDLE_RESTART:-true}
     GV_APK_PATH: ${GV_APK_PATH:-}
     GV_SKIP_MODEL_DOWNLOAD: ${GV_SKIP_MODEL_DOWNLOAD:-0}
   # Host side defaults to 127.0.0.1 (this machine only). Set GV_BIND in .env to your LAN or Tailscale IP so the

@@ -133,6 +133,7 @@ see [.env.example](.env.example)). Environment variables override the file.
 | `GV_DATA_DIR` | `server/data` | face gallery, captures, the APK this server hands out |
 | `GV_APK_PATH` | `<data>/app/glass-vision.apk` | APK served to phones for in-app updates |
 | `GV_IDLE_UNLOAD_S` | `600` | free a recognizer's GPU memory after this many idle seconds |
+| `GV_IDLE_RESTART` | `true` | once nothing is loaded and no phone is connected, restart the server process in place (same PID, no dropped connections) so it gives back *all* GPU and RAM — an unload alone leaves ~0.7 GB VRAM and the grown heap behind |
 
 ## Updating
 

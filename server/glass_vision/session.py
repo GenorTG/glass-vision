@@ -1,8 +1,8 @@
 """Pipeline lifecycle (shared) and per-connection streaming sessions. Protocol: docs/PROTOCOL.md (v3).
 
-PipelineManager — one per process: lazy load on first enable, idle unload (frees VRAM), one lock per
-pipeline instance (models aren't thread-safe; different pipelines run in parallel threads), status
-broadcast to every connected session.
+PipelineManager — one per process: lazy load on first enable, idle unload (frees VRAM and RAM via
+`memory.release`), one lock per pipeline instance (models aren't thread-safe; different pipelines run in parallel
+threads), status broadcast to every connected session.
 
 StreamSession — one per WebSocket: latest frame wins; fast pipelines (interval_ms == 0) run inline and
 concurrently on every frame; slow ones run in background lanes on the newest frame at most every
@@ -24,6 +24,7 @@ import cv2
 import numpy as np
 from fastapi import WebSocket, WebSocketDisconnect
 
+from . import memory
 from .pipelines.base import Annotation, CommandContext, CommandResult, Pipeline, PipelineInfo, RunContext
 from .protocol import PROTOCOL_VERSION, Frame, ProtocolError, StreamConfig, unpack_frame
 from .tracking import TrackSmoother, normalize
@@ -31,6 +32,7 @@ from .tracking import TrackSmoother, normalize
 log = logging.getLogger("glass_vision")
 
 IDLE_UNLOAD_S = 600  # unload a pipeline nobody used for 10 min
+IDLE_CHECK_MAX_S = 60  # the idle loop wakes up every IDLE_UNLOAD_S / 4, at most this often
 ERROR_RETRY_S = 30  # a pipeline that failed to load/run may be retried after this
 ASYNC_HOLD_FACTOR = 2.5  # slow pipelines' tracks are held at least this many intervals
 # Options that change what a pipeline's labels mean: a change restarts its tracks, else the label vote keeps the old
@@ -64,6 +66,11 @@ class PipelineManager:
         self.device = device
         self.handles = {pid: PipelineHandle(cls) for pid, cls in classes.items()}
         self._listeners: set[Listener] = set()
+        self.used = False  # a pipeline was loaded in this process: it holds GPU/heap state only an exit frees
+
+    def idle(self) -> bool:
+        """Nothing loaded and nothing loading."""
+        return all(h.instance is None and h.loading is None for h in self.handles.values())
 
     def infos(self) -> dict[str, PipelineInfo]:
         return {pid: h.info for pid, h in self.handles.items()}
@@ -118,26 +125,33 @@ class PipelineManager:
         return h.status == "ready"
 
     async def _load(self, h: PipelineHandle) -> None:
+        self.used = True
         await self._set_status(h, "loading")
         t0 = time.perf_counter()
+        error = None
         try:
             instance = h.cls()
-
-            def load() -> None:
-                with h.lock:
-                    instance.load(self.device)
-
-            await asyncio.to_thread(load)
+            await asyncio.to_thread(self._load_locked, h, instance)
         except Exception as exc:
             log.exception("pipeline %s failed to load", h.info.id)
-            h.failed_at = time.monotonic()
-            await self._set_status(h, "error", f"load failed: {exc}")
-        else:
+            error = f"load failed: {exc}"
+        if error is None:
+            await asyncio.to_thread(memory.release)  # loaders leave freed CPU copies of the weights on the heap
             h.instance = instance
+            h.loading = None
             log.info("pipeline %s loaded in %.1fs", h.info.id, time.perf_counter() - t0)
             await self._set_status(h, "ready")
-        finally:
-            h.loading = None
+            return
+        # A half-loaded model: drop what it allocated (outside the except block, whose traceback still references it).
+        instance = None
+        await asyncio.to_thread(memory.release)
+        h.failed_at = time.monotonic()
+        h.loading = None
+        await self._set_status(h, "error", error)
+
+    def _load_locked(self, h: PipelineHandle, instance: Pipeline) -> None:
+        with h.lock:
+            instance.load(self.device)
 
     async def run(self, pid: str, image: np.ndarray, ctx: RunContext) -> tuple[list[Annotation], float]:
         h = self.handles[pid]
@@ -203,28 +217,33 @@ class PipelineManager:
             return
 
         def unload() -> None:
+            nonlocal instance
             with h.lock:
                 instance.unload()
-            if self.device.startswith("cuda"):
-                import torch
-
-                torch.cuda.empty_cache()
+                instance = None
+            memory.release()
 
         await asyncio.to_thread(unload)
 
-    async def unload_idle_forever(self) -> None:
-        while True:
-            await asyncio.sleep(60)
-            now = time.monotonic()
-            for h in self.handles.values():
-                if h.status == "ready" and now - h.last_used > IDLE_UNLOAD_S:
-                    log.info("unloading idle pipeline %s", h.info.id)
-                    await self._unload(h)
-                    await self._set_status(h, "not_loaded")
+    async def unload_idle(self) -> None:
+        """Unload every pipeline unused for IDLE_UNLOAD_S. The app calls this every `idle_check_s()`."""
+        now = time.monotonic()
+        unloaded = []
+        for h in self.handles.values():
+            if h.status == "ready" and now - h.last_used > IDLE_UNLOAD_S:
+                await self._unload(h)
+                await self._set_status(h, "not_loaded")
+                unloaded.append(h.info.id)
+        if unloaded:
+            log.info("unloaded idle pipelines %s (%s)", ", ".join(unloaded), memory.summary())
 
     async def shutdown(self) -> None:
         for h in self.handles.values():
             await self._unload(h)
+
+
+def idle_check_s() -> float:
+    return min(IDLE_CHECK_MAX_S, max(1.0, IDLE_UNLOAD_S / 4))
 
 
 class StreamSession:

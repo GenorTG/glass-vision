@@ -16,6 +16,7 @@ os.environ.setdefault("YOLO_AUTOINSTALL", "false")  # never pip-install at runti
 
 import uvicorn
 
+from . import refresh
 from .config import load_settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -29,10 +30,16 @@ except ValueError as exc:
 if settings.host in ("0.0.0.0", "::") and not settings.token:
     log.warning("listening on ALL interfaces without GV_TOKEN: anyone who can reach this port sees your camera stream")
 
-uvicorn.run(
+# We own the listening socket (instead of uvicorn) so an idle restart can hand it to the next process: refresh.py.
+try:
+    sock = refresh.adopt_or_bind(settings.host, settings.port)
+except OSError as exc:
+    sys.exit(f"glass-vision: cannot listen on {settings.host}:{settings.port}: {exc}")
+config = uvicorn.Config(
     "glass_vision.app:app",
     host=settings.host,
     port=settings.port,
     ws_max_size=8 * 1024 * 1024,
     log_config=None,  # keep the basicConfig format (and the token-redaction filters in app.py)
 )
+uvicorn.Server(config).run(sockets=[sock])

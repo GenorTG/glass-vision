@@ -66,7 +66,7 @@ server received on this connection (`ctx.frame`), so stream first, then send the
 ```
 
 Option `type`: `bool` | `text` | `number` (with `min`/`max`/`step`) | `choice` (with `choices: [str]`).
-`status`: `not_loaded` | `loading` | `ready` | `error` (pipelines load lazily on first enable, unload when unused for 10 min).
+`status`: `not_loaded` | `loading` | `ready` | `error` (pipelines load lazily on first enable, unload when unused for 10 min; a server with nothing loaded and no client connected may restart its process in place, which keeps the listening socket, so clients see no difference).
 
 **pipeline_status** (whenever a pipeline's status changes):
 

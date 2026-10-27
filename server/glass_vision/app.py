@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import FileResponse, HTMLResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from . import captures, session, text_read
+from . import captures, memory, refresh, session, text_read
 from .apk_info import read_apk_info
 from .config import REPO_ROOT, Settings, resolve_device, settings
 from .pipelines import available_pipelines
@@ -94,6 +94,25 @@ class TokenAuth:
         await send({"type": "http.response.body", "body": body})
 
 
+class TrackActivity:
+    """ASGI middleware: counts open WebSockets and running HTTP requests, so the server only restarts itself
+    (`refresh.py`) when nobody is using it."""
+
+    def __init__(self, app: ASGIApp, activity: refresh.Activity) -> None:
+        self.app = app
+        self.activity = activity
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] not in ("http", "websocket"):
+            await self.app(scope, receive, send)
+            return
+        self.activity.enter()
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            self.activity.exit()
+
+
 class RedactToken(logging.Filter):
     """Keep `?token=…` out of uvicorn's access/handshake log lines."""
 
@@ -116,7 +135,9 @@ for _name in ("uvicorn.access", "uvicorn.error"):
 
 class State:
     manager: PipelineManager
+    device: str
     device_label: str
+    activity: refresh.Activity
 
 
 state = State()
@@ -131,13 +152,33 @@ def device_label(device: str) -> str:
 
 
 def create_app(config: Settings) -> FastAPI:
-    session.IDLE_UNLOAD_S = config.idle_unload_s  # read by PipelineManager.unload_idle_forever on every pass
+    session.IDLE_UNLOAD_S = config.idle_unload_s  # read by PipelineManager.unload_idle on every pass
+    state.activity = refresh.Activity()
+
+    async def unload_and_refresh_forever() -> None:
+        """Unload idle pipelines; once nothing is loaded or connected, restart the process (refresh.py)."""
+        while True:
+            await asyncio.sleep(session.idle_check_s())
+            await state.manager.unload_idle()
+            if (
+                config.idle_restart
+                and refresh.available()
+                and state.manager.used
+                and state.manager.idle()
+                and state.activity.quiet(min(refresh.QUIET_S, config.idle_unload_s))
+            ):
+                log.info("everything idle: restarting the process to free GPU and heap memory (%s)", memory.summary())
+                refresh.restart(state.device, state.device_label)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        device = resolve_device(config.device)
-        state.device_label = device_label(device)
-        state.manager = PipelineManager(available_pipelines(), device)
+        again = refresh.refreshed()
+        if again is not None:  # replaced an idle process: don't touch the GPU until a client needs a model
+            state.device, state.device_label = again.device, again.device_label
+        else:
+            state.device = resolve_device(config.device)
+            state.device_label = device_label(state.device)
+        state.manager = PipelineManager(available_pipelines(), state.device)
         log.info(
             "glass-vision %s on %s, pipelines: %s; auth %s; models %s; data %s; APK %s",
             VERSION,
@@ -148,17 +189,20 @@ def create_app(config: Settings) -> FastAPI:
             config.data_dir,
             config.apk_path,
         )
-        # Load default-on pipelines now so the first client doesn't wait.
-        for pid, handle in state.manager.handles.items():
-            if handle.info.default_enabled:
-                await state.manager.ensure_ready(pid)
-        unloader = asyncio.create_task(state.manager.unload_idle_forever())
+        if again is not None:
+            log.info("restarted after idle: models load on first use (%s)", memory.summary())
+        else:  # load default-on pipelines now so the first client doesn't wait
+            for pid, handle in state.manager.handles.items():
+                if handle.info.default_enabled:
+                    await state.manager.ensure_ready(pid)
+        unloader = asyncio.create_task(unload_and_refresh_forever())
         yield
         unloader.cancel()
         await state.manager.shutdown()
 
     api = FastAPI(title="glass-vision", lifespan=lifespan)
     api.add_middleware(TokenAuth, token=config.token)
+    api.add_middleware(TrackActivity, activity=state.activity)  # outermost: rejected requests count too
 
     @api.get("/health")
     async def health() -> dict[str, object]:

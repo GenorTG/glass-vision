@@ -24,6 +24,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, NamedTuple
 
+from . import memory
 from .config import settings
 
 log = logging.getLogger(__name__)
@@ -239,6 +240,7 @@ class Translator:
         self._tokenizer = AutoTokenizer.from_pretrained(path)
         self._model = M2M100ForConditionalGeneration.from_pretrained(path, dtype=dtype).to(self.device).eval()
         self._model_name = model
+        memory.release()  # the checkpoint is read on the CPU first (fp32 .bin: 1.2B peaks at ~8.7 GB RSS)
         vram = (torch.cuda.memory_allocated() - before) / 2**20 if self.device.startswith("cuda") else 0
         log.info(
             "translate: loaded %s on %s in %.1fs (%.0f MiB VRAM)",
@@ -252,10 +254,7 @@ class Translator:
         if self._model is None:
             return
         self._model = self._tokenizer = self._model_name = None
-        import torch
-
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        memory.release()
 
     def unload(self) -> None:
         self.unload_model()
